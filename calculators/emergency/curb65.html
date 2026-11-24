@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CURB-65 — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+    .check .pts {
+      margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--accent);
+      background: var(--accent-soft); padding: 2px 8px; border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>CURB-65</h1>
+        <p class="subtitle">Пульмонология / неотложка</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-curb">
+      <h2>Тяжесть внебольничной пневмонии (CURB-65)</h2>
+      <p class="desc">Оценка необходимости госпитализации и риска летальности при внебольничной пневмонии</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="curb-check" data-pts="1"><span class="box"></span><span class="lbl">Спутанность сознания (Confusion)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="curb-check" data-pts="1"><span class="box"></span><span class="lbl">Мочевина &gt;7 ммоль/л (Urea)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="curb-check" data-pts="1"><span class="box"></span><span class="lbl">ЧДД ≥30/мин (Respiratory rate)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="curb-check" data-pts="1"><span class="box"></span><span class="lbl">САД &lt;90 или ДАД ≤60 мм рт.ст. (Blood pressure)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="curb-check" data-pts="1"><span class="box"></span><span class="lbl">Возраст ≥65 лет</span><span class="pts">+1</span></label>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="curb-result">
+            <span class="empty-msg">Отметьте имеющиеся критерии</span>
+          </div>
+          <div class="mini-scale" id="curb-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и рекомендации</summary>
+        <div class="note-content">
+          <p><strong>0–1 балл:</strong> низкий риск летальности (&lt;3%). Возможно амбулаторное лечение.</p>
+          <p><strong>2 балла:</strong> умеренный риск (~9%). Рекомендуется госпитализация в отделение терапии.</p>
+          <p><strong>≥3 баллов:</strong> высокий риск (15–40%). Показана госпитализация, рассмотреть ОРИТ.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function renderCurbScale(value) {
+        var el = document.getElementById('curb-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 5, [
+          { until: 1.5, class: 'ok' },
+          { until: 2.5, class: 'warn' },
+          { until: 5, class: 'danger' }
+        ], 'Ваш CURB-65: <strong>' + value + ' балл(ов)</strong> · шкала 0–5');
+      }
+
+      function calcCURB() {
+        var score = 0;
+        document.querySelectorAll('.curb-check:checked').forEach(function (c) {
+          score += parseFloat(c.dataset.pts);
+        });
+
+        var el = document.getElementById('curb-result');
+
+        if (!document.querySelector('.curb-check:checked')) {
+          MedCore.showEmpty(el, 'Отметьте имеющиеся критерии');
+          var s = document.getElementById('curb-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var label, cls, mort;
+        if (score <= 1) {
+          label = 'Амбулаторно';
+          cls = 'ok';
+          mort = '<3%';
+        } else if (score === 2) {
+          label = 'Госпитализация';
+          cls = 'warn';
+          mort = '~9%';
+        } else {
+          label = 'ОРИТ';
+          cls = 'danger';
+          mort = '15–40%';
+        }
+
+        MedCore.render(el, score, ' баллов', label, cls,
+          '30-дневная летальность: ' + mort);
+        renderCurbScale(score);
+      }
+
+      document.querySelectorAll('.curb-check').forEach(function (c) {
+        c.addEventListener('change', calcCURB);
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
