@@ -274,6 +274,8 @@
             card.href = '#';
           } else {
             card.href = item.file;
+            card.target = '_blank';
+            card.rel = 'noopener';
           }
 
           card.innerHTML = '<h3>' + item.title + '</h3>' +
