@@ -14,7 +14,7 @@
 
     .search-input {
       width: 100%;
-      padding: 14px 18px 14px 48px;
+      padding: 14px 18px 14px 52px;
       font-size: 1rem;
       border: 1.5px solid var(--border);
       border-radius: 12px;
@@ -159,7 +159,6 @@
         items.forEach(function (item) {
           var card = document.createElement('a');
           card.className = 'calc-card';
-          // Сохраняем текст для поиска в data-атрибуте
           card.dataset.search = (item.title + ' ' + item.description + ' ' + catName).toLowerCase();
 
           if (item.comingSoon) {
