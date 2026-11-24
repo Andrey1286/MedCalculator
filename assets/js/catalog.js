@@ -141,12 +141,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'qt',
-    title: 'QTc',
-    description: 'Корригированный интервал QT по Базетту',
-    category: 'Кардиология',
-    file: '',
-    comingSoon: true
+  id: 'qt',
+  title: 'QTc',
+  description: 'Корригированный интервал QT по Базетту',
+  category: 'Кардиология',
+  file: 'calculators/cardiology/qtc.html',
+  comingSoon: false
   },
 
   // Нефрология
