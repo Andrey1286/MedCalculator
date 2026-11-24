@@ -7,6 +7,48 @@
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="assets/css/base.css">
   <style>
+    .search-box {
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 14px 18px 14px 48px;
+      font-size: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--text);
+      transition: border-color .18s, box-shadow .18s;
+      font-family: inherit;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--muted);
+      font-style: italic;
+      display: none;
+    }
+
     .category-section { margin-bottom: 28px; }
     .category-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
     .category-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 0; }
@@ -45,6 +87,15 @@
       </div>
     </header>
 
+    <!-- Поиск -->
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, параметрам или категории...">
+    </div>
+
     <!-- Сводка по пациенту -->
     <div class="summary-panel">
       <div class="summary-header">
@@ -61,6 +112,7 @@
 
     <!-- Категории калькуляторов -->
     <div id="categoriesContainer"></div>
+    <div class="no-results" id="noResults">Ничего не найдено</div>
   </div>
 
   <script src="assets/js/catalog.js"></script>
@@ -85,6 +137,7 @@
       ];
 
       var container = document.getElementById('categoriesContainer');
+      var allSections = [];
 
       categoryOrder.forEach(function (catName) {
         var items = categories[catName] || [];
@@ -92,6 +145,7 @@
 
         var section = document.createElement('div');
         section.className = 'category-section';
+        section.dataset.category = catName.toLowerCase();
 
         var header = document.createElement('div');
         header.className = 'category-header';
@@ -105,6 +159,8 @@
         items.forEach(function (item) {
           var card = document.createElement('a');
           card.className = 'calc-card';
+          // Сохраняем текст для поиска в data-атрибуте
+          card.dataset.search = (item.title + ' ' + item.description + ' ' + catName).toLowerCase();
 
           if (item.comingSoon) {
             card.classList.add('coming-soon');
@@ -124,6 +180,32 @@
 
         section.appendChild(grid);
         container.appendChild(section);
+        allSections.push(section);
+      });
+
+      // Логика поиска
+      var searchInput = document.getElementById('searchInput');
+      var noResults = document.getElementById('noResults');
+
+      searchInput.addEventListener('input', function () {
+        var query = searchInput.value.trim().toLowerCase();
+        var visibleCount = 0;
+
+        allSections.forEach(function (section) {
+          var cards = section.querySelectorAll('.calc-card');
+          var sectionVisible = false;
+
+          cards.forEach(function (card) {
+            var match = !query || card.dataset.search.indexOf(query) !== -1;
+            card.style.display = match ? '' : 'none';
+            if (match) sectionVisible = true;
+          });
+
+          section.style.display = sectionVisible ? '' : 'none';
+          if (sectionVisible) visibleCount++;
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
       });
     });
   </script>
