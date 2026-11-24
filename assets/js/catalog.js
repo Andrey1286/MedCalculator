@@ -41,7 +41,7 @@ var CATALOG = [
   category: 'Эндокринология',
   file: 'calculators/endocrinology/calcium.html',
   comingSoon: false
-},
+  },
   {
     id: 'osmo-blood',
     title: 'Осмоляльность крови',
