@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кальций — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Кальций</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= Кальций ================= -->
+    <div class="panel active" id="panel-ca">
+      <h2>Кальций, скорректированный по альбумину</h2>
+      <p class="desc">Ca + 0.02 × (целевой альбумин − измеренный)</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>Общий кальций (ммоль/л)</label>
+              <input
+                type="number"
+                id="ca-total"
+                step="0.01"
+                placeholder="Например, 2.35"
+                data-min="0.5"
+                data-max="5"
+              >
+              <div class="field-error" id="ca-total-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Альбумин (г/л)</label>
+              <input
+                type="number"
+                id="ca-alb"
+                step="0.1"
+                placeholder="Например, 40"
+                data-min="10"
+                data-max="70"
+              >
+              <div class="field-error" id="ca-alb-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Целевой альбумин</label>
+              <select id="ca-target">
+                <option value="40" selected>40 г/л (стандарт)</option>
+                <option value="44">44 г/л (альтернатива)</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="ca-result">
+            <span class="empty-msg">Введите кальций и альбумин</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация</summary>
+        <div class="note-content">
+          <p>Ориентир: 2.15–2.55 ммоль/л. При сомнениях — ионизированный кальций.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcCa() {
+        var total = MedCore.num('ca-total');
+        var alb = MedCore.num('ca-alb');
+        var target = parseFloat(document.getElementById('ca-target').value);
+        var el = document.getElementById('ca-result');
+
+        if (!total || !alb || !target) {
+          MedCore.showEmpty(el, 'Введите кальций и альбумин');
+          return;
+        }
+
+        var corrected = total + 0.02 * (target - alb);
+
+        var label, cls;
+
+        if (corrected < 2.15) {
+          label = 'Низкий';
+          cls = 'danger';
+        } else if (corrected > 2.55) {
+          label = 'Высокий';
+          cls = 'danger';
+        } else {
+          label = 'Норма';
+          cls = 'ok';
+        }
+
+        MedCore.render(
+          el,
+          corrected.toFixed(2),
+          ' ммоль/л',
+          label,
+          cls,
+          'Референс 2.15–2.55 · Целевой альбумин ' + target + ' г/л'
+        );
+      }
+
+      MedCore.bindCalc(['ca-total', 'ca-alb'], calcCa);
+      document.getElementById('ca-target').addEventListener('change', calcCa);
+
+      calcCa();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
