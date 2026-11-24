@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Индекс Ментцера — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Индекс Ментцера</h1>
+        <p class="subtitle">Гематология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-mentzer">
+      <h2>Индекс Ментцера</h2>
+      <p class="desc">Дифференциальная диагностика микроцитарной анемии: железодефицит vs талассемия</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>
+                MCV — средний объём эритроцита (фл)
+                <span class="tooltip-icon" tabindex="0" data-tip="MCV в фемтолитрах (фл). Например, 70">?</span>
+              </label>
+              <input type="number" id="mtz-mcv" step="0.1" placeholder="Например, 70" data-min="40" data-max="130">
+              <div class="field-error" id="mtz-mcv-error"></div>
+            </div>
+            <div class="field">
+              <label>
+                RBC — количество эритроцитов (×10¹²/л)
+                <span class="tooltip-icon" tabindex="0" data-tip="Число эритроцитов в ×10¹²/л (или млн/мкл). Например, 5.0">?</span>
+              </label>
+              <input type="number" id="mtz-rbc" step="0.01" placeholder="Например, 5.0" data-min="1" data-max="10">
+              <div class="field-error" id="mtz-rbc-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="mtz-result">
+            <span class="empty-msg">Введите MCV и количество эритроцитов</span>
+          </div>
+          <div class="mini-scale" id="mtz-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Формула, интерпретация и ограничения</summary>
+        <div class="note-content">
+          <p><strong>Формула:</strong> Индекс Ментцера = MCV (фл) ÷ RBC (×10¹²/л).</p>
+          <p><strong>&lt; 13</strong> — больше в пользу талассемии.</p>
+          <p><strong>&gt; 13</strong> — больше в пользу железодефицитной анемии.</p>
+          <p><strong>Ограничения:</strong> индекс не заменяет исследование ферритина, гемоглобина A2 и генетическое тестирование. При смешанных состояниях (ЖДА + талассемия) результат может быть недостоверным.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function renderMtzScale(value) {
+        var el = document.getElementById('mtz-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 30, [
+          { until: 13, class: 'danger' },
+          { until: 30, class: 'ok' }
+        ], 'Ваш индекс Ментцера: <strong>' + value.toFixed(2) + '</strong> · шкала 0–30 · порог 13');
+      }
+
+      function calcMentzer() {
+        var mcv = MedCore.num('mtz-mcv');
+        var rbc = MedCore.num('mtz-rbc');
+        var el = document.getElementById('mtz-result');
+
+        if (!mcv || !rbc || mcv <= 0 || rbc <= 0) {
+          MedCore.showEmpty(el, 'Введите MCV и количество эритроцитов');
+          var s = document.getElementById('mtz-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var index = mcv / rbc;
+
+        var label, cls;
+        if (index < 13) {
+          label = 'Талассемия вероятнее';
+          cls = 'danger';
+        } else {
+          label = 'ЖДА вероятнее';
+          cls = 'ok';
+        }
+
+        MedCore.render(el, index.toFixed(2), '', label, cls,
+          'MCV ' + mcv + ' ÷ RBC ' + rbc + ' = ' + index.toFixed(2));
+        renderMtzScale(index);
+      }
+
+      MedCore.bindCalc(['mtz-mcv', 'mtz-rbc'], calcMentzer);
+
+      calcMentzer();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
