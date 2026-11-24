@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>НМГ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+    .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .result-table th { background: var(--info); font-weight: 700; }
+    .result-table td:last-child { text-align: right; font-weight: 600; }
+
+    .banner { padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem; }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
+    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>НМГ (эноксапарин)</h1>
+        <p class="subtitle">Антикоагулянты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-lmwh">
+      <h2>Дозировка низкомолекулярных гепаринов</h2>
+      <p class="desc">Лечебная и профилактическая дозы эноксапарина (Клексан) с учётом СКФ и веса</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="lmwh-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="lmwh-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>СКФ (мл/мин/1.73м²)</label>
+              <input type="number" id="lmwh-gfr" step="1" placeholder="Например, 45" data-min="5" data-max="200">
+              <div class="field-error" id="lmwh-gfr-error"></div>
+              <div class="hint">CKD-EPI или Кокрофт-Голт</div>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Показание</label>
+              <select id="lmwh-indication">
+                <option value="treatment">Лечение ТЭЛА / ТГВ</option>
+                <option value="prophylaxis">Профилактика ВТЭО</option>
+                <option value="acs">ОКС / ИМ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="banner info" style="margin-top:14px">
+            <strong>Важно:</strong> расчёт для эноксапарина (Клексан). Для других НМГ (далтепарин, надропарин) дозировки отличаются. При СКФ &lt;30 мл/мин требуется коррекция дозы или переход на нефракционированный гепарин.
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="lmwh-result">
+            <span class="empty-msg">Введите вес и СКФ</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Схемы дозирования</summary>
+        <div class="note-content">
+          <p><strong>Лечение ТЭЛА/ТГВ:</strong> 1 мг/кг × 2 раза/сут (или 1.5 мг/кг × 1 раз/сут при СКФ ≥30).</p>
+          <p><strong>Профилактика:</strong> 40 мг × 1 раз/сут (при СКФ ≥30); 20 мг × 1 раз/сут (при СКФ &lt;30).</p>
+          <p><strong>ОКС/ИМ:</strong> 1 мг/кг × 2 раза/сут.</p>
+          <p><strong>При СКФ &lt;30:</strong> лечебная доза снижается до 1 мг/кг × 1 раз/сут.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcLMWH() {
+        var weight = MedCore.num('lmwh-weight');
+        var gfr = MedCore.num('lmwh-gfr');
+        var indication = document.getElementById('lmwh-indication').value;
+        var el = document.getElementById('lmwh-result');
+
+        if (!weight || !gfr) {
+          MedCore.showEmpty(el, 'Введите вес и СКФ');
+          return;
+        }
+
+        if (gfr < 5) {
+          MedCore.render(el, '—', '', 'Противопоказано', 'danger',
+            'При СКФ <5 мл/мин НМГ противопоказаны. Рассмотрите нефракционированный гепарин.');
+          return;
+        }
+
+        var severeRenal = gfr < 30;
+        var dose, freq, note, cls;
+
+        if (indication === 'treatment') {
+          if (severeRenal) {
+            dose = (1 * weight).toFixed(0);
+            freq = '× 1 раз/сут';
+            note = 'СКФ <30: снижение дозы до 1 мг/кг × 1 раз/сут';
+            cls = 'warn';
+          } else {
+            dose = (1 * weight).toFixed(0);
+            freq = '× 2 раза/сут';
+            note = 'Стандартная лечебная доза';
+            cls = 'ok';
+          }
+        } else if (indication === 'acs') {
+          if (severeRenal) {
+            dose = (1 * weight).toFixed(0);
+            freq = '× 1 раз/сут';
+            note = 'СКФ <30: снижение дозы до 1 мг/кг × 1 раз/сут';
+            cls = 'warn';
+          } else {
+            dose = (1 * weight).toFixed(0);
+            freq = '× 2 раза/сут';
+            note = 'Стандартная доза при ОКС';
+            cls = 'ok';
+          }
+        } else {
+          // prophylaxis
+          if (severeRenal) {
+            dose = '20';
+            freq = '× 1 раз/сут';
+            note = 'СКФ <30: профилактическая доза снижена';
+            cls = 'warn';
+          } else {
+            dose = '40';
+            freq = '× 1 раз/сут';
+            note = 'Стандартная профилактическая доза';
+            cls = 'ok';
+          }
+        }
+
+        var renalBanner = '';
+        if (severeRenal) {
+          renalBanner = '<div class="banner warn">СКФ <30 мл/мин — требуется коррекция дозы. Контроль анти-Xa активности желателен.</div>';
+        } else if (gfr < 60) {
+          renalBanner = '<div class="banner info">СКФ 30–59 мл/мин — стандартная доза, но рекомендуется мониторинг функции почек.</div>';
+        }
+
+        var tableHtml = '<table class="result-table">' +
+          '<tr><th>Параметр</th><th>Значение</th></tr>' +
+          '<tr><td>Вес</td><td>' + weight + ' кг</td></tr>' +
+          '<tr><td>СКФ</td><td>' + gfr + ' мл/мин/1.73м²</td></tr>' +
+          '<tr><td>Доза эноксапарина</td><td>' + dose + ' мг ' + freq + '</td></tr>' +
+          '</table>';
+
+        el.className = 'result ' + cls;
+        el.innerHTML = '<div class="value">' + dose + ' мг</div>' +
+          '<div class="ref">' + freq + '</div>' +
+          '<div class="ref">' + note + '</div>' +
+          renalBanner + tableHtml;
+
+        MedCore.attachCopyButtons();
+        MedCore.updateCopyButtons();
+      }
+
+      MedCore.bindCalc(['lmwh-weight', 'lmwh-gfr'], calcLMWH);
+      document.getElementById('lmwh-indication').addEventListener('change', calcLMWH);
+
+      calcLMWH();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
