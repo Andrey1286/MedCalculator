@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ОТ/Рост — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>ОТ/Рост</h1>
+        <p class="subtitle">Общие калькуляторы</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= WHtR ================= -->
+    <div class="panel active" id="panel-whtr">
+      <h2>Отношение талия / рост</h2>
+      <p class="desc">Маркер висцерального ожирения</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>
+                Окружность талии (см)
+                <span
+                  class="tooltip-icon"
+                  tabindex="0"
+                  data-tip="Измеряйте посередине между нижним краем рёбер и верхней остью подвздошной кости, на выдохе, не втягивая живот"
+                >?</span>
+              </label>
+              <input
+                type="number"
+                id="whtr-waist"
+                step="0.5"
+                placeholder="Например, 90"
+                data-min="40"
+                data-max="200"
+              >
+              <div class="field-error" id="whtr-waist-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Рост (см)</label>
+              <input
+                type="number"
+                id="whtr-height"
+                step="0.5"
+                placeholder="Например, 175"
+                data-min="100"
+                data-max="250"
+              >
+              <div class="field-error" id="whtr-height-error"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="whtr-result">
+            <span class="empty-msg">Введите талию и рост</span>
+          </div>
+          <div class="mini-scale" id="whtr-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Пороги и как измерять</summary>
+        <div class="note-content">
+          <p>&lt;0.40 — низкое · 0.40–0.49 — норма · 0.50–0.59 — повышенное · ≥0.60 — значительно повышенное.</p>
+          <p>Талию измерять на выдохе, не втягивая живот.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function renderWhtrScale(value) {
+        var el = document.getElementById('whtr-scale');
+        if (!el) return;
+
+        MedCore.renderMiniScale(el, value, 0.3, 0.8, [
+          { until: 0.4, class: 'warn' },
+          { until: 0.5, class: 'ok' },
+          { until: 0.6, class: 'warn' },
+          { until: 0.8, class: 'danger' }
+        ], 'Ваш WHtR: <strong>' + value.toFixed(2) + '</strong> · шкала 0.3–0.8');
+      }
+
+      function calcWHTR() {
+        var waist = MedCore.num('whtr-waist');
+        var height = MedCore.num('whtr-height');
+        var el = document.getElementById('whtr-result');
+
+        if (!waist || !height || height <= 0) {
+          MedCore.showEmpty(el, 'Введите талию и рост');
+          var s = document.getElementById('whtr-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var ratio = waist / height;
+
+        var label, cls;
+
+        if (ratio < 0.40) {
+          label = 'Очень низкое';
+          cls = 'warn';
+        } else if (ratio < 0.50) {
+          label = 'Норма';
+          cls = 'ok';
+        } else if (ratio < 0.60) {
+          label = 'Повышенное';
+          cls = 'warn';
+        } else {
+          label = 'Значительно повышенное';
+          cls = 'danger';
+        }
+
+        var targetWaist = (0.50 * height).toFixed(1);
+
+        MedCore.render(
+          el,
+          ratio.toFixed(2),
+          '',
+          label,
+          cls,
+          'Целевая талия для роста ' + height + ' см: менее ' + targetWaist + ' см'
+        );
+
+        renderWhtrScale(ratio);
+      }
+
+      MedCore.bindCalc(['whtr-waist', 'whtr-height'], calcWHTR);
+
+      calcWHTR();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
