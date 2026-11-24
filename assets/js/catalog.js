@@ -225,12 +225,12 @@ var CATALOG = [
 
   // Антикоагулянты
   {
-    id: 'noac',
-    title: 'НОАК',
-    description: 'Новые оральные антикоагулянты',
-    category: 'Антикоагулянты',
-    file: '',
-    comingSoon: true
+  id: 'noac',
+  title: 'НОАК',
+  description: 'Подбор дозы при ФП с учётом СКФ, возраста и веса',
+  category: 'Антикоагулянты',
+  file: 'calculators/anticoagulants/noac.html',
+  comingSoon: false
   },
   {
     id: 'lmwh',
