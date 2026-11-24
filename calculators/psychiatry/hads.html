@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HADS — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+  <script src="../../assets/js/bridge.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+    .qtitle:first-child { margin-top: 0; }
+
+    .subscale-title {
+      font-weight: 700;
+      margin: 20px 0 10px;
+      font-size: 1rem;
+      color: var(--accent);
+      padding: 8px 12px;
+      background: var(--accent-soft);
+      border-radius: 8px;
+    }
+
+    .radio-group { display: grid; gap: 6px; margin-bottom: 10px; }
+
+    .radio-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      font-size: .88rem;
+    }
+    .radio-item:hover { border-color: var(--accent); background: var(--info); }
+    .radio-item input { margin-top: 3px; accent-color: var(--accent); }
+    .radio-item.checked { border-color: var(--accent); background: var(--accent-soft); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1 1 200px; padding: 12px 16px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--info); }
+
+    .result-block {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .result-block.ok { border-color: var(--ok); background: var(--ok-bg); }
+    .result-block.warn { border-color: var(--warn); background: var(--warn-bg); }
+    .result-block.danger { border-color: var(--danger); background: var(--danger-bg); }
+
+    .result-label {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .result-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .result-interp {
+      font-size: .9rem;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>HADS</h1>
+        <p class="subtitle">Психиатрия</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-hads">
+      <h2>Госпитальная шкала тревоги и депрессии (HADS)</h2>
+      <p class="desc">Скрининг тревоги и депрессии у соматических больных</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="qtitle">За последние 7 дней:</div>
+
+          <div id="hads-questions"></div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="hads-calc-btn">Рассчитать</button>
+            <button type="button" class="btn btn-secondary" id="hads-reset-btn">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result-block" id="hads-a-result">
+            <div class="result-label">Тревога (HADS-A)</div>
+            <div class="result-value">—</div>
+            <div class="result-interp">Ответьте на все вопросы</div>
+          </div>
+          <div class="result-block" id="hads-d-result">
+            <div class="result-label">Депрессия (HADS-D)</div>
+            <div class="result-value">—</div>
+            <div class="result-interp">Ответьте на все вопросы</div>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация результатов</summary>
+        <div class="note-content">
+          <p><strong>0–7 баллов:</strong> норма. Клинически значимых симптомов нет.</p>
+          <p><strong>8–10 баллов:</strong> субклинически выраженная тревога/депрессия (пограничное состояние). Рекомендуется наблюдение.</p>
+          <p><strong>11–21 балл:</strong> клинически выраженная тревога/депрессия. Показана консультация специалиста (психиатр, психотерапевт).</p>
+          <p><strong>Важно:</strong> HADS — скрининговый инструмент. Диагноз ставится врачом по критериям МКБ/DSM.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      var QUESTIONS = [
+        // Подшкала ТРЕВОГА (A) - вопросы 2, 4, 6, 8, 10, 12, 14
+        {
+          text: 'Я испытываю напряжение, мне не по себе',
+          options: [
+            { text: 'Совсем не испытываю', score: 0 },
+            { text: 'Время от времени, бывает', score: 1 },
+            { text: 'В большинстве случаев', score: 2 },
+            { text: 'Очень часто', score: 3 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'У меня бывают внезапные приступы паники',
+          options: [
+            { text: 'Очень часто', score: 3 },
+            { text: 'Довольно часто', score: 2 },
+            { text: 'Не так уж часто', score: 1 },
+            { text: 'Совсем не бывает', score: 0 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'Я могу совсем расслабиться и чувствовать себя свободно',
+          options: [
+            { text: 'Определённо да', score: 0 },
+            { text: 'Наверное, да', score: 1 },
+            { text: 'Не совсем так', score: 2 },
+            { text: 'Совсем нет', score: 3 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'У меня такое чувство, как будто я должен(на) быстро двигаться',
+          options: [
+            { text: 'Очень часто', score: 3 },
+            { text: 'Довольно часто', score: 2 },
+            { text: 'Не так уж часто', score: 1 },
+            { text: 'Совсем нет', score: 0 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'Я испытываю беспокойство по поводу возможных неприятностей',
+          options: [
+            { text: 'Постоянное беспокойство', score: 3 },
+            { text: 'Я испытываю беспокойство, но не больше обычного', score: 2 },
+            { text: 'Я испытываю беспокойство лишь изредка и это не мешает мне', score: 1 },
+            { text: 'Совсем не испытываю беспокойства', score: 0 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'У меня бывает такое чувство беспокойства и внутреннего напряжения, что кажется, я не могу усидеть на месте',
+          options: [
+            { text: 'Совсем нет', score: 0 },
+            { text: 'Наверное, да', score: 1 },
+            { text: 'Да, это так', score: 2 },
+            { text: 'Определённо да', score: 3 }
+          ],
+          subscale: 'A'
+        },
+        {
+          text: 'У меня бывают внезапные ощущения тревоги и паники',
+          options: [
+            { text: 'Очень часто', score: 3 },
+            { text: 'Довольно часто', score: 2 },
+            { text: 'Не так уж часто', score: 1 },
+            { text: 'Совсем не бывает', score: 0 }
+          ],
+          subscale: 'A'
+        },
+
+        // Подшкала ДЕПРЕССИЯ (D) - вопросы 1, 3, 5, 7, 9, 11, 13
+        {
+          text: 'Мне кажется, что я утратил(а) интерес к тому, что меня раньше радовало',
+          options: [
+            { text: 'Как и раньше', score: 0 },
+            { text: 'Чуть меньше, чем раньше', score: 1 },
+            { text: 'Определённо меньше', score: 2 },
+            { text: 'Совсем утратил(а)', score: 3 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'Я могу смеяться и видеть смешное в том, что меня окружает',
+          options: [
+            { text: 'Как и раньше', score: 0 },
+            { text: 'Чуть меньше', score: 1 },
+            { text: 'Определённо меньше', score: 2 },
+            { text: 'Совсем не могу', score: 3 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'Я чувствую себя бодрым(ой) и могу замедлиться',
+          options: [
+            { text: 'Почти всё время', score: 0 },
+            { text: 'Очень часто', score: 1 },
+            { text: 'Очень редко', score: 2 },
+            { text: 'Совсем нет', score: 3 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'Мне кажется, что я стал(а) медлительным(ой)',
+          options: [
+            { text: 'Почти всё время', score: 3 },
+            { text: 'Очень часто', score: 2 },
+            { text: 'Иногда', score: 1 },
+            { text: 'Совсем нет', score: 0 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'Я не испытываю удовольствия от еды',
+          options: [
+            { text: 'Как и раньше', score: 0 },
+            { text: 'Чуть меньше', score: 1 },
+            { text: 'Определённо меньше', score: 2 },
+            { text: 'Совсем не испытываю', score: 3 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'У меня нет интереса к своей внешности',
+          options: [
+            { text: 'Как и раньше', score: 0 },
+            { text: 'Не так, как раньше', score: 1 },
+            { text: 'Определённо не так, как раньше', score: 2 },
+            { text: 'Совсем нет интереса', score: 3 }
+          ],
+          subscale: 'D'
+        },
+        {
+          text: 'Я получаю удовольствие от чтения книг, радио, телевидения',
+          options: [
+            { text: 'Как и раньше', score: 0 },
+            { text: 'Чуть меньше', score: 1 },
+            { text: 'Определённо меньше', score: 2 },
+            { text: 'Совсем не получаю', score: 3 }
+          ],
+          subscale: 'D'
+        }
+      ];
+
+      // Генерация вопросов
+      var container = document.getElementById('hads-questions');
+      var currentSubscale = '';
+
+      QUESTIONS.forEach(function (q, i) {
+        // Добавляем заголовок подшкалы при смене
+        if (q.subscale !== currentSubscale) {
+          currentSubscale = q.subscale;
+          var title = document.createElement('div');
+          title.className = 'subscale-title';
+          title.textContent = currentSubscale === 'A' ? 'Подшкала ТРЕВОГА' : 'Подшкала ДЕПРЕССИЯ';
+          container.appendChild(title);
+        }
+
+        var qDiv = document.createElement('div');
+        qDiv.innerHTML = '<div class="qtitle">' + (i + 1) + '. ' + q.text + '</div>' +
+          '<div class="radio-group" id="hads-q' + i + '">' +
+          q.options.map(function (opt) {
+            return '<label class="radio-item">' +
+              '<input type="radio" name="hads-q' + i + '" value="' + opt.score + '">' +
+              '<span>' + opt.text + '</span></label>';
+          }).join('') + '</div>';
+        container.appendChild(qDiv);
+      });
+
+      // Стилизация радио-кнопок
+      document.querySelectorAll('.radio-item input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          var name = inp.name;
+          document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+            r.closest('.radio-item').classList.toggle('checked', r.checked);
+          });
+        });
+      });
+
+      function interpretScore(score) {
+        if (score <= 7) return { label: 'Норма', cls: 'ok' };
+        if (score <= 10) return { label: 'Субклиническая', cls: 'warn' };
+        return { label: 'Клинически выраженная', cls: 'danger' };
+      }
+
+      function calcHADS() {
+        var scoreA = 0, scoreD = 0;
+        var answeredA = 0, answeredD = 0;
+
+        QUESTIONS.forEach(function (q, i) {
+          var checked = document.querySelector('input[name="hads-q' + i + '"]:checked');
+          if (checked) {
+            var score = parseInt(checked.value);
+            if (q.subscale === 'A') {
+              scoreA += score;
+              answeredA++;
+            } else {
+              scoreD += score;
+              answeredD++;
+            }
+          }
+        });
+
+        var aResult = document.getElementById('hads-a-result');
+        var dResult = document.getElementById('hads-d-result');
+
+        if (answeredA < 7 || answeredD < 7) {
+          aResult.className = 'result-block';
+          aResult.innerHTML = '<div class="result-label">Тревога (HADS-A)</div>' +
+            '<div class="result-value">—</div>' +
+            '<div class="result-interp">Ответьте на все вопросы (' + answeredA + '/7)</div>';
+
+          dResult.className = 'result-block';
+          dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div>' +
+            '<div class="result-value">—</div>' +
+            '<div class="result-interp">Ответьте на все вопросы (' + answeredD + '/7)</div>';
+
+          // Очищаем сводку
+          try {
+            var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+            delete data['hads-a'];
+            delete data['hads-d'];
+            localStorage.setItem('medcalc-summary', JSON.stringify(data));
+          } catch (e) {}
+          return;
+        }
+
+        var interpA = interpretScore(scoreA);
+        var interpD = interpretScore(scoreD);
+
+        aResult.className = 'result-block ' + interpA.cls;
+        aResult.innerHTML = '<div class="result-label">Тревога (HADS-A)</div>' +
+          '<div class="result-value">' + scoreA + ' баллов</div>' +
+          '<div class="result-interp">' + interpA.label + '</div>';
+
+        dResult.className = 'result-block ' + interpD.cls;
+        dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div>' +
+          '<div class="result-value">' + scoreD + ' баллов</div>' +
+          '<div class="result-interp">' + interpD.label + '</div>';
+
+        // Сохраняем в сводку через MedCore.saveToSummary
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('hads-a', 'HADS - Тревога', scoreA + ' баллов', '', interpA.cls);
+          MedCore.saveToSummary('hads-d', 'HADS - Депрессия', scoreD + ' баллов', '', interpD.cls);
+        }
+      }
+
+      document.getElementById('hads-calc-btn').addEventListener('click', calcHADS);
+
+      document.getElementById('hads-reset-btn').addEventListener('click', function () {
+        document.querySelectorAll('#panel-hads input[type=radio]').forEach(function (r) {
+          r.checked = false;
+          r.closest('.radio-item').classList.remove('checked');
+        });
+
+        var aResult = document.getElementById('hads-a-result');
+        var dResult = document.getElementById('hads-d-result');
+
+        aResult.className = 'result-block';
+        aResult.innerHTML = '<div class="result-label">Тревога (HADS-A)</div>' +
+          '<div class="result-value">—</div>' +
+          '<div class="result-interp">Ответьте на все вопросы</div>';
+
+        dResult.className = 'result-block';
+        dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div>' +
+          '<div class="result-value">—</div>' +
+          '<div class="result-interp">Ответьте на все вопросы</div>';
+
+        // Очищаем сводку
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['hads-a'];
+          delete data['hads-d'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
