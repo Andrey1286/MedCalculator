@@ -4,38 +4,311 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Медицинские калькуляторы</title>
-  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --border: #e5e7eb;
+      --green: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 20px 10px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .switch-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .counter {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 220px;
+    }
+
+    .card.disabled {
+      opacity: 0.62;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 13px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .actions {
+      margin-top: auto;
+      padding-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 15px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 27px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 999px;
+      transition: 0.2s;
+      cursor: pointer;
+    }
+
+    .slider:before {
+      content: "";
+      position: absolute;
+      width: 21px;
+      height: 21px;
+      left: 3px;
+      top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .switch input:checked + .slider {
+      background: var(--green);
+    }
+
+    .switch input:checked + .slider:before {
+      transform: translateX(21px);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .modal-window {
+      position: relative;
+      margin: 3vh auto;
+      width: min(1200px, 94vw);
+      height: 90vh;
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .modal-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .modal-links a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .modal-links button {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: 0;
+    }
+
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 30px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 700px) {
+      .modal-window {
+        width: 97vw;
+        height: 93vh;
+        margin: 1.5vh auto;
+      }
+
+      h1 {
+        font-size: 27px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <header class="page-header">
+  <header>
     <h1>Медицинские калькуляторы</h1>
-    <p class="subtitle">Каталог калькуляторов для быстрого доступа</p>
+    <p class="subtitle">
+      Выберите нужный калькулятор. Его можно открыть прямо здесь или в новой вкладке.
+    </p>
   </header>
 
   <main class="container">
-
     <section class="panel">
-      <div class="toolbar">
-        <input
-          id="search"
-          type="search"
-          placeholder="Поиск по названию или описанию"
-        >
+      <label class="switch-label">
+        <input type="checkbox" id="onlyEnabled">
+        Показывать только включённые
+      </label>
 
-        <select id="category"></select>
-
-        <label class="only-enabled">
-          <input type="checkbox" id="onlyEnabled">
-          Только включённые
-        </label>
-      </div>
-
-      <p id="counter" class="counter"></p>
+      <div id="counter" class="counter"></div>
     </section>
 
     <section id="grid" class="grid"></section>
-
   </main>
 
   <div id="modal" class="modal hidden" aria-hidden="true">
@@ -45,7 +318,7 @@
       <div class="modal-header">
         <h2 id="modalTitle">Калькулятор</h2>
 
-        <div class="modal-actions">
+        <div class="modal-links">
           <a id="modalNewTab" href="#" target="_blank" rel="noopener">
             Открыть отдельно
           </a>
@@ -59,13 +332,168 @@
 
   <footer>
     <p>
-      Информация, полученная с помощью калькуляторов, носит справочный характер
-      и не заменяет консультацию врача.
+      Результаты расчётов носят справочный характер и не заменяют консультацию врача.
     </p>
   </footer>
 
-  <script src="calculators.js"></script>
-  <script src="app.js"></script>
+  <script>
+    const CALCULATORS = [
+      {
+        id: "medcalculator",
+        title: "Медицинские калькуляторы",
+        description:
+          "Большой набор расчётов для приёма: ИМТ, СКФ, SCORE2, FINDRISC, FIB-4, CURB-65, витамин D, инсулин и другие.",
+        category: "Основной набор",
+        file: "MedCalculator.html",
+        enabled: true
+      },
+      {
+        id: "anticoagulants",
+        title: "Калькулятор антикоагулянтов",
+        description:
+          "НОАК, низкомолекулярные гепарины, варфарин, внутривенный нефракционированный гепарин.",
+        category: "Антикоагулянты",
+        file: "Calk.html",
+        enabled: true
+      }
+    ];
+
+    const STORAGE_KEY = "medcalculator-enabled-v1";
+
+    const grid = document.getElementById("grid");
+    const onlyEnabled = document.getElementById("onlyEnabled");
+    const counter = document.getElementById("counter");
+
+    const modal = document.getElementById("modal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalFrame = document.getElementById("modalFrame");
+    const modalNewTab = document.getElementById("modalNewTab");
+
+    let enabledOverrides = {};
+
+    try {
+      enabledOverrides = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch (e) {
+      enabledOverrides = {};
+    }
+
+    function isEnabled(item) {
+      if (typeof enabledOverrides[item.id] === "boolean") {
+        return enabledOverrides[item.id];
+      }
+      return item.enabled !== false;
+    }
+
+    function saveEnabled() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(enabledOverrides));
+    }
+
+    function openModal(item) {
+      modalTitle.textContent = item.title;
+      modalFrame.src = item.file;
+      modalNewTab.href = item.file;
+
+      modal.classList.remove("hidden");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+      modal.classList.add("hidden");
+      modal.setAttribute("aria-hidden", "true");
+      modalFrame.src = "about:blank";
+      document.body.style.overflow = "";
+    }
+
+    function createCard(item) {
+      const card = document.createElement("article");
+      card.className = "card" + (isEnabled(item) ? "" : " disabled");
+
+      card.innerHTML = `
+        <div class="card-top">
+          <span class="badge">${item.category}</span>
+
+          <label class="switch" title="Включить или выключить калькулятор">
+            <input
+              type="checkbox"
+              class="toggle"
+              ${isEnabled(item) ? "checked" : ""}
+            >
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <h2>${item.title}</h2>
+        <p>${item.description}</p>
+
+        <div class="actions">
+          <button type="button" class="button primary open-button">
+            Открыть
+          </button>
+
+          <a
+            class="button secondary"
+            href="${encodeURI(item.file)}"
+            target="_blank"
+            rel="noopener"
+          >
+            В новой вкладке
+          </a>
+        </div>
+      `;
+
+      const toggle = card.querySelector(".toggle");
+      toggle.addEventListener("change", function () {
+        enabledOverrides[item.id] = this.checked;
+        saveEnabled();
+        render();
+      });
+
+      const openButton = card.querySelector(".open-button");
+      openButton.addEventListener("click", function () {
+        openModal(item);
+      });
+
+      return card;
+    }
+
+    function render() {
+      grid.innerHTML = "";
+
+      const visibleItems = CALCULATORS.filter(item => {
+        if (onlyEnabled.checked) {
+          return isEnabled(item);
+        }
+        return true;
+      });
+
+      visibleItems.forEach(item => {
+        grid.appendChild(createCard(item));
+      });
+
+      const total = CALCULATORS.length;
+      const enabledCount = CALCULATORS.filter(isEnabled).length;
+
+      counter.textContent =
+        "Всего: " + total +
+        " · Включено: " + enabledCount +
+        " · Показано: " + visibleItems.length;
+    }
+
+    document.querySelectorAll("[data-close]").forEach(element => {
+      element.addEventListener("click", closeModal);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+
+    onlyEnabled.addEventListener("change", render);
+
+    render();
+  </script>
 
 </body>
 </html>
