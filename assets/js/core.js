@@ -278,5 +278,106 @@
     copyToClipboard: copyToClipboard,
     init: init
   };
+  // ====== Сводка: запись результатов ======
+  var SUMMARY_STORAGE_KEY = 'medcalc-summary';
 
+  function saveToSummary(id, title, value, unit, cls) {
+    if (!value || value === '') return;
+
+    var data = {};
+    try {
+      data = JSON.parse(localStorage.getItem(SUMMARY_STORAGE_KEY)) || {};
+    } catch (e) {
+      data = {};
+    }
+
+    data[id] = {
+      title: title,
+      value: value,
+      unit: unit || '',
+      cls: cls || '',
+      timestamp: Date.now()
+    };
+
+    try {
+      localStorage.setItem(SUMMARY_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
+
+    // Уведомляем другие вкладки об изменении
+    try {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: SUMMARY_STORAGE_KEY,
+        newValue: JSON.stringify(data)
+      }));
+    } catch (e) {}
+  }
+
+  function clearSummary() {
+    try {
+      localStorage.removeItem(SUMMARY_STORAGE_KEY);
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: SUMMARY_STORAGE_KEY,
+        newValue: null
+      }));
+    } catch (e) {}
+  }
+
+  // Расширяем существующую функцию render, чтобы автоматически сохранять в сводку
+  var _originalRender = render;
+  render = function (el, value, unit, tagText, tagCls, refText, extraHtml) {
+    _originalRender(el, value, unit, tagText, tagCls, refText, extraHtml);
+
+    // Определяем ID и заголовок калькулятора
+    var panel = el.closest('.panel');
+    if (!panel) return;
+
+    var panelId = panel.id.replace('panel-', '');
+    var h2 = panel.querySelector('h2');
+    var title = h2 ? h2.textContent.trim() : panelId;
+
+    // Извлекаем текстовое значение
+    var valueEl = el.querySelector('.value');
+    var textValue = '';
+    if (valueEl) {
+      var nodes = valueEl.childNodes;
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].nodeType === 3) {
+          textValue += nodes[i].textContent;
+        } else if (nodes[i].classList && nodes[i].classList.contains('unit')) {
+          textValue += nodes[i].textContent;
+        }
+      }
+      textValue = textValue.trim();
+    }
+
+    if (textValue) {
+      saveToSummary(panelId, title, textValue, unit, tagCls);
+    }
+  };
+
+  // Расширяем showEmpty для очистки записи в сводке
+  var _originalShowEmpty = showEmpty;
+  showEmpty = function (el, msg) {
+    _originalShowEmpty(el, msg);
+
+    var panel = el.closest('.panel');
+    if (!panel) return;
+
+    var panelId = panel.id.replace('panel-', '');
+
+    try {
+      var data = JSON.parse(localStorage.getItem(SUMMARY_STORAGE_KEY)) || {};
+      if (data[panelId]) {
+        delete data[panelId];
+        localStorage.setItem(SUMMARY_STORAGE_KEY, JSON.stringify(data));
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: SUMMARY_STORAGE_KEY,
+          newValue: JSON.stringify(data)
+        }));
+      }
+    } catch (e) {}
+  };
+
+  window.MedCore.saveToSummary = saveToSummary;
+  window.MedCore.clearSummary = clearSummary;
 })();
