@@ -49,4 +49,5 @@ var CATALOG = [
 
   // Психиатрия
   { id: 'gad7', title: 'GAD-7', description: 'Скрининг генерализованного тревожного расстройства', category: 'Психиатрия', file: 'calculators/psychiatry/gad7.html', comingSoon: false, tags: 'тревога гтр gad7 anxiety generalized disorder скрининг психиатрия psychiatry mental health' },
+    { id: 'hads', title: 'HADS', description: 'Госпитальная шкала тревоги и депрессии', category: 'Психиатрия', file: 'calculators/psychiatry/hads.html', comingSoon: false, tags: 'тревога депрессия hads госпитальная шкала anxiety depression screening психиатрия psychiatry mental health' },
 ];
