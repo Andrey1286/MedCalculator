@@ -43,12 +43,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'osmo-blood',
-    title: 'Осмоляльность крови',
-    description: 'Расчётная осмоляльность плазмы',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'osmo-blood',
+  title: 'Осмоляльность крови',
+  description: 'Расчётная осмоляльность плазмы',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/osmo-blood.html',
+  comingSoon: false
   },
   {
     id: 'osmo-urine',
