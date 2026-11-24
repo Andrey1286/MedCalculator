@@ -99,12 +99,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'score2dm',
-    title: 'SCORE2-Diabetes',
-    description: '10-летний риск ССЗ у пациентов с диабетом 2 типа',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'score2dm',
+  title: 'SCORE2-Diabetes',
+  description: '10-летний риск ССЗ у пациентов с диабетом 2 типа',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/score2-diabetes.html',
+  comingSoon: false
   },
 
   // Кардиология
