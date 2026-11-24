@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Стадия АГ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+    .qtitle:first-child { margin-top: 0; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+
+    .banner {
+      padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem;
+    }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Стадия АГ</h1>
+        <p class="subtitle">Кардиология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-htn-stage">
+      <h2>Стадия гипертонической болезни</h2>
+      <p class="desc">Определение стадии АГ по наличию ПОМ и АКС</p>
+
+      <div class="panel-body">
+        <div class="panel-fields-col">
+
+          <div class="qtitle">1. Цифры АД (для справки — степень АГ)</div>
+          <div class="grid">
+            <div class="field">
+              <label>САД (мм рт.ст.)</label>
+              <input type="number" id="htn-sbp" step="1" placeholder="Например, 150" data-min="70" data-max="260">
+              <div class="field-error" id="htn-sbp-error"></div>
+            </div>
+            <div class="field">
+              <label>ДАД (мм рт.ст.)</label>
+              <input type="number" id="htn-dbp" step="1" placeholder="Например, 95" data-min="30" data-max="160">
+              <div class="field-error" id="htn-dbp-error"></div>
+            </div>
+          </div>
+          <div id="htn-degree" class="banner info" style="margin-top:6px">Введите САД и ДАД</div>
+
+          <div class="qtitle">2. Поражение органов-мишеней (ПОМ) — для стадии II</div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Гипертрофия левого желудочка (ЭхоКГ, ЭКГ)</span></label>
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Утолщение стенки сонной артерии (ТКИМ &gt;0.9 мм) или бляшка</span></label>
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Микроальбуминурия (30–300 мг/сут)</span></label>
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Снижение СКФ до 30–59 мл/мин/1.73 м² (ХБП 3 ст.)</span></label>
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Ригидность артерий (СПВ &gt;10 м/с)</span></label>
+            <label class="check"><input type="checkbox" class="htn-pom"><span class="box"></span><span class="lbl">Гипертоническая ретинопатия</span></label>
+          </div>
+
+          <div class="qtitle">3. Ассоциированные клинические состояния (АКС) — для стадии III</div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">ИБС: стенокардия, ИМ, реваскуляризация</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Хроническая сердечная недостаточность</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Фибрилляция предсердий</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Инсульт / ТИА в анамнезе</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Поражение периферических артерий</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">ХБП 4–5 ст. или протеинурия &gt;300 мг/сут</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Сахарный диабет</span></label>
+            <label class="check"><input type="checkbox" class="htn-aks"><span class="box"></span><span class="lbl">Тяжёлая гипертоническая ретинопатия</span></label>
+          </div>
+
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="htn-result">
+            <span class="empty-msg">Введите САД и ДАД, отметьте ПОМ и АКС</span>
+          </div>
+        </div>
+      </div>
+
+      <details class="note">
+        <summary>Как определяется стадия</summary>
+        <div class="note-content">
+          <p><strong>Стадия I</strong> — без ПОМ и без АКС.</p>
+          <p><strong>Стадия II</strong> — с ПОМ, но без АКС.</p>
+          <p><strong>Стадия III</strong> — с АКС независимо от степени АГ.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function calcHtnDegree() {
+        var sbp = MedCore.num('htn-sbp'), dbp = MedCore.num('htn-dbp');
+        var el = document.getElementById('htn-degree');
+        if (!sbp || !dbp) {
+          el.className = 'banner info';
+          el.textContent = 'Введите САД и ДАД';
+          return;
+        }
+        var degree;
+        if (sbp < 140 && dbp < 90) degree = 'Нормальное / высокое нормальное АД';
+        else if (sbp < 160 && dbp < 100) degree = 'АГ 1 степени';
+        else if (sbp < 180 && dbp < 110) degree = 'АГ 2 степени';
+        else degree = 'АГ 3 степени';
+
+        el.className = 'banner info';
+        el.innerHTML = '<strong>Степень АГ (для справки):</strong> ' + degree;
+      }
+
+      function calcHtnStage() {
+        var el = document.getElementById('htn-result');
+        var pomCount = document.querySelectorAll('.htn-pom:checked').length;
+        var aksCount = document.querySelectorAll('.htn-aks:checked').length;
+        var sbp = MedCore.num('htn-sbp'), dbp = MedCore.num('htn-dbp');
+
+        if (!sbp && !dbp && pomCount === 0 && aksCount === 0) {
+          MedCore.showEmpty(el, 'Введите САД и ДАД, отметьте ПОМ и АКС');
+          return;
+        }
+
+        var stage, cls, desc;
+        if (aksCount > 0) {
+          stage = 'Стадия III'; cls = 'danger';
+          desc = 'Обнаружены ассоциированные клинические состояния (АКС) — III стадия.';
+        } else if (pomCount > 0) {
+          stage = 'Стадия II'; cls = 'warn';
+          desc = 'Обнаружено поражение органов-мишеней (ПОМ) без АКС — II стадия.';
+        } else {
+          stage = 'Стадия I'; cls = 'ok';
+          desc = 'ПОМ и АКС не отмечены — I стадия.';
+        }
+
+        var details = '<div class="sub-block">' +
+          '<div class="sub-label">Отмечено</div>' +
+          '<div class="sub-ref">ПОМ: ' + pomCount + ' · АКС: ' + aksCount + '</div></div>';
+
+        MedCore.render(el, stage, '', null, cls, desc, details);
+      }
+
+      MedCore.bindCalc(['htn-sbp', 'htn-dbp'], function () {
+        calcHtnDegree();
+        calcHtnStage();
+      });
+
+      document.querySelectorAll('.htn-pom, .htn-aks').forEach(function (c) {
+        c.addEventListener('change', calcHtnStage);
+      });
+
+      MedCore.init();
+    });
+  </script>
+
+</body>
+</html>
