@@ -2,157 +2,318 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Медицинские калькуляторы</title>
 
   <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="stylesheet" href="assets/css/base.css">
 
   <style>
-    :root {
-      --bg: #f6f8fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --accent: #2563eb;
-      --border: #e5e7eb;
+    .category-section {
+      margin-bottom: 28px;
     }
 
-    * {
-      box-sizing: border-box;
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
     }
 
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
+    .category-title {
+      font-size: 1.2rem;
+      font-weight: 700;
       color: var(--text);
-      line-height: 1.5;
-    }
-
-    header {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 32px 20px 8px;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 34px;
-      line-height: 1.2;
-    }
-
-    .subtitle {
       margin: 0;
+    }
+
+    .category-count {
+      font-size: 0.85rem;
       color: var(--muted);
-      font-size: 17px;
+      background: var(--info);
+      padding: 2px 10px;
+      border-radius: 12px;
     }
 
-    main {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 24px 20px;
+    .cards-grid {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
     }
 
-    .card {
+    .calc-card {
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 22px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
       text-decoration: none;
       color: inherit;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
     }
 
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-      border-color: #c7d2fe;
+    .calc-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent);
     }
 
-    .badge {
-      display: inline-block;
-      width: fit-content;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-size: 13px;
+    .calc-card.coming-soon {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
     }
 
-    .card h2 {
+    .calc-card h3 {
       margin: 0;
-      font-size: 27px;
-      line-height: 1.25;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
     }
 
-    .card p {
+    .calc-card p {
       margin: 0;
+      font-size: 0.88rem;
       color: var(--muted);
+      line-height: 1.5;
     }
 
-    .go {
-      margin-top: 8px;
+    .calc-card .go {
+      margin-top: auto;
       color: var(--accent);
       font-weight: 600;
+      font-size: 0.9rem;
     }
 
-    footer {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 0 20px 32px;
+    .calc-card.coming-soon .go {
       color: var(--muted);
-      font-size: 14px;
     }
 
-    @media (min-width: 800px) {
-      main {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    .summary-panel {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .summary-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .summary-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-new-patient {
+      padding: 8px 16px;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+
+    .btn-new-patient:hover {
+      background: #991b1b;
+    }
+
+    .btn-copy-all {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s;
+    }
+
+    .btn-copy-all:hover {
+      background: #1d4ed8;
+    }
+
+    .summary-empty {
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      padding: 24px 16px;
+    }
+
+    .summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .summary-value {
+      font-weight: 700;
+      text-align: right;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Медицинские калькуляторы</h1>
-    <p class="subtitle">Выберите нужный калькулятор</p>
-  </header>
+  <div class="top-stripe"></div>
 
-  <main>
+  <div class="wrap">
 
-    <a class="card" href="MedCalculator.html">
-      <span class="badge">Основной набор</span>
-      <h2>Медицинские калькуляторы</h2>
-      <p>
-        Быстрые расчёты на приёме: ИМТ, СКФ, SCORE2, FINDRISC, FIB-4,
-        CURB-65, витамин D, инсулин и другие. Работают локально в браузере.
-      </p>
-      <span class="go">Открыть →</span>
-    </a>
+    <header>
+      <div>
+        <h1>Медицинские калькуляторы</h1>
+        <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
+      </div>
+    </header>
 
-    <a class="card" href="Calk.html">
-      <span class="badge">Антикоагулянты</span>
-      <h2>Калькулятор антикоагулянтов</h2>
-      <p>
-        НОАК, низкомолекулярные гепарины, варфарин,
-        внутривенный нефракционированный гепарин.
-      </p>
-      <span class="go">Открыть →</span>
-    </a>
+    <!-- Сводка по пациенту -->
+    <div class="summary-panel">
+      <div class="summary-header">
+        <h2 class="summary-title">Сводка по пациенту</h2>
+        <div class="summary-actions">
+          <button type="button" class="btn-copy-all" id="copyAllBtn">Скопировать всё</button>
+          <button type="button" class="btn-new-patient" id="newPatientBtn">Новый пациент</button>
+        </div>
+      </div>
+      <div id="summaryContent">
+        <div class="summary-empty">Пока ничего не заполнено. Откройте калькулятор и введите данные — результаты появятся здесь автоматически.</div>
+      </div>
+    </div>
 
-  </main>
+    <!-- Категории калькуляторов -->
+    <div id="categoriesContainer"></div>
 
-  <footer>
-    <p>
-      Результаты расчётов носят справочный характер и не заменяют консультацию врача.
-    </p>
-  </footer>
+  </div>
+
+  <script src="assets/js/catalog.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Группируем калькуляторы по категориям
+      var categories = {};
+      CATALOG.forEach(function (item) {
+        if (!categories[item.category]) {
+          categories[item.category] = [];
+        }
+        categories[item.category].push(item);
+      });
+
+      // Порядок категорий
+      var categoryOrder = [
+        'Общие',
+        'Эндокринология',
+        'Кардиология',
+        'Нефрология',
+        'Гепатология',
+        'Гематология',
+        'Пульмонология / неотложка',
+        'Диетология',
+        'Антикоагулянты'
+      ];
+
+      var container = document.getElementById('categoriesContainer');
+
+      categoryOrder.forEach(function (catName) {
+        var items = categories[catName] || [];
+        if (items.length === 0) return;
+
+        var section = document.createElement('div');
+        section.className = 'category-section';
+
+        var header = document.createElement('div');
+        header.className = 'category-header';
+        header.innerHTML = '<h2 class="category-title">' + catName + '</h2>' +
+          '<span class="category-count">' + items.length + '</span>';
+        section.appendChild(header);
+
+        var grid = document.createElement('div');
+        grid.className = 'cards-grid';
+
+        items.forEach(function (item) {
+          var card = document.createElement('a');
+          card.className = 'calc-card';
+
+          if (item.comingSoon) {
+            card.classList.add('coming-soon');
+            card.href = '#';
+          } else {
+            card.href = item.file;
+          }
+
+          card.innerHTML = '<h3>' + item.title + '</h3>' +
+            '<p>' + item.description + '</p>' +
+            '<span class="go">' + (item.comingSoon ? 'Скоро' : 'Открыть →') + '</span>';
+
+          grid.appendChild(card);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+
+      // Сводка (пока заглушка)
+      var summaryContent = document.getElementById('summaryContent');
+      var copyAllBtn = document.getElementById('copyAllBtn');
+      var newPatientBtn = document.getElementById('newPatientBtn');
+
+      function updateSummary() {
+        // Здесь будет логика чтения данных из localStorage
+        // Пока оставляем заглушку
+      }
+
+      copyAllBtn.addEventListener('click', function () {
+        // Здесь будет логика копирования сводки
+        alert('Сводка пока пуста. Подключим позже.');
+      });
+
+      newPatientBtn.addEventListener('click', function () {
+        if (confirm('Очистить все данные текущего пациента?')) {
+          localStorage.removeItem('medcalc-summary');
+          updateSummary();
+          alert('Данные очищены.');
+        }
+      });
+
+      updateSummary();
+
+    });
+  </script>
 
 </body>
 </html>
