@@ -16,51 +16,21 @@
   
   <link rel="stylesheet" href="assets/css/base.css">
   <style>
-    .search-box {
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 0;
-    }
-
+    .search-box { margin-bottom: 24px; display: flex; align-items: center; gap: 0; }
     .search-icon-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 48px;
-      height: 48px;
-      background: var(--accent);
-      border-radius: 12px 0 0 12px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px; background: var(--accent);
+      border-radius: 12px 0 0 12px; flex-shrink: 0;
     }
-
-    .search-icon-wrapper svg {
-      width: 22px;
-      height: 22px;
-      color: #fff;
-    }
-
+    .search-icon-wrapper svg { width: 22px; height: 22px; color: #fff; }
     .search-input {
-      flex: 1;
-      padding: 14px 18px;
-      font-size: 1rem;
-      border: 1.5px solid var(--border);
-      border-left: none;
-      border-radius: 0 12px 12px 0;
-      background: var(--card);
-      color: var(--text);
-      transition: border-color .18s, box-shadow .18s;
-      font-family: inherit;
-      box-sizing: border-box;
-      min-width: 0;
+      flex: 1; padding: 14px 18px; font-size: 1rem;
+      border: 1.5px solid var(--border); border-left: none;
+      border-radius: 0 12px 12px 0; background: var(--card); color: var(--text);
+      transition: border-color .18s, box-shadow .18s; font-family: inherit;
+      box-sizing: border-box; min-width: 0;
     }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
+    .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
     .no-results { text-align: center; padding: 40px 16px; color: var(--muted); font-style: italic; display: none; }
     .category-section { margin-bottom: 28px; }
     .category-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
@@ -116,7 +86,7 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
       </div>
-      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, параметрам или категории...">
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, органам, маркерам...">
     </div>
 
     <!-- Сводка по пациенту -->
@@ -182,7 +152,13 @@
         items.forEach(function (item) {
           var card = document.createElement('a');
           card.className = 'calc-card';
-          card.dataset.search = (item.title + ' ' + item.description + ' ' + catName).toLowerCase();
+          // Объединяем все поля для поиска, включая tags
+          card.dataset.search = (
+            item.title + ' ' + 
+            item.description + ' ' + 
+            catName + ' ' + 
+            (item.tags || '')
+          ).toLowerCase();
 
           if (item.comingSoon) {
             card.classList.add('coming-soon');
