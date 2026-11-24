@@ -1,1 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCORE2-Diabetes — медицинские калькуляторы</title>
 
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .fixed-region {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 8px;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .fixed-region .flag {
+      font-size: 1.1rem;
+    }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover {
+      background: var(--accent-soft);
+    }
+
+    .unit-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>SCORE2-Diabetes</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= SCORE2-Diabetes ================= -->
+    <div class="panel active panel-wide-result" id="panel-score2dm">
+      <h2>SCORE2-Diabetes</h2>
+      <p class="desc">10-летний риск ССЗ у пациентов с диабетом 2 типа (40–69 лет)</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="fixed-region"><span class="flag">🇷🇺</span> Регион риска: Российская Федерация — очень высокий</div>
+
+          <div class="grid">
+            <div class="field">
+              <label>Возраст (лет, 40–69)</label>
+              <input
+                type="number"
+                id="s2dm-age"
+                step="1"
+                placeholder="Например, 60"
+                data-min="40"
+                data-max="69"
+              >
+              <div class="field-error" id="s2dm-age-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Пол</label>
+              <select id="s2dm-sex">
+                <option value="m">Мужской</option>
+                <option value="f">Женский</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Курение</label>
+              <select id="s2dm-smoke">
+                <option value="0">Нет</option>
+                <option value="1">Да</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>САД (мм рт.ст.)</label>
+              <input
+                type="number"
+                id="s2dm-sbp"
+                step="1"
+                placeholder="Например, 140"
+                data-min="70"
+                data-max="260"
+              >
+              <div class="field-error" id="s2dm-sbp-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Общий холестерин</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="s2dm-tc"
+                  step="0.1"
+                  placeholder="Например, 5.5"
+                  data-min="1"
+                  data-max="20"
+                  data-canonical-unit="mmol_L"
+                  data-canonical="NaN"
+                  data-current-unit="mmol_L"
+                >
+                <select class="unit-select" id="s2dm-tc-unit">
+                  <option value="mmol_L" selected>ммоль/л</option>
+                  <option value="mg_dL">мг/дл</option>
+                </select>
+              </div>
+              <div class="field-error" id="s2dm-tc-error"></div>
+            </div>
+
+            <div class="field">
+              <label>ХС-ЛПВП</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="s2dm-hdl"
+                  step="0.1"
+                  placeholder="Например, 1.3"
+                  data-min="0.3"
+                  data-max="5"
+                  data-canonical-unit="mmol_L"
+                  data-canonical="NaN"
+                  data-current-unit="mmol_L"
+                >
+                <select class="unit-select" id="s2dm-hdl-unit">
+                  <option value="mmol_L" selected>ммоль/л</option>
+                  <option value="mg_dL">мг/дл</option>
+                </select>
+              </div>
+              <div class="field-error" id="s2dm-hdl-error"></div>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>HbA1c</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="s2dm-hba1c"
+                  step="0.1"
+                  placeholder="Например, 50"
+                  data-min="15"
+                  data-max="200"
+                  data-canonical-unit="mmol_mol"
+                  data-canonical="NaN"
+                  data-current-unit="mmol_mol"
+                >
+                <select class="unit-select" id="s2dm-hba1c-unit">
+                  <option value="mmol_mol" selected>ммоль/моль</option>
+                  <option value="percent">%</option>
+                </select>
+              </div>
+              <div class="field-error" id="s2dm-hba1c-error"></div>
+            </div>
+
+            <div class="field">
+              <label>СКФ (мл/мин/1.73м²)</label>
+              <input
+                type="number"
+                id="s2dm-egfr"
+                step="1"
+                placeholder="Например, 90"
+                data-min="5"
+                data-max="200"
+              >
+              <div class="field-error" id="s2dm-egfr-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Возраст начала диабета (лет)</label>
+              <input
+                type="number"
+                id="s2dm-ageonset"
+                step="1"
+                placeholder="Например, 50"
+                data-min="1"
+                data-max="69"
+              >
+              <div class="field-error" id="s2dm-ageonset-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="s2dm-result">
+            <span class="empty-msg">Заполните все поля</span>
+          </div>
+          <div class="mini-scale" id="s2dm-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О модели и категориях риска</summary>
+        <div class="note-content">
+          <p><strong>Расчёт по официальным коэффициентам SCORE2-Diabetes.</strong> Категории риска (2023 ESC): &lt;5% — низкий, 5–10% — умеренный, 10–20% — высокий, ≥20% — очень высокий.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Работа с переключателями единиц ======
+      var CHOL_FACTOR = 38.67;
+      var A1C_FACTORS = { toPercent: function (v) { return v / 10.929 + 2.15; },
+                          toMmolMol: function (v) { return (v - 2.15) * 10.929; } };
+
+      function setupUnitSwitch(inputId, unitId, toCanonical, fromCanonical, placeholders) {
+        var inp = document.getElementById(inputId);
+        var sel = document.getElementById(unitId);
+        if (!inp || !sel) return { get: function () { return NaN; } };
+
+        function updateCanonical() {
+          var raw = parseFloat(inp.value.replace(',', '.'));
+          if (isNaN(raw)) { inp.dataset.canonical = 'NaN'; return; }
+          var unit = inp.dataset.currentUnit || inp.dataset.canonicalUnit;
+          var c = toCanonical(raw, unit);
+          inp.dataset.canonical = String(c);
+        }
+
+        function getCanonical() {
+          var v = parseFloat(inp.dataset.canonical);
+          return isNaN(v) ? NaN : v;
+        }
+
+        inp.addEventListener('input', updateCanonical);
+
+        sel.addEventListener('change', function () {
+          var newUnit = sel.value;
+          var oldUnit = inp.dataset.currentUnit || inp.dataset.canonicalUnit;
+          if (oldUnit === newUnit) return;
+
+          var c = getCanonical();
+          if (!isNaN(c)) {
+            var displayed = fromCanonical(c, newUnit);
+            inp.value = (Math.round(displayed * 100) / 100).toString();
+          }
+
+          inp.dataset.currentUnit = newUnit;
+          if (placeholders && placeholders[newUnit]) {
+            inp.placeholder = placeholders[newUnit];
+          }
+          updateCanonical();
+          MedCore.validateInput(inp);
+          calcSCORE2DM();
+        });
+
+        return { get: getCanonical, update: updateCanonical };
+      }
+
+      var tcCtrl = setupUnitSwitch('s2dm-tc', 's2dm-tc-unit',
+        function (v, u) { return u === 'mg_dL' ? v / CHOL_FACTOR : v; },
+        function (v, u) { return u === 'mg_dL' ? v * CHOL_FACTOR : v; },
+        { mmol_L: 'Например, 5.5', mg_dL: 'Например, 210' }
+      );
+
+      var hdlCtrl = setupUnitSwitch('s2dm-hdl', 's2dm-hdl-unit',
+        function (v, u) { return u === 'mg_dL' ? v / CHOL_FACTOR : v; },
+        function (v, u) { return u === 'mg_dL' ? v * CHOL_FACTOR : v; },
+        { mmol_L: 'Например, 1.3', mg_dL: 'Например, 50' }
+      );
+
+      var a1cCtrl = setupUnitSwitch('s2dm-hba1c', 's2dm-hba1c-unit',
+        function (v, u) { return u === 'percent' ? A1C_FACTORS.toMmolMol(v) : v; },
+        function (v, u) { return u === 'percent' ? A1C_FACTORS.toPercent(v) : v; },
+        { mmol_mol: 'Например, 50', percent: 'Например, 6.7' }
+      );
+
+      // ====== Шкала риска ======
+      function renderScale(value) {
+        var el = document.getElementById('s2dm-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 40, [
+          { until: 5, class: 'ok' },
+          { until: 10, class: 'warn' },
+          { until: 20, class: 'danger' },
+          { until: 40, class: 'danger' }
+        ], 'Ваш риск: <strong>' + value.toFixed(1) + ' %</strong> · шкала 0–40');
+      }
+
+      // ====== Расчёт SCORE2-Diabetes ======
+      function calcSCORE2DM() {
+        var age = MedCore.num('s2dm-age'), sbp = MedCore.num('s2dm-sbp');
+        var tc = tcCtrl.get(), hdl = hdlCtrl.get();
+        var hba1c = a1cCtrl.get(), egfr = MedCore.num('s2dm-egfr'), ageOnset = MedCore.num('s2dm-ageonset');
+        var male = document.getElementById('s2dm-sex').value === 'm';
+        var smoke = document.getElementById('s2dm-smoke').value === '1';
+        var el = document.getElementById('s2dm-result');
+
+        if (!age || !sbp || isNaN(tc) || isNaN(hdl) || isNaN(hba1c) || !egfr || !ageOnset) {
+          MedCore.showEmpty(el, 'Заполните все поля');
+          var s = document.getElementById('s2dm-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        if (age < 40 || age > 69) {
+          MedCore.showEmpty(el, 'SCORE2-Diabetes применим для 40–69 лет');
+          return;
+        }
+
+        if (hdl >= tc) {
+          MedCore.showEmpty(el, 'ЛПВП должен быть меньше общего холестерина');
+          return;
+        }
+
+        var c = male ? {
+          age: 0.5368, smoke: 0.4774, sbp: 0.1322, tc: 0.1102, hdl: -0.1087,
+          smokeAge: -0.0672, sbpAge: -0.0268, tcAge: -0.0181, hdlAge: 0.0095,
+          diabetes: 0.6457, diabetesAge: -0.0998,
+          hba1c: 0.0955, egfr: -0.0591, egfr2: 0.0058,
+          hba1cAge: -0.0134, egfrAge: 0.0115,
+          baseline: 0.9605, scale1: 0.5836, scale2: 0.8294
+        } : {
+          age: 0.6624, smoke: 0.6139, sbp: 0.1421, tc: 0.1127, hdl: -0.1568,
+          smokeAge: -0.1122, sbpAge: -0.0167, tcAge: -0.0200, hdlAge: 0.0186,
+          diabetes: 0.8096, diabetesAge: -0.118,
+          hba1c: 0.1173, egfr: -0.0640, egfr2: 0.0062,
+          hba1cAge: -0.0196, egfrAge: 0.0169,
+          baseline: 0.9776, scale1: 0.9412, scale2: 0.8329
+        };
+
+        var cage = (age - 60) / 5;
+        var csbp = (sbp - 120) / 20;
+        var ctchol = (tc - 6) / 1;
+        var chdl = (hdl - 1.3) / 0.5;
+        var cdmAge = (ageOnset - 50) / 5;
+        var chba1c = (hba1c - 31) / 9.34;
+        var cegfr = (Math.log(egfr) - 4.5) / 0.15;
+
+        var lp = cage * c.age + smoke * c.smoke + csbp * c.sbp + 1 * c.diabetes
+          + ctchol * c.tc + chdl * c.hdl
+          + cage * smoke * c.smokeAge + cage * csbp * c.sbpAge
+          + cage * 1 * c.diabetesAge * cdmAge
+          + cage * ctchol * c.tcAge + cage * chdl * c.hdlAge
+          + 1 * c.diabetesAge * cdmAge
+          + chba1c * c.hba1c + cegfr * c.egfr + cegfr * cegfr * c.egfr2
+          + chba1c * cage * c.hba1cAge + cegfr * cage * c.egfrAge;
+
+        var uncalibrated = 1 - Math.pow(c.baseline, Math.exp(lp));
+        var calibrated = 1 - Math.exp(-Math.exp(c.scale1 + c.scale2 * Math.log(-Math.log(1 - uncalibrated))));
+        var risk = calibrated * 100;
+
+        var label, cls;
+        if (risk < 5) { label = 'Низкий риск'; cls = 'ok'; }
+        else if (risk < 10) { label = 'Умеренный риск'; cls = 'warn'; }
+        else if (risk < 20) { label = 'Высокий риск'; cls = 'danger'; }
+        else { label = 'Очень высокий риск'; cls = 'danger'; }
+
+        MedCore.render(el, risk.toFixed(1), ' %', label, cls,
+          'SCORE2-Diabetes · точный расчёт · РФ (очень высокий риск)');
+        renderScale(risk);
+      }
+
+      MedCore.bindCalc(['s2dm-age', 's2dm-sbp', 's2dm-egfr', 's2dm-ageonset'], calcSCORE2DM);
+      document.getElementById('s2dm-sex').addEventListener('change', calcSCORE2DM);
+      document.getElementById('s2dm-smoke').addEventListener('change', calcSCORE2DM);
+
+      calcSCORE2DM();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
