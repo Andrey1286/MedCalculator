@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HbA1c → eAG — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover {
+      background: var(--accent-soft);
+    }
+
+    .unit-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>HbA1c → eAG</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= HbA1c → eAG ================= -->
+    <div class="panel active" id="panel-a1c">
+      <h2>HbA1c → средняя глюкоза (eAG)</h2>
+      <p class="desc">Перевод гликированного гемоглобина в средний уровень глюкозы за 2–3 месяца по формуле ADAG</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>Уровень HbA1c</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="a1c-val"
+                  step="0.1"
+                  placeholder="Например, 7.0"
+                  data-min="4"
+                  data-max="15"
+                  data-canonical-unit="percent"
+                  data-canonical="NaN"
+                  data-current-unit="percent"
+                >
+                <select class="unit-select" id="a1c-unit">
+                  <option value="percent" selected>%</option>
+                  <option value="mmol_mol">ммоль/моль</option>
+                </select>
+              </div>
+              <div class="field-error" id="a1c-val-error"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="a1c-result">
+            <span class="empty-msg">Введите HbA1c</span>
+          </div>
+          <div class="mini-scale" id="a1c-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О формуле ADAG</summary>
+        <div class="note-content">
+          <p>Справочный расчёт по формуле ADAG. Пересчёт: % ↔ ммоль/моль — (A1c% − 2.15) × 10.929 и обратно.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Работа с переключателем единиц для HbA1c ======
+      var a1cInput = document.getElementById('a1c-val');
+      var a1cUnitSelect = document.getElementById('a1c-unit');
+
+      function a1cToCanonical(rawValue, unit) {
+        if (isNaN(rawValue)) return NaN;
+        if (unit === 'mmol_mol') return rawValue / 10.929 + 2.15;
+        return rawValue;
+      }
+
+      function a1cFromCanonical(canonicalValue, unit) {
+        if (isNaN(canonicalValue)) return NaN;
+        if (unit === 'mmol_mol') return (canonicalValue - 2.15) * 10.929;
+        return canonicalValue;
+      }
+
+      function updateA1cCanonical() {
+        var raw = parseFloat(a1cInput.value.replace(',', '.'));
+        if (isNaN(raw)) {
+          a1cInput.dataset.canonical = 'NaN';
+          return;
+        }
+        var unit = a1cInput.dataset.currentUnit || 'percent';
+        var canonical = a1cToCanonical(raw, unit);
+        a1cInput.dataset.canonical = String(canonical);
+      }
+
+      function getA1cCanonical() {
+        var v = parseFloat(a1cInput.dataset.canonical);
+        return isNaN(v) ? NaN : v;
+      }
+
+      a1cInput.addEventListener('input', function () {
+        updateA1cCanonical();
+      });
+
+      a1cUnitSelect.addEventListener('change', function () {
+        var newUnit = a1cUnitSelect.value;
+        var oldUnit = a1cInput.dataset.currentUnit || 'percent';
+        if (oldUnit === newUnit) return;
+
+        var canonical = getA1cCanonical();
+        if (!isNaN(canonical)) {
+          var displayed = a1cFromCanonical(canonical, newUnit);
+          a1cInput.value = (Math.round(displayed * 100) / 100).toString();
+        }
+
+        a1cInput.dataset.currentUnit = newUnit;
+        a1cInput.placeholder = (newUnit === 'mmol_mol') ? 'Например, 53' : 'Например, 7.0';
+        updateA1cCanonical();
+        calcA1c();
+      });
+
+      // ====== Расчёт eAG ======
+      function renderA1cScale(value) {
+        var el = document.getElementById('a1c-scale');
+        if (!el) return;
+
+        MedCore.renderMiniScale(el, value, 4, 14, [
+          { until: 5.7, class: 'ok' },
+          { until: 6.5, class: 'warn' },
+          { until: 14, class: 'danger' }
+        ], 'Ваш HbA1c: <strong>' + value.toFixed(1) + ' %</strong> · шкала 4–14');
+      }
+
+      function calcA1c() {
+        var v = getA1cCanonical();
+        var el = document.getElementById('a1c-result');
+
+        if (!v || isNaN(v)) {
+          MedCore.showEmpty(el, 'Введите HbA1c');
+          var s = document.getElementById('a1c-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        if (v < 4 || v > 15) {
+          MedCore.showEmpty(el, 'Введите значение HbA1c в диапазоне 4–15%');
+          var s = document.getElementById('a1c-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var mgdl = 28.7 * v - 46.7;
+        var mmol = 1.59 * v - 2.59;
+
+        var cls = v < 5.7 ? 'ok' : (v < 6.5 ? 'warn' : 'danger');
+
+        el.className = 'result ' + cls;
+        el.innerHTML = '<div class="value">' + v.toFixed(1) + '<span class="unit">%</span></div>' +
+          '<div class="ref">Средняя глюкоза за 2–3 месяца:</div>' +
+          '<div class="sub-block">' +
+          '<div class="sub-label">eAG</div>' +
+          '<div class="sub-value">' + mmol.toFixed(1) + ' ммоль/л</div>' +
+          '<div class="sub-ref">' + mgdl.toFixed(0) + ' мг/дл</div>' +
+          '</div>';
+
+        renderA1cScale(v);
+      }
+
+      a1cInput.addEventListener('input', calcA1c);
+
+      calcA1c();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
