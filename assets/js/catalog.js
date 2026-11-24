@@ -67,12 +67,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'target-a1c',
-    title: 'Целевой HbA1c',
-    description: 'Индивидуальная цель по гликированному гемоглобину',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'target-a1c',
+  title: 'Целевой HbA1c',
+  description: 'Индивидуальная цель по гликированному гемоглобину',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/target-a1c.html',
+  comingSoon: false
   },
   {
     id: 'vitd',
