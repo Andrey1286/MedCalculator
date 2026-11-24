@@ -83,12 +83,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'insulin',
-    title: 'Инсулин',
-    description: 'Корректирующая доза по правилу 1800/1500',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'insulin',
+  title: 'Инсулин',
+  description: 'Корректирующая доза по правилу 1800/1500',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/insulin.html',
+  comingSoon: false
   },
   {
     id: 'findrisc',
