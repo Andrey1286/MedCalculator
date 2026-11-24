@@ -109,12 +109,12 @@ var CATALOG = [
 
   // Кардиология
   {
-    id: 'score2',
-    title: 'SCORE2',
-    description: '10-летний риск сердечно-сосудистой смерти',
-    category: 'Кардиология',
-    file: '',
-    comingSoon: true
+  id: 'score2',
+  title: 'SCORE2',
+  description: '10-летний риск сердечно-сосудистой смерти',
+  category: 'Кардиология',
+  file: 'calculators/cardiology/score2.html',
+  comingSoon: false
   },
   {
     id: 'htn-stage',
