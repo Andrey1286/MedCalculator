@@ -151,12 +151,12 @@ var CATALOG = [
 
   // Нефрология
   {
-    id: 'ckd',
-    title: 'СКФ (креатинин)',
-    description: 'CKD-EPI 2021 · Кокрофт-Голт',
-    category: 'Нефрология',
-    file: '',
-    comingSoon: true
+  id: 'ckd',
+  title: 'СКФ (креатинин)',
+  description: 'CKD-EPI 2021 · Кокрофт-Голт',
+  category: 'Нефрология',
+  file: 'calculators/nephrology/gfr-creatinine.html',
+  comingSoon: false
   },
   {
     id: 'ckd-cys',
