@@ -169,12 +169,12 @@ var CATALOG = [
 
   // Гепатология
   {
-    id: 'fib4',
-    title: 'FIB-4',
-    description: 'Неинвазивный индекс фиброза печени',
-    category: 'Гепатология',
-    file: '',
-    comingSoon: true
+  id: 'fib4',
+  title: 'FIB-4',
+  description: 'Неинвазивный индекс фиброза печени',
+  category: 'Гепатология',
+  file: 'calculators/hepatology/fib4.html',
+  comingSoon: false
   },
 
   // Гематология
