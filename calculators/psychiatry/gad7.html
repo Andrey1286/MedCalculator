@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAD-7 — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+  <script src="../../assets/js/bridge.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+    .qtitle:first-child { margin-top: 0; }
+
+    .radio-group { display: grid; gap: 6px; margin-bottom: 10px; }
+
+    .radio-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      font-size: .88rem;
+    }
+    .radio-item:hover { border-color: var(--accent); background: var(--info); }
+    .radio-item input { margin-top: 3px; accent-color: var(--accent); }
+    .radio-item.checked { border-color: var(--accent); background: var(--accent-soft); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1 1 200px; padding: 12px 16px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--info); }
+
+    .big-score { font-size: 2.2rem; font-weight: 800; text-align: center; margin: 6px 0; }
+
+    .banner { padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem; }
+    .banner.ok { background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
+    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>GAD-7</h1>
+        <p class="subtitle">Психиатрия</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-gad7">
+      <h2>Генерализованное тревожное расстройство (GAD-7)</h2>
+      <p class="desc">Скрининг тяжести тревоги за последние 2 недели</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="qtitle">За последние 2 недели как часто вас беспокоили:</div>
+
+          <div id="gad7-questions"></div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="gad7-calc-btn">Рассчитать</button>
+            <button type="button" class="btn btn-secondary" id="gad7-reset-btn">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="gad7-result">
+            <span class="empty-msg">Ответьте на все вопросы и нажмите «Рассчитать»</span>
+          </div>
+          <div class="mini-scale" id="gad7-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и рекомендации</summary>
+        <div class="note-content">
+          <p><strong>0–4:</strong> минимальная тревога. Наблюдение.</p>
+          <p><strong>5–9:</strong> лёгкая тревога. Мониторинг, психообразование.</p>
+          <p><strong>10–14:</strong> умеренная тревога. Рекомендуется консультация специалиста.</p>
+          <p><strong>15–21:</strong> тяжёлая тревога. Показана терапия (психотерапия и/или фармакотерапия).</p>
+          <p><strong>Важно:</strong> GAD-7 — скрининговый инструмент, а не диагностический. Диагноз ставится врачом по критериям МКБ/DSM.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      var QUESTIONS = [
+        'Нервозность, беспокойство или ощущение «на взводе»',
+        'Невозможность остановиться или контролировать беспокойство',
+        'Избыточное беспокойство по разным поводам',
+        'Трудности с расслаблением',
+        'Такое беспокойство, что трудно усидеть на месте',
+        'Раздражительность или вспыльчивость',
+        'Страх, что случится что-то ужасное'
+      ];
+
+      var OPTIONS = [
+        { value: 0, label: 'Никогда' },
+        { value: 1, label: 'Несколько дней' },
+        { value: 2, label: 'Более половины дней' },
+        { value: 3, label: 'Почти каждый день' }
+      ];
+
+      // Генерация вопросов
+      var container = document.getElementById('gad7-questions');
+      QUESTIONS.forEach(function (q, i) {
+        var qDiv = document.createElement('div');
+        qDiv.innerHTML = '<div class="qtitle">' + (i + 1) + '. ' + q + '</div>' +
+          '<div class="radio-group" id="gad7-q' + i + '">' +
+          OPTIONS.map(function (opt) {
+            return '<label class="radio-item">' +
+              '<input type="radio" name="gad7-q' + i + '" value="' + opt.value + '">' +
+              '<span>' + opt.label + '</span></label>';
+          }).join('') + '</div>';
+        container.appendChild(qDiv);
+      });
+
+      // Стилизация радио-кнопок
+      document.querySelectorAll('.radio-item input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          var name = inp.name;
+          document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+            r.closest('.radio-item').classList.toggle('checked', r.checked);
+          });
+        });
+      });
+
+      function renderGad7Scale(value) {
+        var el = document.getElementById('gad7-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 21, [
+          { until: 5, class: 'ok' },
+          { until: 10, class: 'warn' },
+          { until: 15, class: 'warn' },
+          { until: 21, class: 'danger' }
+        ], 'Ваш GAD-7: <strong>' + value + ' балл(ов)</strong> · шкала 0–21');
+      }
+
+      function calcGAD7() {
+        var total = 0;
+        var answered = 0;
+
+        for (var i = 0; i < 7; i++) {
+          var checked = document.querySelector('input[name="gad7-q' + i + '"]:checked');
+          if (checked) {
+            total += parseInt(checked.value);
+            answered++;
+          }
+        }
+
+        var el = document.getElementById('gad7-result');
+
+        if (answered < 7) {
+          MedCore.showEmpty(el, 'Ответьте на все 7 вопросов (' + answered + '/7)');
+          var s = document.getElementById('gad7-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var label, cls, advice;
+        if (total <= 4) {
+          label = 'Минимальная тревога'; cls = 'ok';
+          advice = 'Наблюдение. Повторный скрининг при изменении состояния.';
+        } else if (total <= 9) {
+          label = 'Лёгкая тревога'; cls = 'warn';
+          advice = 'Мониторинг, психообразование, техники релаксации.';
+        } else if (total <= 14) {
+          label = 'Умеренная тревога'; cls = 'warn';
+          advice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).';
+        } else {
+          label = 'Тяжёлая тревога'; cls = 'danger';
+          advice = 'Показана терапия. Обратитесь к специалисту.';
+        }
+
+        MedCore.render(el, total, ' баллов', label, cls, advice);
+        renderGad7Scale(total);
+      }
+
+      document.getElementById('gad7-calc-btn').addEventListener('click', calcGAD7);
+
+      document.getElementById('gad7-reset-btn').addEventListener('click', function () {
+        document.querySelectorAll('#panel-gad7 input[type=radio]').forEach(function (r) {
+          r.checked = false;
+          r.closest('.radio-item').classList.remove('checked');
+        });
+        MedCore.showEmpty(document.getElementById('gad7-result'), 'Ответьте на все вопросы и нажмите «Рассчитать»');
+        var s = document.getElementById('gad7-scale');
+        if (s) s.style.display = 'none';
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
