@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHA₂DS₂-VASc — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+    .check .pts {
+      margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--accent);
+      background: var(--accent-soft); padding: 2px 8px; border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>CHA₂DS₂-VASc</h1>
+        <p class="subtitle">Кардиология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-chads">
+      <h2>Риск инсульта при фибрилляции предсердий</h2>
+      <p class="desc">Оценка необходимости антикоагулянтной терапии по шкале CHA₂DS₂-VASc</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="chads-age" step="1" placeholder="Например, 70" data-min="18" data-max="120">
+              <div class="field-error" id="chads-age-error"></div>
+            </div>
+            <div class="field">
+              <label>Пол</label>
+              <select id="chads-sex">
+                <option value="m">Мужской</option>
+                <option value="f">Женский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="checks" style="margin-top:14px">
+            <label class="check"><input type="checkbox" class="chads-check" data-pts="1"><span class="box"></span><span class="lbl">Застойная сердечная недостаточность / дисфункция ЛЖ</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="chads-check" data-pts="1"><span class="box"></span><span class="lbl">Артериальная гипертензия</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="chads-check" data-pts="1"><span class="box"></span><span class="lbl">Сахарный диабет</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="chads-check" data-pts="2"><span class="box"></span><span class="lbl">Инсульт / ТИА / тромбоэмболия в анамнезе</span><span class="pts">+2</span></label>
+            <label class="check"><input type="checkbox" class="chads-check" data-pts="1"><span class="box"></span><span class="lbl">Сосудистое заболевание (ИБС, ПАБ, атеросклероз аорты)</span><span class="pts">+1</span></label>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="chads-result">
+            <span class="empty-msg">Укажите возраст, пол и факторы риска</span>
+          </div>
+          <div class="mini-scale" id="chads-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и рекомендации</summary>
+        <div class="note-content">
+          <p><strong>0 баллов (мужчины) / 1 балл (женщины):</strong> антикоагулянты не показаны.</p>
+          <p><strong>1 балл (мужчины) / 2 балла (женщины):</strong> рассмотреть назначение ОАК после оценки рисков и предпочтений пациента.</p>
+          <p><strong>≥2 баллов (мужчины) / ≥3 баллов (женщины):</strong> рекомендована антикоагулянтная терапия (предпочтительно НОАК).</p>
+          <p>Шкала оценивает риск инсульта, но не учитывает риск кровотечения — для этого используйте HAS-BLED.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function renderChadsScale(value) {
+        var el = document.getElementById('chads-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 9, [
+          { until: 0.5, class: 'ok' },
+          { until: 1.5, class: 'warn' },
+          { until: 9, class: 'danger' }
+        ], 'Ваш CHA₂DS₂-VASc: <strong>' + value + ' балл(ов)</strong> · шкала 0–9');
+      }
+
+      function calcCHADS() {
+        var age = parseInt(document.getElementById('chads-age').value) || 0;
+        var female = document.getElementById('chads-sex').value === 'f';
+        var score = 0;
+
+        document.querySelectorAll('.chads-check:checked').forEach(function (c) {
+          score += parseFloat(c.dataset.pts);
+        });
+
+        if (age >= 75) score += 2;
+        else if (age >= 65) score += 1;
+
+        if (female) score += 1;
+
+        var el = document.getElementById('chads-result');
+
+        if (!age && !document.querySelector('.chads-check:checked') && !female) {
+          MedCore.showEmpty(el, 'Укажите возраст, пол и факторы риска');
+          var s = document.getElementById('chads-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var label, cls;
+        if (score === 0) { label = 'Без ОАК'; cls = 'ok'; }
+        else if (score === 1) { label = 'Рассмотреть ОАК'; cls = 'warn'; }
+        else { label = 'Показаны ОАК'; cls = 'danger'; }
+
+        var risks = ['0%','1.3%','2.2%','3.2%','4.0%','6.7%','9.8%','9.6%','6.7%','15.2%'];
+        var riskText = risks[Math.min(score, 9)];
+
+        MedCore.render(el, score, ' баллов', label, cls,
+          'Риск инсульта/ТЭЛА: ' + riskText + '/год');
+        renderChadsScale(score);
+      }
+
+      document.querySelectorAll('.chads-check').forEach(function (c) {
+        c.addEventListener('change', calcCHADS);
+      });
+
+      MedCore.bindCalc(['chads-age'], calcCHADS);
+      document.getElementById('chads-sex').addEventListener('change', calcCHADS);
+
+      calcCHADS();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
