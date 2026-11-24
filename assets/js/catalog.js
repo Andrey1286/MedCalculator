@@ -187,12 +187,12 @@ var CATALOG = [
     comingSoon: true
   },
   {
-    id: 'mentzer',
-    title: 'Индекс Ментцера',
-    description: 'Дифференциальная диагностика микроцитарной анемии',
-    category: 'Гематология',
-    file: '',
-    comingSoon: true
+  id: 'mentzer',
+  title: 'Индекс Ментцера',
+  description: 'Дифференциальная диагностика микроцитарной анемии',
+  category: 'Гематология',
+  file: 'calculators/hematology/mentzer.html',
+  comingSoon: false
   },
 
   // Пульмонология / неотложка
