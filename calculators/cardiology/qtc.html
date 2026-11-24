@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QTc — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>QTc (Базетт)</h1>
+        <p class="subtitle">Кардиология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-qt">
+      <h2>Корригированный интервал QT</h2>
+      <p class="desc">Формула Базетта: QTc = QT / √(RR), где RR = 60 / ЧСС</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Интервал QT (мс)</label>
+              <input
+                type="number"
+                id="qt-qt"
+                step="1"
+                placeholder="Например, 400"
+                data-min="200"
+                data-max="700"
+              >
+              <div class="field-error" id="qt-qt-error"></div>
+            </div>
+            <div class="field">
+              <label>ЧСС (уд/мин)</label>
+              <input
+                type="number"
+                id="qt-hr"
+                step="1"
+                placeholder="Например, 70"
+                data-min="20"
+                data-max="250"
+              >
+              <div class="field-error" id="qt-hr-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="qt-result">
+            <span class="empty-msg">Введите QT и ЧСС</span>
+          </div>
+          <div class="mini-scale" id="qt-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и ограничения</summary>
+        <div class="note-content">
+          <p><strong>Норма:</strong> мужчины ≤450 мс, женщины ≤460 мс.</p>
+          <p><strong>Удлинение:</strong> &gt;450 мс (мужчины), &gt;460 мс (женщины).</p>
+          <p><strong>Высокий риск TdP:</strong> QTc &gt;500 мс независимо от пола.</p>
+          <p><strong>Ограничение формулы Базетта:</strong> может занижать QTc при тахикардии и завышать при брадикардии. При ЧСС &lt;40 или &gt;100 уд/мин рекомендуется использовать формулу Фраммингема или Ходжеса.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function renderQtScale(value) {
+        var el = document.getElementById('qt-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 350, 550, [
+          { until: 450, class: 'ok' },
+          { until: 500, class: 'warn' },
+          { until: 550, class: 'danger' }
+        ], 'Ваш QTc: <strong>' + Math.round(value) + ' мс</strong> · шкала 350–550');
+      }
+
+      function calcQT() {
+        var qt = MedCore.num('qt-qt');
+        var hr = MedCore.num('qt-hr');
+        var el = document.getElementById('qt-result');
+
+        if (!qt || !hr) {
+          MedCore.showEmpty(el, 'Введите QT и ЧСС');
+          var s = document.getElementById('qt-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        if (hr <= 0) {
+          MedCore.showEmpty(el, 'ЧСС должна быть больше нуля');
+          return;
+        }
+
+        var rr = 60 / hr;
+        var qtc = qt / Math.sqrt(rr);
+
+        var label, cls;
+        if (qtc > 500) {
+          label = 'Высокий риск TdP';
+          cls = 'danger';
+        } else if (qtc > 460) {
+          label = 'Удлинён';
+          cls = 'warn';
+        } else if (qtc > 450) {
+          label = 'Пограничный';
+          cls = 'warn';
+        } else {
+          label = 'Норма';
+          cls = 'ok';
+        }
+
+        MedCore.render(
+          el,
+          Math.round(qtc),
+          ' мс',
+          label,
+          cls,
+          'Формула Базетта · QT ' + qt + ' мс ÷ √(' + rr.toFixed(2) + ' с)'
+        );
+
+        renderQtScale(qtc);
+      }
+
+      MedCore.bindCalc(['qt-qt', 'qt-hr'], calcQT);
+
+      calcQT();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
