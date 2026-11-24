@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>СКФ (цистатин C) — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>СКФ по цистатину C</h1>
+        <p class="subtitle">Нефрология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-ckd-cys">
+      <h2>СКФ по цистатину C (CKD-EPI 2012)</h2>
+      <p class="desc">Расчёт по цистатину C без учёта расы · пересчёт на фактическую площадь тела</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Цистатин C (мг/л)</label>
+              <input type="number" id="cys-cys" step="0.01" placeholder="Например, 0.9" data-min="0.1" data-max="10">
+              <div class="field-error" id="cys-cys-error"></div>
+            </div>
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="cys-age" step="1" placeholder="Например, 50" data-min="18" data-max="120">
+              <div class="field-error" id="cys-age-error"></div>
+            </div>
+            <div class="field">
+              <label>Пол</label>
+              <select id="cys-sex">
+                <option value="m">Мужской</option>
+                <option value="f">Женский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Рост (см)</label>
+              <input type="number" id="cys-height" step="0.5" placeholder="Например, 175" data-min="100" data-max="250">
+              <div class="field-error" id="cys-height-error"></div>
+              <div class="hint">Для пересчёта на фактическую площадь тела (необязательно)</div>
+            </div>
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="cys-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="cys-weight-error"></div>
+              <div class="hint">Для пересчёта на фактическую площадь тела (необязательно)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="cys-result">
+            <span class="empty-msg">Введите цистатин C и возраст</span>
+          </div>
+          <div class="mini-scale" id="cys-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О формуле и ограничениях</summary>
+        <div class="note-content">
+          <p><strong>Формула CKD-EPI 2012 (цистатин C):</strong> рСКФ = 133 × мин(CysC/0.8, 1)<sup>−0.499</sup> × макс(CysC/0.8, 1)<sup>−1.328</sup> × 0.996<sup>Возраст</sup> × (0.932 для женщин).</p>
+          <p><strong>Ограничения:</strong> цистатин C может повышаться независимо от почек при гипертиреозе, приёме высоких доз глюкокортикоидов, системном воспалении, онкозаболеваниях.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function renderCysScale(value) {
+        var el = document.getElementById('cys-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 120, [
+          { until: 15, class: 'danger' },
+          { until: 30, class: 'danger' },
+          { until: 45, class: 'warn' },
+          { until: 60, class: 'warn' },
+          { until: 120, class: 'ok' }
+        ], 'Ваша СКФ: <strong>' + Math.round(value) + ' мл/мин/1.73м²</strong> · шкала 0–120');
+      }
+
+      function calcCysC() {
+        var cys = MedCore.num('cys-cys');
+        var age = MedCore.num('cys-age');
+        var female = document.getElementById('cys-sex').value === 'f';
+        var heightCm = MedCore.num('cys-height');
+        var weightKg = MedCore.num('cys-weight');
+        var el = document.getElementById('cys-result');
+
+        if (!cys || !age) {
+          MedCore.showEmpty(el, 'Введите цистатин C и возраст');
+          var s = document.getElementById('cys-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        if (cys <= 0) {
+          MedCore.showEmpty(el, 'Цистатин C должен быть больше нуля');
+          return;
+        }
+
+        var sexFactor = female ? 0.932 : 1;
+        var egfr = 133 * Math.pow(Math.min(cys / 0.8, 1), -0.499) *
+          Math.pow(Math.max(cys / 0.8, 1), -1.328) *
+          Math.pow(0.996, age) * sexFactor;
+
+        var stage, cls;
+        if (egfr >= 90) { stage = 'G1'; cls = 'ok'; }
+        else if (egfr >= 60) { stage = 'G2'; cls = 'ok'; }
+        else if (egfr >= 45) { stage = 'G3a'; cls = 'warn'; }
+        else if (egfr >= 30) { stage = 'G3b'; cls = 'warn'; }
+        else if (egfr >= 15) { stage = 'G4'; cls = 'danger'; }
+        else { stage = 'G5'; cls = 'danger'; }
+
+        var extra = '';
+        if (heightCm > 0 && weightKg > 0) {
+          var bsa = 0.007184 * Math.pow(heightCm, 0.725) * Math.pow(weightKg, 0.425);
+          var egfrAbs = egfr * bsa / 1.73;
+          extra += '<div class="sub-block">' +
+            '<div class="sub-label">СКФ на фактическую площадь тела</div>' +
+            '<div class="sub-value">' + Math.round(egfrAbs) + ' мл/мин</div>' +
+            '<div class="sub-ref">Площадь тела по Du Bois: ' + bsa.toFixed(2) + ' м²</div>' +
+            '</div>';
+        }
+
+        MedCore.render(el, Math.round(egfr), ' мл/мин/1.73м²', stage, cls,
+          'CKD-EPI 2012 (цистатин C) · приведено к площади тела 1.73 м²', extra);
+        renderCysScale(egfr);
+      }
+
+      MedCore.bindCalc(['cys-cys', 'cys-age', 'cys-height', 'cys-weight'], calcCysC);
+      document.getElementById('cys-sex').addEventListener('change', calcCysC);
+
+      calcCysC();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
