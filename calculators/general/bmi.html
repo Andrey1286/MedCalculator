@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ИМТ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+
+  <style>
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--card);
+      color: var(--accent);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: var(--shadow);
+      transition: background .18s, border-color .18s, transform .1s, box-shadow .18s;
+    }
+
+    .back-link:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .back-link:active {
+      transform: scale(.97);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header class="page-header">
+      <div>
+        <h1>ИМТ</h1>
+        <p class="subtitle">Общие калькуляторы</p>
+      </div>
+
+      <a class="back-link" href="../../index.html">
+        ← На главную
+      </a>
+    </header>
+
+    <!-- ================= ИМТ ================= -->
+    <div class="panel active" id="panel-bmi">
+      <h2>Индекс массы тела</h2>
+      <p class="desc">Вес / Рост²</p>
+
+      <div class="panel-body">
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input
+                type="number"
+                id="bmi-w"
+                step="0.1"
+                placeholder="Например, 70"
+                data-min="20"
+                data-max="300"
+              >
+              <div class="field-error" id="bmi-w-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Рост (см)</label>
+              <input
+                type="number"
+                id="bmi-h"
+                step="0.5"
+                placeholder="Например, 175"
+                data-min="100"
+                data-max="250"
+              >
+              <div class="field-error" id="bmi-h-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="bmi-result">
+            <span class="empty-msg">Введите вес и рост</span>
+          </div>
+          <div class="mini-scale" id="bmi-scale" style="display:none"></div>
+        </div>
+      </div>
+
+      <details class="note">
+        <summary>Норма и интерпретация</summary>
+        <div class="note-content">
+          <p>Норма 18.5–24.9 кг/м². Ожирение: I 30–34.9, II 35–39.9, III ≥40.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    function num(id) {
+      var el = document.getElementById(id);
+      if (!el) return NaN;
+      var v = parseFloat(el.value);
+      return isNaN(v) ? NaN : v;
+    }
+
+    function bind(ids, event, fn) {
+      ids.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener(event, fn);
+      });
+    }
+
+    function showEmpty(el, msg) {
+      if (!el) return;
+      el.innerHTML = '<span class="empty-msg">' + msg + '</span>';
+      el.className = 'result';
+    }
+
+    function render(el, value, unit, tagText, tagCls, refText, extraHtml) {
+      if (!el) return;
+
+      var html = '<div class="value">' + value + '<span class="unit">' + (unit || '') + '</span>';
+
+      if (tagText) {
+        html += '<span class="tag ' + tagCls + '">' + tagText + '</span>';
+      }
+
+      html += '</div>';
+
+      if (refText) {
+        html += '<div class="ref">' + refText + '</div>';
+      }
+
+      if (extraHtml) {
+        html += extraHtml;
+      }
+
+      el.innerHTML = html;
+      el.className = 'result ' + (tagCls || '');
+    }
+
+    function renderMiniScale(containerEl, value, minVal, maxVal, segments, captionHtml) {
+      if (!containerEl) return;
+
+      containerEl.style.display = 'block';
+
+      var markerPos = ((value - minVal) / (maxVal - minVal)) * 100;
+
+      if (markerPos < 0) markerPos = 0;
+      if (markerPos > 100) markerPos = 100;
+
+      var zonesHtml = '';
+      var prevUntil = minVal;
+
+      for (var i = 0; i < segments.length; i++) {
+        var seg = segments[i];
+        var segUntil = seg.until;
+
+        var widthPct = ((Math.min(segUntil, maxVal) - prevUntil) / (maxVal - minVal)) * 100;
+
+        if (widthPct > 0) {
+          zonesHtml += '<div class="mini-scale-zone ' + seg.class + '" style="width:' + widthPct + '%"></div>';
+        }
+
+        prevUntil = segUntil;
+      }
+
+      containerEl.innerHTML =
+        '<div class="mini-scale-track">' +
+          zonesHtml +
+          '<div class="mini-scale-marker" style="left:' + markerPos + '%"></div>' +
+        '</div>' +
+        '<div class="mini-scale-caption">' + captionHtml + '</div>';
+    }
+
+    function renderBmiScale(value) {
+      var el = document.getElementById('bmi-scale');
+      if (!el) return;
+
+      renderMiniScale(el, value, 15, 45, [
+        { until: 18.5, class: 'warn' },
+        { until: 25, class: 'ok' },
+        { until: 30, class: 'warn' },
+        { until: 35, class: 'danger' },
+        { until: 40, class: 'danger' },
+        { until: 45, class: 'danger' }
+      ], 'Ваш ИМТ: <strong>' + value.toFixed(1) + ' кг/м²</strong> · шкала 15–45');
+    }
+
+    function calcBMI() {
+      var w = num('bmi-w'), h = num('bmi-h');
+      var el = document.getElementById('bmi-result');
+
+      if (!w || !h) {
+        showEmpty(el, 'Введите вес и рост');
+        var s = document.getElementById('bmi-scale');
+        if (s) s.style.display = 'none';
+        return;
+      }
+
+      h = h / 100;
+      var bmi = w / (h * h);
+
+      var label, cls;
+
+      if (bmi < 18.5) {
+        label = 'Ниже нормы';
+        cls = 'warn';
+      } else if (bmi < 25) {
+        label = 'Норма';
+        cls = 'ok';
+      } else if (bmi < 30) {
+        label = 'Избыточный вес';
+        cls = 'warn';
+      } else if (bmi < 35) {
+        label = 'Ожирение I';
+        cls = 'danger';
+      } else if (bmi < 40) {
+        label = 'Ожирение II';
+        cls = 'danger';
+      } else {
+        label = 'Ожирение III';
+        cls = 'danger';
+      }
+
+      render(el, bmi.toFixed(1), ' кг/м²', label, cls, 'Норма 18.5–24.9');
+      renderBmiScale(bmi);
+    }
+
+    bind(['bmi-w', 'bmi-h'], 'input', calcBMI);
+
+    calcBMI();
+  </script>
+
+</body>
+</html>
