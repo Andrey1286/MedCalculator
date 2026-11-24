@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wells (ТЭЛА) — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+    .check .pts {
+      margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--accent);
+      background: var(--accent-soft); padding: 2px 8px; border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Wells (ТЭЛА)</h1>
+        <p class="subtitle">Пульмонология / неотложка</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-wells">
+      <h2>Клиническая вероятность ТЭЛА</h2>
+      <p class="desc">Шкала Wells для оценки вероятности тромбоэмболии лёгочной артерии</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="3"><span class="box"></span><span class="lbl">Клинические признаки ТГВ (отёк, боль при пальпации)</span><span class="pts">+3</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="3"><span class="box"></span><span class="lbl">Альтернативный диагноз менее вероятен, чем ТЭЛА</span><span class="pts">+3</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="1.5"><span class="box"></span><span class="lbl">ЧСС &gt;100 уд/мин</span><span class="pts">+1.5</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="1.5"><span class="box"></span><span class="lbl">Иммобилизация или операция в последние 4 недели</span><span class="pts">+1.5</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="1.5"><span class="box"></span><span class="lbl">ТЭЛА или ТГВ в анамнезе</span><span class="pts">+1.5</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="1"><span class="box"></span><span class="lbl">Кровохарканье</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="wells-check" data-pts="1"><span class="box"></span><span class="lbl">Онкозаболевание (лечение в последние 6 мес. или паллиатив)</span><span class="pts">+1</span></label>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="wells-result">
+            <span class="empty-msg">Отметьте имеющиеся критерии</span>
+          </div>
+          <div class="mini-scale" id="wells-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и тактика</summary>
+        <div class="note-content">
+          <p><strong>&lt;2 баллов:</strong> низкая вероятность. При низкой вероятности + отрицательный D-димер → ТЭЛА исключена.</p>
+          <p><strong>2–6 баллов:</strong> умеренная вероятность. Показан D-димер, при положительном → КТ-ангиография.</p>
+          <p><strong>&gt;6 баллов:</strong> высокая вероятность. Показана КТ-ангиография (D-димер не информативен).</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function renderWellsScale(value) {
+        var el = document.getElementById('wells-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 12.5, [
+          { until: 2, class: 'ok' },
+          { until: 6.5, class: 'warn' },
+          { until: 12.5, class: 'danger' }
+        ], 'Ваш Wells: <strong>' + value + ' балл(ов)</strong> · шкала 0–12.5');
+      }
+
+      function calcWells() {
+        var score = 0;
+        document.querySelectorAll('.wells-check:checked').forEach(function (c) {
+          score += parseFloat(c.dataset.pts);
+        });
+
+        var el = document.getElementById('wells-result');
+
+        if (!document.querySelector('.wells-check:checked')) {
+          MedCore.showEmpty(el, 'Отметьте имеющиеся критерии');
+          var s = document.getElementById('wells-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var label, cls, advice;
+        if (score > 6) {
+          label = 'Высокая вероятность';
+          cls = 'danger';
+          advice = 'Показана КТ-ангиография лёгочных артерий.';
+        } else if (score >= 2) {
+          label = 'Умеренная вероятность';
+          cls = 'warn';
+          advice = 'Показан D-димер. При положительном → КТ-ангиография.';
+        } else {
+          label = 'Низкая вероятность';
+          cls = 'ok';
+          advice = 'Показан D-димер. При отрицательном → ТЭЛА исключена.';
+        }
+
+        MedCore.render(el, score.toFixed(1).replace('.0',''), ' баллов', label, cls, advice);
+        renderWellsScale(score);
+      }
+
+      document.querySelectorAll('.wells-check').forEach(function (c) {
+        c.addEventListener('change', calcWells);
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
