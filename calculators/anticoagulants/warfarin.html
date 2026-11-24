@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Варфарин — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+    .qtitle:first-child { margin-top: 0; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1 1 200px; padding: 12px 16px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--info); }
+
+    .banner { padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem; }
+    .banner.ok { background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
+    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+    .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .result-table th { background: var(--info); font-weight: 700; }
+    .result-table td:last-child { text-align: right; font-weight: 600; }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Варфарин</h1>
+        <p class="subtitle">Антикоагулянты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-warfarin">
+      <h2>Стартовая доза и коррекция варфарина</h2>
+      <p class="desc">Расчёт начальной дозы и корректировки по МНО (целевой диапазон 2.0–3.0)</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="qtitle">Шаг 1. Стартовая доза</div>
+          <div class="grid">
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="wf-age" step="1" placeholder="Например, 65" data-min="18" data-max="120">
+              <div class="field-error" id="wf-age-error"></div>
+            </div>
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="wf-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="wf-weight-error"></div>
+            </div>
+          </div>
+          <div class="hint" style="margin-top:8px">Для пациентов ≥70 лет или с весом &lt;50 кг рекомендуется начинать с 2.5 мг.</div>
+
+          <div class="qtitle" style="margin-top:16px">Шаг 2. Коррекция по МНО</div>
+          <div class="grid">
+            <div class="field">
+              <label>Текущее МНО</label>
+              <input type="number" id="wf-inr" step="0.1" placeholder="Например, 1.8" data-min="0.8" data-max="10">
+              <div class="field-error" id="wf-inr-error"></div>
+            </div>
+            <div class="field">
+              <label>Текущая недельная доза (мг)</label>
+              <input type="number" id="wf-weekly" step="0.5" placeholder="Например, 35" data-min="1" data-max="200">
+              <div class="field-error" id="wf-weekly-error"></div>
+              <div class="hint">Сумма всех таблеток за неделю</div>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="wf-calc-btn">Рассчитать</button>
+            <button type="button" class="btn btn-secondary" id="wf-reset-btn">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="wf-start-result">
+            <span class="empty-msg">Введите возраст и вес для расчёта стартовой дозы</span>
+          </div>
+          <div class="result" id="wf-corr-result" style="margin-top:12px">
+            <span class="empty-msg">Введите МНО и недельную дозу для коррекции</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О коррекции дозы</summary>
+        <div class="note-content">
+          <p><strong>Целевой диапазон МНО:</strong> 2.0–3.0 (для большинства показаний).</p>
+          <p><strong>Коррекция:</strong> при МНО ниже цели — увеличение недельной дозы на 5–15%; при МНО выше цели — снижение на 5–15%. При МНО &gt;4.5 без кровотечения — пропуск 1–2 доз, затем снижение дозы.</p>
+          <p><strong>Важно:</strong> расчёт ориентировочный. Титрация варфарина требует регулярного контроля МНО (каждые 3–5 дней на этапе подбора).</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcWarfarin() {
+        var age = MedCore.num('wf-age');
+        var weight = MedCore.num('wf-weight');
+        var inr = MedCore.num('wf-inr');
+        var weekly = MedCore.num('wf-weekly');
+        var startEl = document.getElementById('wf-start-result');
+        var corrEl = document.getElementById('wf-corr-result');
+
+        // Стартовая доза
+        if (age && weight) {
+          var startDose;
+          if (age >= 70 || weight < 50) {
+            startDose = 2.5;
+          } else if (age >= 60 || weight < 60) {
+            startDose = 3;
+          } else {
+            startDose = 5;
+          }
+
+          var note = '';
+          if (age >= 70 || weight < 50) {
+            note = 'Возраст ≥70 или вес <50 кг — сниженная стартовая доза';
+          } else if (age >= 60 || weight < 60) {
+            note = 'Возраст ≥60 или вес <60 кг — умеренная стартовая доза';
+          } else {
+            note = 'Стандартная стартовая доза';
+          }
+
+          MedCore.render(startEl, startDose.toFixed(1), ' мг/сут', 'Стартовая доза', 'ok', note);
+        } else {
+          MedCore.showEmpty(startEl, 'Введите возраст и вес для расчёта стартовой дозы');
+        }
+
+        // Коррекция по МНО
+        if (inr && weekly) {
+          var targetLow = 2.0, targetHigh = 3.0;
+          var newWeekly, action, cls;
+
+          if (inr < targetLow) {
+            var deficit = targetLow - inr;
+            var increasePct = Math.min(deficit * 10, 20);
+            newWeekly = weekly * (1 + increasePct / 100);
+            action = 'Увеличить недельную дозу на ' + Math.round(increasePct) + '%';
+            cls = 'warn';
+          } else if (inr > targetHigh) {
+            if (inr > 4.5) {
+              newWeekly = weekly * 0.7;
+              action = 'Пропустить 1–2 дозы, затем снизить на 30%';
+              cls = 'danger';
+            } else {
+              var excess = inr - targetHigh;
+              var decreasePct = Math.min(excess * 10, 20);
+              newWeekly = weekly * (1 - decreasePct / 100);
+              action = 'Снизить недельную дозу на ' + Math.round(decreasePct) + '%';
+              cls = 'warn';
+            }
+          } else {
+            newWeekly = weekly;
+            action = 'Доза не меняется';
+            cls = 'ok';
+          }
+
+          var newDaily = (newWeekly / 7).toFixed(1);
+          var tableHtml = '<table class="result-table">' +
+            '<tr><th>Параметр</th><th>Значение</th></tr>' +
+            '<tr><td>Текущее МНО</td><td>' + inr.toFixed(1) + '</td></tr>' +
+            '<tr><td>Текущая недельная доза</td><td>' + weekly + ' мг</td></tr>' +
+            '<tr><td>Новая недельная доза</td><td>' + Math.round(newWeekly) + ' мг</td></tr>' +
+            '<tr><td>Новая суточная доза</td><td>' + newDaily + ' мг</td></tr>' +
+            '</table>';
+
+          corrEl.className = 'result ' + cls;
+          corrEl.innerHTML = '<div class="value">' + action + '</div>' +
+            '<div class="ref">Целевое МНО: 2.0–3.0</div>' +
+            tableHtml;
+
+          MedCore.attachCopyButtons();
+          MedCore.updateCopyButtons();
+        } else {
+          MedCore.showEmpty(corrEl, 'Введите МНО и недельную дозу для коррекции');
+        }
+      }
+
+      document.getElementById('wf-calc-btn').addEventListener('click', calcWarfarin);
+
+      document.getElementById('wf-reset-btn').addEventListener('click', function () {
+        ['wf-age', 'wf-weight', 'wf-inr', 'wf-weekly'].forEach(function (id) {
+          document.getElementById(id).value = '';
+        });
+        MedCore.showEmpty(document.getElementById('wf-start-result'), 'Введите возраст и вес для расчёта стартовой дозы');
+        MedCore.showEmpty(document.getElementById('wf-corr-result'), 'Введите МНО и недельную дозу для коррекции');
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
