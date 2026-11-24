@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Медицинские калькуляторы</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="page-header">
+    <h1>Медицинские калькуляторы</h1>
+    <p class="subtitle">Каталог калькуляторов для быстрого доступа</p>
+  </header>
+
+  <main class="container">
+
+    <section class="panel">
+      <div class="toolbar">
+        <input
+          id="search"
+          type="search"
+          placeholder="Поиск по названию или описанию"
+        >
+
+        <select id="category"></select>
+
+        <label class="only-enabled">
+          <input type="checkbox" id="onlyEnabled">
+          Только включённые
+        </label>
+      </div>
+
+      <p id="counter" class="counter"></p>
+    </section>
+
+    <section id="grid" class="grid"></section>
+
+  </main>
+
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 id="modalTitle">Калькулятор</h2>
+
+        <div class="modal-actions">
+          <a id="modalNewTab" href="#" target="_blank" rel="noopener">
+            Открыть отдельно
+          </a>
+          <button type="button" data-close>Закрыть</button>
+        </div>
+      </div>
+
+      <iframe id="modalFrame" title="Калькулятор"></iframe>
+    </div>
+  </div>
+
+  <footer>
+    <p>
+      Информация, полученная с помощью калькуляторов, носит справочный характер
+      и не заменяет консультацию врача.
+    </p>
+  </footer>
+
+  <script src="calculators.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
