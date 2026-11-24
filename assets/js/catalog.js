@@ -46,4 +46,7 @@ var CATALOG = [
   { id: 'lmwh', title: 'НМГ', description: 'Дозировка эноксапарина с учётом СКФ и веса', category: 'Антикоагулянты', file: 'calculators/anticoagulants/lmwh.html', comingSoon: false, tags: 'нмг эноксапарин клексан гепарин низкомолекулярный тэла тгв lmwh enoxaparin clexane heparin vte dvt pe prophylaxis treatment' },
   { id: 'warfarin', title: 'Варфарин', description: 'Стартовая доза и коррекция по МНО', category: 'Антикоагулянты', file: 'calculators/anticoagulants/warfarin.html', comingSoon: false, tags: 'варфарин мно inr антикоагулянт стартовая доза коррекция warfarin anticoagulant dose adjustment' },
   { id: 'heparin-iv', title: 'В/в гепарин', description: 'Болюс и инфузия нефракционированного гепарина', category: 'Антикоагулянты', file: 'calculators/anticoagulants/heparin-iv.html', comingSoon: false, tags: 'гепарин внутривенный нфг ачтт aptt болюс инфузия unfractionated heparin iv infusion bolus activated partial thromboplastin time' }
+
+  // Психиатрия
+  { id: 'gad7', title: 'GAD-7', description: 'Скрининг генерализованного тревожного расстройства', category: 'Психиатрия', file: 'calculators/psychiatry/gad7.html', comingSoon: false, tags: 'тревога гтр gad7 anxiety generalized disorder скрининг психиатрия psychiatry mental health' },
 ];
