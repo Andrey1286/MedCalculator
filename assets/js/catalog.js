@@ -116,13 +116,13 @@ var CATALOG = [
   file: 'calculators/cardiology/score2.html',
   comingSoon: false
   },
-  {
-    id: 'htn-stage',
-    title: 'Стадия АГ',
-    description: 'Определение стадии гипертонической болезни',
-    category: 'Кардиология',
-    file: '',
-    comingSoon: true
+ {
+  id: 'htn-stage',
+  title: 'Стадия АГ',
+  description: 'Определение стадии гипертонической болезни',
+  category: 'Кардиология',
+  file: 'calculators/cardiology/htn-stage.html',
+  comingSoon: false
   },
   {
     id: 'chads',
