@@ -75,12 +75,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'vitd',
-    title: 'Витамин D',
-    description: 'Статус и ориентировочные дозы',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'vitd',
+  title: 'Витамин D',
+  description: 'Статус и ориентировочные дозы',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/vitamin-d.html',
+  comingSoon: false
   },
   {
     id: 'insulin',
