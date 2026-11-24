@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Витамин D — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      font-size: .88rem;
+      margin-top: 6px;
+    }
+
+    .checkbox-item:hover {
+      border-color: var(--accent);
+      background: var(--info);
+    }
+
+    .checkbox-item input {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+
+    .checkbox-item.checked {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1 1 200px;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 14px rgba(37,99,235,.35);
+    }
+
+    .big-score {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .banner.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-left: 4px solid var(--ok);
+    }
+
+    .banner.warn {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border-left: 4px solid var(--warn);
+    }
+
+    .banner.danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: .88rem;
+    }
+
+    .result-table th,
+    .result-table td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-table th {
+      background: var(--info);
+      font-weight: 700;
+    }
+
+    .result-table td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Витамин D</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= Витамин D ================= -->
+    <div class="panel active" id="panel-vitd">
+      <h2>Витамин D: статус и ориентировочные дозы</h2>
+      <p class="desc">Клинические рекомендации РАЭ «Дефицит витамина D у взрослых». Для лиц 18 лет и старше.</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>Уровень 25(OH)D</label>
+              <input
+                type="number"
+                id="vd-level"
+                step="0.1"
+                placeholder="Например, 18"
+                data-min="0"
+                data-max="300"
+              >
+              <div class="field-error" id="vd-level-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Единицы</label>
+              <select id="vd-units">
+                <option value="ng">нг/мл</option>
+                <option value="nmol">нмоль/л</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Возраст, лет (не младше 18)</label>
+              <input
+                type="number"
+                id="vd-age"
+                placeholder="Например, 40"
+                data-min="18"
+                data-max="120"
+              >
+              <div class="field-error" id="vd-age-error"></div>
+            </div>
+
+          </div>
+
+          <div style="margin-top:14px; font-weight:700; font-size:.92rem; color:var(--text);">
+            Факторы, при которых дозы повышают (можно отметить несколько):
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="vd-obesity">
+            <span>Ожирение</span>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="vd-malabs">
+            <span>Синдром мальабсорбции (целиакия, болезнь Крона, резекция кишечника и др.)</span>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="vd-meds">
+            <span>Приём препаратов, нарушающих метаболизм витамина D (противосудорожные, глюкокортикоиды, противотуберкулёзные, антиретровирусные и др.)</span>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="vd-calc-btn">Рассчитать</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="vd-result">
+            <span class="empty-msg">Введите данные и нажмите «Рассчитать»</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Важно о дозах</summary>
+        <div class="note-content">
+          <p>Калькулятор даёт справочную оценку по рекомендациям, но лечебные дозы витамина D назначает врач. При высоком уровне 25(OH)D (выше 100 нг/мл) обязательно обсудите результат с врачом. Беременным, детям и подросткам расчёты этого калькулятора не подходят.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.checkbox-item input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.checkbox-item').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function calcVitD() {
+        var lv = MedCore.num('vd-level');
+        var units = document.getElementById('vd-units').value;
+        var age = MedCore.num('vd-age');
+        var el = document.getElementById('vd-result');
+
+        if (!lv) {
+          MedCore.showEmpty(el, 'Введите уровень 25(OH)D');
+          return;
+        }
+
+        if (!age || age < 18) {
+          MedCore.showEmpty(el, 'Калькулятор предназначен для лиц 18 лет и старше');
+          return;
+        }
+
+        // Перевод в нг/мл
+        var ng = units === 'ng' ? lv : lv / 2.496;
+
+        var cls, status, schemes;
+
+        if (ng < 10) {
+          cls = 'danger';
+          status = 'Выраженный дефицит (< 10 нг/мл)';
+          schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>8 недель</td></tr>' +
+            '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
+            '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
+        } else if (ng < 20) {
+          cls = 'danger';
+          status = 'Дефицит (10–19,9 нг/мл)';
+          schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>8 недель</td></tr>' +
+            '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
+            '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
+        } else if (ng < 30) {
+          cls = 'warn';
+          status = 'Недостаточность (20–29,9 нг/мл)';
+          schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>4 недели</td></tr>' +
+            '<tr><td>200 000 МЕ однократно</td><td>—</td></tr>' +
+            '<tr><td>3 000–4 000 МЕ в день</td><td>8 недель</td></tr>';
+        } else if (ng <= 60) {
+          cls = 'ok';
+          status = 'Целевой диапазон (30–60 нг/мл)';
+          schemes = '';
+        } else if (ng <= 100) {
+          cls = 'warn';
+          status = 'Адекватный уровень (60–100 нг/мл)';
+          schemes = '';
+        } else {
+          cls = 'danger';
+          status = 'Уровень выше 100 нг/мл — обсудите с врачом';
+          schemes = '';
+        }
+
+        var factors = document.getElementById('vd-obesity').checked ||
+          document.getElementById('vd-malabs').checked ||
+          document.getElementById('vd-meds').checked;
+
+        var riskNote = '';
+        if (factors) {
+          riskNote = '<div class="banner warn">Потребность в витамине D повышена: дозы могут быть в 2–3 раза выше стандартных.</div>';
+        }
+
+        var schemeBlock = '';
+        if (schemes) {
+          schemeBlock = '<div class="ref" style="font-weight:bold; margin-top:10px;">Ориентировочные схемы насыщения:</div>' +
+            '<table class="result-table"><tr><th>Схема</th><th>Длительность</th></tr>' + schemes + '</table>';
+        }
+
+        el.className = 'result ' + cls;
+        el.innerHTML = '<div class="big-score">' + ng.toFixed(1) + '</div>' +
+          '<div class="ref" style="text-align:center;">нг/мл</div>' +
+          '<div class="banner ' + cls + '"><b>' + status + '</b></div>' +
+          riskNote + schemeBlock;
+      }
+
+      document.getElementById('vd-calc-btn').addEventListener('click', calcVitD);
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
