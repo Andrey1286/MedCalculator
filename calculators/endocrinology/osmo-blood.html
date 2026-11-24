@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Осмоляльность крови — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover {
+      background: var(--accent-soft);
+    }
+
+    .unit-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Осмоляльность крови</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= Осмоляльность крови ================= -->
+    <div class="panel active" id="panel-osmo-blood">
+      <h2>Расчётная осмоляльность крови</h2>
+      <p class="desc">Оценка осмотической концентрации плазмы по электролитам и глюкозе</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>Натрий (ммоль/л)</label>
+              <input
+                type="number"
+                id="ob-na"
+                step="1"
+                placeholder="Например, 140"
+                data-min="100"
+                data-max="200"
+              >
+              <div class="field-error" id="ob-na-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Калий (ммоль/л)</label>
+              <input
+                type="number"
+                id="ob-k"
+                step="0.1"
+                placeholder="Например, 4.2"
+                data-min="1"
+                data-max="10"
+              >
+              <div class="field-error" id="ob-k-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Глюкоза</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="ob-glu"
+                  step="0.1"
+                  placeholder="Например, 5.0"
+                  data-min="0.5"
+                  data-max="80"
+                  data-canonical-unit="mmol_L"
+                  data-canonical="NaN"
+                  data-current-unit="mmol_L"
+                >
+                <select class="unit-select" id="ob-glu-unit">
+                  <option value="mmol_L" selected>ммоль/л</option>
+                  <option value="mg_dL">мг/дл</option>
+                </select>
+              </div>
+              <div class="field-error" id="ob-glu-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Мочевина (ммоль/л)</label>
+              <input
+                type="number"
+                id="ob-urea"
+                step="0.1"
+                placeholder="Например, 5.5"
+                data-min="0.5"
+                data-max="100"
+              >
+              <div class="field-error" id="ob-urea-error"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="ob-result">
+            <span class="empty-msg">Введите Na, K, глюкозу и мочевину</span>
+          </div>
+          <div class="mini-scale" id="ob-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Формула, референс и ограничения</summary>
+        <div class="note-content">
+          <p><strong>Формула:</strong> Осмолярность = 2 × (Na + K) + глюкоза + мочевина (все в ммоль/л).</p>
+          <p><strong>Референсный диапазон:</strong> примерно 285–295 мОсм/л.</p>
+          <p><strong>Ограничение:</strong> формула не учитывает другие осмотически активные вещества (этанол, маннитол, глицерин и т.п.).</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Работа с переключателем единиц для глюкозы ======
+      var GLUCOSE_FACTOR = 18.016; // 1 ммоль/л = 18.016 мг/дл
+
+      var gluInput = document.getElementById('ob-glu');
+      var gluUnitSelect = document.getElementById('ob-glu-unit');
+
+      function gluToCanonical(rawValue, unit) {
+        if (isNaN(rawValue)) return NaN;
+        if (unit === 'mg_dL') return rawValue / GLUCOSE_FACTOR;
+        return rawValue;
+      }
+
+      function gluFromCanonical(canonicalValue, unit) {
+        if (isNaN(canonicalValue)) return NaN;
+        if (unit === 'mg_dL') return canonicalValue * GLUCOSE_FACTOR;
+        return canonicalValue;
+      }
+
+      function updateGluCanonical() {
+        var raw = parseFloat(gluInput.value.replace(',', '.'));
+        if (isNaN(raw)) {
+          gluInput.dataset.canonical = 'NaN';
+          return;
+        }
+        var unit = gluInput.dataset.currentUnit || 'mmol_L';
+        var canonical = gluToCanonical(raw, unit);
+        gluInput.dataset.canonical = String(canonical);
+      }
+
+      function getGluCanonical() {
+        var v = parseFloat(gluInput.dataset.canonical);
+        return isNaN(v) ? NaN : v;
+      }
+
+      gluInput.addEventListener('input', function () {
+        updateGluCanonical();
+      });
+
+      gluUnitSelect.addEventListener('change', function () {
+        var newUnit = gluUnitSelect.value;
+        var oldUnit = gluInput.dataset.currentUnit || 'mmol_L';
+        if (oldUnit === newUnit) return;
+
+        var canonical = getGluCanonical();
+        if (!isNaN(canonical)) {
+          var displayed = gluFromCanonical(canonical, newUnit);
+          gluInput.value = (Math.round(displayed * 100) / 100).toString();
+        }
+
+        gluInput.dataset.currentUnit = newUnit;
+        gluInput.placeholder = (newUnit === 'mg_dL') ? 'Например, 90' : 'Например, 5.0';
+        updateGluCanonical();
+        calcOsmoBlood();
+      });
+
+      // ====== Расчёт осмоляльности ======
+      function renderOsmoBloodScale(value) {
+        var el = document.getElementById('ob-scale');
+        if (!el) return;
+
+        MedCore.renderMiniScale(el, value, 260, 340, [
+          { until: 275, class: 'warn' },
+          { until: 295, class: 'ok' },
+          { until: 300, class: 'warn' },
+          { until: 340, class: 'danger' }
+        ], 'Ваша осмоляльность: <strong>' + Math.round(value) + ' мОсм/л</strong> · референс 285–295');
+      }
+
+      function calcOsmoBlood() {
+        var na = MedCore.num('ob-na');
+        var k = MedCore.num('ob-k');
+        var glu = getGluCanonical();
+        var urea = MedCore.num('ob-urea');
+        var el = document.getElementById('ob-result');
+
+        if (!na || !k || isNaN(glu) || !urea) {
+          MedCore.showEmpty(el, 'Введите Na, K, глюкозу и мочевину');
+          var s = document.getElementById('ob-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var osmo = 2 * (na + k) + glu + urea;
+
+        var label, cls;
+        if (osmo < 275) {
+          label = 'Ниже нормы';
+          cls = 'warn';
+        } else if (osmo <= 295) {
+          label = 'Норма';
+          cls = 'ok';
+        } else if (osmo <= 300) {
+          label = 'Верхняя граница';
+          cls = 'warn';
+        } else {
+          label = 'Повышена';
+          cls = 'danger';
+        }
+
+        MedCore.render(
+          el,
+          osmo.toFixed(0),
+          ' мОсм/л',
+          label,
+          cls,
+          '2 × (Na + K) + глюкоза + мочевина'
+        );
+
+        renderOsmoBloodScale(osmo);
+      }
+
+      MedCore.bindCalc(['ob-na', 'ob-k', 'ob-urea'], calcOsmoBlood);
+      gluInput.addEventListener('input', calcOsmoBlood);
+
+      calcOsmoBlood();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
