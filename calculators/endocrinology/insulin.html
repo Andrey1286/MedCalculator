@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Инсулин — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+
+    .qtitle:first-child {
+      margin-top: 0;
+    }
+
+    .hint {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .banner.info {
+      background: var(--info);
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1 1 200px;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--info);
+    }
+
+    .panel-result-col > .result + .result {
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Инсулин</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= Инсулин ================= -->
+    <div class="panel active panel-wide-result" id="panel-insulin">
+      <h2>Корректирующая доза инсулина</h2>
+      <p class="desc">Правило 1800/1500 · расчёт ФЧИ и коррекционного болюса</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="qtitle">Шаг 1. Ваша чувствительность к инсулину (ФЧИ)</div>
+          <div class="grid">
+            <div class="field">
+              <label>Средняя суточная доза инсулина за 2–3 дня, ЕД</label>
+              <input
+                type="number"
+                id="ins-tdd"
+                step="0.5"
+                placeholder="Например, 40"
+                data-min="1"
+                data-max="300"
+              >
+              <div class="field-error" id="ins-tdd-error"></div>
+              <div class="hint">Весь инсулин за сутки: продлённый + короткий/ультракороткий. Пример: 20 + 20 = 40 ЕД.</div>
+            </div>
+            <div class="field">
+              <label>Тип инсулина для коррекции</label>
+              <select id="ins-type">
+                <option value="ultra">Ультракороткий (Хумалог, НовоРапид, Апидра, Фиасп)</option>
+                <option value="short">Короткий человеческий (Актрапид, Хумулин Р)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="qtitle" style="margin-top:16px">Шаг 2. Корректирующая доза</div>
+          <div class="grid">
+            <div class="field">
+              <label>Текущий сахар, ммоль/л</label>
+              <input
+                type="number"
+                id="ins-current"
+                step="0.1"
+                placeholder="Например, 12.0"
+                data-min="1"
+                data-max="40"
+              >
+              <div class="field-error" id="ins-current-error"></div>
+            </div>
+            <div class="field">
+              <label>Целевой сахар, ммоль/л</label>
+              <input
+                type="number"
+                id="ins-target"
+                step="0.1"
+                value="6.5"
+                data-min="3"
+                data-max="15"
+              >
+              <div class="field-error" id="ins-target-error"></div>
+            </div>
+            <div class="field">
+              <label>Округление дозы</label>
+              <select id="ins-rounding">
+                <option value="1">до 1 ЕД</option>
+                <option value="0.5" selected>до 0,5 ЕД</option>
+                <option value="0.1">до 0,1 ЕД (помпа)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="banner info" style="margin-top:14px">
+            <strong>Важно перед уколом:</strong> не вводите корректирующий болюс чаще, чем каждые 3–4 часа. При сахаре ниже 3.9 ммоль/л болюс не вводится. Расчёт ориентировочный, точный ФЧИ и целевые значения определяет врач.
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-secondary" id="ins-reset-btn">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="ins-isf-result">
+            <span class="empty-msg">Введите суточную дозу инсулина</span>
+          </div>
+          <div class="result" id="ins-dose-result">
+            <span class="empty-msg">Введите текущий и целевой сахар</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Формулы и пояснения</summary>
+        <div class="note-content">
+          <p><strong>Формула:</strong> ультракороткий инсулин — ФЧИ = 100 ÷ суточная доза; короткий — ФЧИ = 83 ÷ суточная доза.</p>
+          <p><strong>Коррекционная доза</strong> = (текущий сахар − целевой) ÷ ФЧИ, затем округление до выбранного шага.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function num(id) {
+        var el = document.getElementById(id);
+        if (!el) return NaN;
+        var v = parseFloat(el.value);
+        return isNaN(v) ? NaN : v;
+      }
+
+      function fmt(x, d) {
+        return x.toFixed(d).replace('.', ',');
+      }
+
+      function roundTo(value, step) {
+        if (!step || step <= 0) return value;
+        return Math.round(value / step) * step;
+      }
+
+      function digitsForStep(step) {
+        return step >= 1 ? 0 : 1;
+      }
+
+      function computeISF() {
+        var d = num('ins-tdd');
+        if (!isFinite(d) || d <= 0) return null;
+        var factor = document.getElementById('ins-type').value === 'short' ? 83 : 100;
+        return factor / d;
+      }
+
+      function calcInsulin() {
+        var isf = computeISF();
+        var cur = num('ins-current');
+        var tgt = num('ins-target');
+        var step = parseFloat(document.getElementById('ins-rounding').value) || 0.5;
+
+        var isfEl = document.getElementById('ins-isf-result');
+        var doseEl = document.getElementById('ins-dose-result');
+
+        if (isf === null) {
+          MedCore.showEmpty(isfEl, 'Введите суточную дозу инсулина');
+        } else {
+          var isfLabel = isf < 2 ? 'Высокая чувствительность' : (isf > 4 ? 'Низкая чувствительность' : 'Средняя чувствительность');
+          MedCore.render(
+            isfEl,
+            fmt(isf, 2),
+            ' ммоль/л на 1 ЕД',
+            isfLabel,
+            'ok',
+            '1 ЕД вашего инсулина примерно снижает сахар на ' + fmt(isf, 1) + ' ммоль/л.'
+          );
+        }
+
+        if (isf === null || !isFinite(cur) || !isFinite(tgt)) {
+          MedCore.showEmpty(doseEl, 'Введите текущий и целевой сахар');
+          return;
+        }
+
+        if (cur < 3.9) {
+          MedCore.render(
+            doseEl,
+            '0',
+            ' ЕД',
+            'Гипогликемия',
+            'danger',
+            'Сахар ниже 3,9 ммоль/л. Корректирующий болюс не вводится.'
+          );
+          return;
+        }
+
+        var diff = cur - tgt;
+        if (diff <= 0) {
+          MedCore.render(
+            doseEl,
+            '0',
+            ' ЕД',
+            'Не требуется',
+            'ok',
+            'Текущий сахар не выше целевого — болюс не нужен.'
+          );
+          return;
+        }
+
+        var raw = diff / isf;
+        var dose = roundTo(raw, step);
+        var digits = digitsForStep(step);
+        var cls = dose > 10 ? 'warn' : 'ok';
+        var label = dose > 10 ? 'Проверьте данные' : 'Ориентировочно';
+
+        MedCore.render(
+          doseEl,
+          fmt(dose, digits),
+          ' ЕД',
+          label,
+          cls,
+          'Снизить на ' + fmt(diff, 1) + ' ммоль/л ÷ ФЧИ ' + fmt(isf, 2) + ' = ' + fmt(raw, 2) + ' ЕД → округлено до ' + fmt(dose, digits) + ' ЕД.'
+        );
+      }
+
+      MedCore.bindCalc(['ins-tdd', 'ins-current', 'ins-target'], calcInsulin);
+      document.getElementById('ins-type').addEventListener('change', calcInsulin);
+      document.getElementById('ins-rounding').addEventListener('change', calcInsulin);
+
+      document.getElementById('ins-reset-btn').addEventListener('click', function () {
+        document.getElementById('ins-tdd').value = '';
+        document.getElementById('ins-current').value = '';
+        document.getElementById('ins-target').value = '6.5';
+        document.getElementById('ins-type').value = 'ultra';
+        document.getElementById('ins-rounding').value = '0.5';
+        calcInsulin();
+      });
+
+      calcInsulin();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
