@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HAS-BLED — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+    .check .pts {
+      margin-left: auto; font-size: .75rem; font-weight: 700; color: var(--accent);
+      background: var(--accent-soft); padding: 2px 8px; border-radius: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>HAS-BLED</h1>
+        <p class="subtitle">Кардиология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-hasbled">
+      <h2>Риск кровотечения на антикоагулянтах</h2>
+      <p class="desc">Оценка риска больших кровотечений по шкале HAS-BLED</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="checks">
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Гипертония (САД &gt;160 мм рт.ст.)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Нарушение функции почек / печени</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Инсульт в анамнезе</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Кровотечение в анамнезе или предрасположенность</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Лабильное МНО (TTR &lt;60%)</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Возраст &gt;65 лет</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Приём НПВС / антиагрегантов</span><span class="pts">+1</span></label>
+            <label class="check"><input type="checkbox" class="hb-check" data-pts="1"><span class="box"></span><span class="lbl">Злоупотребление алкоголем</span><span class="pts">+1</span></label>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="hb-result">
+            <span class="empty-msg">Отметьте имеющиеся факторы риска</span>
+          </div>
+          <div class="mini-scale" id="hb-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Интерпретация и рекомендации</summary>
+        <div class="note-content">
+          <p><strong>0–2 балла:</strong> низкий/умеренный риск. Стандартная тактика.</p>
+          <p><strong>≥3 баллов:</strong> высокий риск кровотечения. Требуется коррекция модифицируемых факторов (контроль АД, отмена НПВС, контроль алкоголя), более частый мониторинг. Высокий балл НЕ является противопоказанием к антикоагулянтам, если польза превышает риск.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function renderHbScale(value) {
+        var el = document.getElementById('hb-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 9, [
+          { until: 2.5, class: 'ok' },
+          { until: 3, class: 'warn' },
+          { until: 9, class: 'danger' }
+        ], 'Ваш HAS-BLED: <strong>' + value + ' балл(ов)</strong> · шкала 0–9');
+      }
+
+      function calcHASBLED() {
+        var score = 0;
+        document.querySelectorAll('.hb-check:checked').forEach(function (c) {
+          score += parseFloat(c.dataset.pts);
+        });
+
+        var el = document.getElementById('hb-result');
+
+        if (!document.querySelector('.hb-check:checked')) {
+          MedCore.showEmpty(el, 'Отметьте имеющиеся факторы риска');
+          var s = document.getElementById('hb-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var risks = ['1.13%', '1.02%', '1.88%', '3.74%', '8.70%', '12.50%'];
+        var label, cls;
+
+        if (score >= 3) {
+          label = 'Высокий риск';
+          cls = 'danger';
+        } else if (score === 2) {
+          label = 'Умеренный риск';
+          cls = 'warn';
+        } else {
+          label = 'Низкий риск';
+          cls = 'ok';
+        }
+
+        var riskText = risks[Math.min(score, 5)];
+
+        MedCore.render(el, score, ' баллов', label, cls,
+          'Риск больших кровотечений: ' + riskText + '/год');
+        renderHbScale(score);
+      }
+
+      document.querySelectorAll('.hb-check').forEach(function (c) {
+        c.addEventListener('change', calcHASBLED);
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
