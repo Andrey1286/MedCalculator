@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калории/БЖУ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1 1 200px; padding: 12px 16px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+
+    .big-score { font-size: 2.2rem; font-weight: 800; text-align: center; margin: 6px 0; }
+
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+    .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .result-table th { background: var(--info); font-weight: 700; }
+    .result-table td:last-child { text-align: right; font-weight: 600; }
+
+    .energy-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .9rem; }
+    .energy-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    .energy-table td:first-child { color: var(--muted); }
+    .energy-table td:last-child { text-align: right; font-weight: 700; font-size: 1.05rem; }
+    .energy-table tr.highlight { background: var(--accent-soft); }
+    .energy-table tr.highlight td { color: var(--text); }
+    .energy-table tr.highlight td:last-child { color: var(--accent); font-size: 1.25rem; }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Калории и БЖУ</h1>
+        <p class="subtitle">Диетология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-calories">
+      <h2>Норма калорий и макронутриентов</h2>
+      <p class="desc">Формула Миффлина–Сан Жеора с учётом активности и цели</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Пол</label>
+              <select id="cl-gender">
+                <option value="f">Женский</option>
+                <option value="m">Мужской</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="cl-age" step="1" placeholder="Например, 40" data-min="18" data-max="120">
+              <div class="field-error" id="cl-age-error"></div>
+            </div>
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="cl-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="cl-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>Рост (см)</label>
+              <input type="number" id="cl-height" step="0.5" placeholder="Например, 175" data-min="100" data-max="250">
+              <div class="field-error" id="cl-height-error"></div>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Физическая активность</label>
+              <select id="cl-act">
+                <option value="1.2">Сидячий образ жизни</option>
+                <option value="1.375">Лёгкая (1–3 тренировки/нед)</option>
+                <option value="1.55" selected>Умеренная (3–5 тренировок/нед)</option>
+                <option value="1.725">Высокая (6–7 тренировок/нед)</option>
+                <option value="1.9">Очень высокая (тяжёлый труд / спорт 2×/день)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Цель</label>
+              <select id="cl-goal">
+                <option value="keep" selected>Поддержание веса</option>
+                <option value="lose">Снижение веса</option>
+                <option value="gain">Набор массы</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="cl-calc-btn">Рассчитать</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="cl-result">
+            <span class="empty-msg">Заполните данные и нажмите «Рассчитать»</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Важно о расчёте</summary>
+        <div class="note-content">
+          <p>Расчёт ориентировочный. При ожирении, инсулинорезистентности, СПКЯ, сахарном диабете и других эндокринных заболеваниях нормы калорий и нутриентов подбираются врачом или диетологом индивидуально.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcCalories() {
+        var g = document.getElementById('cl-gender').value;
+        var age = MedCore.num('cl-age');
+        var w = MedCore.num('cl-weight');
+        var h = MedCore.num('cl-height');
+        var act = parseFloat(document.getElementById('cl-act').value);
+        var goal = document.getElementById('cl-goal').value;
+        var el = document.getElementById('cl-result');
+
+        if (!age || !w || !h) {
+          MedCore.showEmpty(el, 'Заполните возраст, вес и рост');
+          return;
+        }
+
+        var bmr = 10 * w + 6.25 * h - 5 * age + (g === 'm' ? 5 : -161);
+        var tdee = bmr * act;
+
+        var recommended, deltaPct, deltaText, goalName;
+        if (goal === 'lose') {
+          recommended = tdee * 0.85;
+          deltaPct = -15; deltaText = '−15%'; goalName = 'Снижение веса';
+        } else if (goal === 'gain') {
+          recommended = tdee * 1.12;
+          deltaPct = 12; deltaText = '+12%'; goalName = 'Набор массы';
+        } else {
+          recommended = tdee;
+          deltaPct = 0; deltaText = 'равно потребностям'; goalName = 'Поддержание веса';
+        }
+
+        var deltaKcal = Math.round(recommended - tdee);
+        var pPerKg = (goal === 'lose' || goal === 'gain') ? 1.6 : 1.2;
+        var protein = pPerKg * w;
+        var fat = 0.9 * w;
+        var carbs = (recommended - protein * 4 - fat * 9) / 4;
+
+        var sign = deltaKcal > 0 ? '+' : '';
+        var deltaStr = deltaPct === 0
+          ? 'Калорийность не меняется'
+          : sign + deltaKcal + ' ккал/сут (' + deltaText + ')';
+
+        el.className = 'result ok';
+        el.innerHTML =
+          '<div class="big-score">' + Math.round(recommended) + '</div>' +
+          '<div class="ref" style="text-align:center; margin-bottom:12px;">ккал/сут · ' + goalName.toLowerCase() + '</div>' +
+          '<table class="energy-table">' +
+          '<tr><td>BMR (базальный метаболизм)</td><td>' + Math.round(bmr) + ' ккал</td></tr>' +
+          '<tr><td>TDEE (с учётом активности)</td><td>' + Math.round(tdee) + ' ккал</td></tr>' +
+          '<tr class="highlight"><td>Цель<br><span class="hint">' + deltaStr + '</span></td><td>' + Math.round(recommended) + ' ккал</td></tr>' +
+          '</table>' +
+          '<div class="ref" style="font-weight:bold; margin-top:14px;">Макронутриенты:</div>' +
+          '<table class="result-table">' +
+          '<tr><th>Нутриент</th><th>г/день</th><th>ккал</th></tr>' +
+          '<tr><td>Белки</td><td>' + Math.round(protein) + '</td><td>' + Math.round(protein * 4) + '</td></tr>' +
+          '<tr><td>Жиры</td><td>' + Math.round(fat) + '</td><td>' + Math.round(fat * 9) + '</td></tr>' +
+          '<tr><td>Углеводы</td><td>' + Math.round(carbs) + '</td><td>' + Math.round(carbs * 4) + '</td></tr>' +
+          '</table>';
+
+        MedCore.attachCopyButtons();
+        MedCore.updateCopyButtons();
+      }
+
+      document.getElementById('cl-calc-btn').addEventListener('click', calcCalories);
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
