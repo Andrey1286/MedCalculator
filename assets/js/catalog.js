@@ -59,12 +59,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'a1c',
-    title: 'HbA1c → eAG',
-    description: 'Перевод гликированного гемоглобина в среднюю глюкозу',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'a1c',
+  title: 'HbA1c → eAG',
+  description: 'Перевод гликированного гемоглобина в среднюю глюкозу',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/hba1c.html',
+  comingSoon: false
   },
   {
     id: 'target-a1c',
