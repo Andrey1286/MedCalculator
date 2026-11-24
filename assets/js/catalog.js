@@ -125,12 +125,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'chads',
-    title: 'CHA₂DS₂-VASc',
-    description: 'Риск инсульта при фибрилляции предсердий',
-    category: 'Кардиология',
-    file: '',
-    comingSoon: true
+  id: 'chads',
+  title: 'CHA₂DS₂-VASc',
+  description: 'Риск инсульта при фибрилляции предсердий',
+  category: 'Кардиология',
+  file: 'calculators/cardiology/chads.html',
+  comingSoon: false
   },
   {
     id: 'hasbled',
