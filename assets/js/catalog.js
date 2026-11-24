@@ -197,12 +197,12 @@ var CATALOG = [
 
   // Пульмонология / неотложка
   {
-    id: 'curb',
-    title: 'CURB-65',
-    description: 'Тяжесть внебольничной пневмонии',
-    category: 'Пульмонология / неотложка',
-    file: '',
-    comingSoon: true
+  id: 'curb',
+  title: 'CURB-65',
+  description: 'Тяжесть внебольничной пневмонии',
+  category: 'Пульмонология / неотложка',
+  file: 'calculators/emergency/curb65.html',
+  comingSoon: false
   },
   {
     id: 'wells',
