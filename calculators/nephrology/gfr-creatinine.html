@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>СКФ (креатинин) — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover { background: var(--accent-soft); }
+    .unit-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>СКФ и клиренс креатинина</h1>
+        <p class="subtitle">Нефрология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-ckd">
+      <h2>СКФ и клиренс креатинина</h2>
+      <p class="desc">CKD-EPI 2021 · Кокрофт-Голт · пересчёт на фактическую площадь тела</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Креатинин</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="ckd-scr"
+                  step="1"
+                  placeholder="Например, 80"
+                  data-min="20"
+                  data-max="2000"
+                  data-canonical-unit="umol_L"
+                  data-canonical="NaN"
+                  data-current-unit="umol_L"
+                >
+                <select class="unit-select" id="ckd-scr-unit">
+                  <option value="umol_L" selected>мкмоль/л</option>
+                  <option value="mg_dL">мг/дл</option>
+                </select>
+              </div>
+              <div class="field-error" id="ckd-scr-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="ckd-age" step="1" placeholder="Например, 50" data-min="18" data-max="120">
+              <div class="field-error" id="ckd-age-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Пол</label>
+              <select id="ckd-sex">
+                <option value="m">Мужской</option>
+                <option value="f">Женский</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Рост (см)</label>
+              <input type="number" id="ckd-height" step="0.5" placeholder="Например, 175" data-min="100" data-max="250">
+              <div class="field-error" id="ckd-height-error"></div>
+              <div class="hint">Для пересчёта на площадь тела и Кокрофта-Голта</div>
+            </div>
+
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="ckd-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="ckd-weight-error"></div>
+              <div class="hint">Для пересчёта на площадь тела и Кокрофта-Голта</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="ckd-result">
+            <span class="empty-msg">Введите креатинин и возраст</span>
+          </div>
+          <div class="mini-scale" id="ckd-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О нормировке и формулах</summary>
+        <div class="note-content">
+          <p><strong>Основной результат (CKD-EPI 2021)</strong> — СКФ, приведённая к площади тела 1.73 м².</p>
+          <p><strong>Пересчёт на фактическую площадь тела</strong> — сколько крови почки реально фильтруют за минуту. Полезно для расчёта доз лекарств.</p>
+          <p><strong>Клиренс по Кокрофту-Голту</strong> — другая формула, тоже даёт абсолютный клиренс в мл/мин.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Переключатель единиц креатинина ======
+      var CREAT_FACTOR = 88.4;
+      var scrInput = document.getElementById('ckd-scr');
+      var scrUnitSelect = document.getElementById('ckd-scr-unit');
+
+      function updateScrCanonical() {
+        var raw = parseFloat(scrInput.value.replace(',', '.'));
+        if (isNaN(raw)) { scrInput.dataset.canonical = 'NaN'; return; }
+        var unit = scrInput.dataset.currentUnit || 'umol_L';
+        var canonical = unit === 'mg_dL' ? raw * CREAT_FACTOR : raw;
+        scrInput.dataset.canonical = String(canonical);
+      }
+
+      function getScrCanonical() {
+        var v = parseFloat(scrInput.dataset.canonical);
+        return isNaN(v) ? NaN : v;
+      }
+
+      scrInput.addEventListener('input', updateScrCanonical);
+
+      scrUnitSelect.addEventListener('change', function () {
+        var newUnit = scrUnitSelect.value;
+        var oldUnit = scrInput.dataset.currentUnit || 'umol_L';
+        if (oldUnit === newUnit) return;
+
+        var canonical = getScrCanonical();
+        if (!isNaN(canonical)) {
+          var displayed = newUnit === 'mg_dL' ? canonical / CREAT_FACTOR : canonical;
+          scrInput.value = (Math.round(displayed * 100) / 100).toString();
+        }
+
+        scrInput.dataset.currentUnit = newUnit;
+        scrInput.placeholder = newUnit === 'mg_dL' ? 'Например, 0.9' : 'Например, 80';
+        updateScrCanonical();
+        MedCore.validateInput(scrInput);
+        calcCKD();
+      });
+
+      // ====== Шкала СКФ ======
+      function renderCkdScale(value) {
+        var el = document.getElementById('ckd-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 120, [
+          { until: 15, class: 'danger' },
+          { until: 30, class: 'danger' },
+          { until: 45, class: 'warn' },
+          { until: 60, class: 'warn' },
+          { until: 120, class: 'ok' }
+        ], 'Ваша СКФ: <strong>' + Math.round(value) + ' мл/мин/1.73м²</strong> · шкала 0–120');
+      }
+
+      // ====== Расчёт CKD-EPI + Кокрофт-Голт ======
+      function calcCKD() {
+        var scrUmol = getScrCanonical();
+        var age = MedCore.num('ckd-age');
+        var female = document.getElementById('ckd-sex').value === 'f';
+        var heightCm = MedCore.num('ckd-height');
+        var weightKg = MedCore.num('ckd-weight');
+        var el = document.getElementById('ckd-result');
+
+        if (!scrUmol || !age) {
+          MedCore.showEmpty(el, 'Введите креатинин и возраст');
+          var s = document.getElementById('ckd-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var scrMg = scrUmol / CREAT_FACTOR;
+        var kappa = female ? 0.7 : 0.9;
+        var alpha = female ? -0.241 : -0.302;
+        var sexFactor = female ? 1.012 : 1;
+
+        var egfr = 142 * Math.pow(Math.min(scrMg / kappa, 1), alpha) *
+          Math.pow(Math.max(scrMg / kappa, 1), -1.200) *
+          Math.pow(0.9938, age) * sexFactor;
+
+        var stage, cls;
+        if (egfr >= 90) { stage = 'G1'; cls = 'ok'; }
+        else if (egfr >= 60) { stage = 'G2'; cls = 'ok'; }
+        else if (egfr >= 45) { stage = 'G3a'; cls = 'warn'; }
+        else if (egfr >= 30) { stage = 'G3b'; cls = 'warn'; }
+        else if (egfr >= 15) { stage = 'G4'; cls = 'danger'; }
+        else { stage = 'G5'; cls = 'danger'; }
+
+        var extra = '';
+
+        if (heightCm > 0 && weightKg > 0) {
+          var bsa = 0.007184 * Math.pow(heightCm, 0.725) * Math.pow(weightKg, 0.425);
+          var egfrAbs = egfr * bsa / 1.73;
+          extra += '<div class="sub-block">' +
+            '<div class="sub-label">СКФ на фактическую площадь тела</div>' +
+            '<div class="sub-value">' + Math.round(egfrAbs) + ' мл/мин</div>' +
+            '<div class="sub-ref">Площадь тела по Du Bois: ' + bsa.toFixed(2) + ' м²</div>' +
+            '</div>';
+        }
+
+        if (weightKg > 0) {
+          var crcl = ((140 - age) * weightKg) / (0.814 * scrUmol);
+          if (female) crcl *= 0.85;
+
+          var cgLabel, cgCls;
+          if (crcl >= 90) { cgLabel = 'Норма'; cgCls = 'ok'; }
+          else if (crcl >= 60) { cgLabel = 'Снижено'; cgCls = 'warn'; }
+          else if (crcl >= 30) { cgLabel = 'ХБП'; cgCls = 'danger'; }
+          else { cgLabel = 'Тяжёлая ХБП'; cgCls = 'danger'; }
+
+          extra += '<div class="sub-block">' +
+            '<div class="sub-label">Клиренс креатинина (Кокрофт-Голт)</div>' +
+            '<div class="sub-value">' + crcl.toFixed(1) + ' мл/мин <span class="tag ' + cgCls + '">' + cgLabel + '</span></div>' +
+            '</div>';
+        }
+
+        MedCore.render(el, Math.round(egfr), ' мл/мин/1.73м²', stage, cls,
+          'CKD-EPI 2021 · приведено к площади тела 1.73 м²', extra);
+        renderCkdScale(egfr);
+      }
+
+      MedCore.bindCalc(['ckd-scr', 'ckd-age', 'ckd-height', 'ckd-weight'], calcCKD);
+      document.getElementById('ckd-sex').addEventListener('change', calcCKD);
+
+      calcCKD();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
