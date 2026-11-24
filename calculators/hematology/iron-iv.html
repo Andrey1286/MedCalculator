@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Железо в/в — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover { background: var(--accent-soft); }
+    .unit-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+
+    .hint {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .banner.info {
+      background: var(--info);
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Расчёт дозы внутривенного железа</h1>
+        <p class="subtitle">Гематология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-iron">
+      <h2>Формула Ганзони</h2>
+      <p class="desc">Общий дефицит железа с учётом целевого Hb и депо</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="iron-weight" step="0.1" placeholder="Например, 70" data-min="10" data-max="300">
+              <div class="field-error" id="iron-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>Фактический Hb</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="iron-hb"
+                  step="0.1"
+                  placeholder="Например, 105"
+                  data-min="2"
+                  data-max="20"
+                  data-canonical-unit="g_dL"
+                  data-canonical="NaN"
+                  data-current-unit="g_L"
+                >
+                <select class="unit-select" id="iron-hb-unit">
+                  <option value="g_L" selected>г/л</option>
+                  <option value="g_dL">г/дл</option>
+                </select>
+              </div>
+              <div class="field-error" id="iron-hb-error"></div>
+              <div class="hint">В российских лабораториях обычно г/л. Если Hb в г/дл — переключите единицы.</div>
+            </div>
+          </div>
+
+          <div class="qtitle">Целевые параметры (рассчитываются автоматически по весу):</div>
+          <div id="iron-targets" class="banner info" style="margin-top:0">Введите вес</div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="iron-result">
+            <span class="empty-msg">Введите вес и Hb</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О формуле и важное предупреждение</summary>
+        <div class="note-content">
+          <p><strong>Формула Ганзони:</strong> Общий дефицит железа (мг) = Вес (кг) × (Целевой Hb − Фактический Hb, г/дл) × 2.4 + Депо железа (мг).</p>
+          <p><strong>Целевой Hb и депо:</strong> при весе &lt;35 кг — целевой Hb 13 г/дл, депо 15 мг/кг; при весе ≥35 кг — целевой Hb 15 г/дл, депо 500 мг.</p>
+          <p><strong>Важно:</strong> полученная доза — это общий кумулятивный дефицит, а не разовая доза.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Переключатель единиц Hb ======
+      var hbInput = document.getElementById('iron-hb');
+      var hbUnitSelect = document.getElementById('iron-hb-unit');
+
+      function updateHbCanonical() {
+        var raw = parseFloat(hbInput.value.replace(',', '.'));
+        if (isNaN(raw)) { hbInput.dataset.canonical = 'NaN'; return; }
+        var unit = hbInput.dataset.currentUnit || 'g_L';
+        var canonical = unit === 'g_L' ? raw / 10 : raw;
+        hbInput.dataset.canonical = String(canonical);
+      }
+
+      function getHbCanonical() {
+        var v = parseFloat(hbInput.dataset.canonical);
+        return isNaN(v) ? NaN : v;
+      }
+
+      hbInput.addEventListener('input', updateHbCanonical);
+
+      hbUnitSelect.addEventListener('change', function () {
+        var newUnit = hbUnitSelect.value;
+        var oldUnit = hbInput.dataset.currentUnit || 'g_L';
+        if (oldUnit === newUnit) return;
+
+        var canonical = getHbCanonical();
+        if (!isNaN(canonical)) {
+          var displayed = newUnit === 'g_L' ? canonical * 10 : canonical;
+          hbInput.value = (Math.round(displayed * 100) / 100).toString();
+        }
+
+        hbInput.dataset.currentUnit = newUnit;
+        hbInput.placeholder = newUnit === 'g_L' ? 'Например, 105' : 'Например, 10.5';
+        updateHbCanonical();
+        MedCore.validateInput(hbInput);
+        calcIron();
+      });
+
+      // ====== Целевые параметры ======
+      function updateIronTargets() {
+        var w = MedCore.num('iron-weight');
+        var el = document.getElementById('iron-targets');
+        if (!w || w <= 0) {
+          el.innerHTML = 'Введите вес';
+          return;
+        }
+        if (w < 35) {
+          el.innerHTML = '<strong>Вес &lt;35 кг:</strong> целевой Hb = 13 г/дл (130 г/л), депо = 15 мг/кг (' + Math.round(15 * w) + ' мг)';
+        } else {
+          el.innerHTML = '<strong>Вес ≥35 кг:</strong> целевой Hb = 15 г/дл (150 г/л), депо = 500 мг';
+        }
+      }
+
+      // ====== Расчёт ======
+      function calcIron() {
+        var w = MedCore.num('iron-weight');
+        var hb_gdL = getHbCanonical();
+        var el = document.getElementById('iron-result');
+
+        if (!w || isNaN(hb_gdL) || w <= 0 || hb_gdL <= 0) {
+          MedCore.showEmpty(el, 'Введите вес и Hb');
+          return;
+        }
+
+        var targetHb, depot;
+        if (w < 35) { targetHb = 13; depot = 15 * w; }
+        else { targetHb = 15; depot = 500; }
+
+        if (hb_gdL >= targetHb) {
+          MedCore.showEmpty(el, 'Фактический Hb не ниже целевого. Расчёт по формуле Ганзони не применяется.');
+          return;
+        }
+
+        var deficit = w * (targetHb - hb_gdL) * 2.4 + depot;
+
+        var extra = '<div class="sub-block">' +
+          '<div class="sub-label">Компоненты расчёта</div>' +
+          '<div class="sub-ref">Вес × (целевой Hb − фактический Hb) × 2.4 = ' +
+          (w * (targetHb - hb_gdL) * 2.4).toFixed(0) + ' мг</div>' +
+          '<div class="sub-ref">Депо железа = ' + Math.round(depot) + ' мг</div>' +
+          '</div>';
+
+        MedCore.render(el, Math.round(deficit), ' мг', 'Общий дефицит железа', 'warn',
+          'Целевой Hb: ' + targetHb + ' г/дл (' + (targetHb * 10) + ' г/л) · Фактический Hb: ' + hb_gdL.toFixed(1) + ' г/дл (' + Math.round(hb_gdL * 10) + ' г/л)', extra);
+      }
+
+      MedCore.bindCalc(['iron-weight'], function () { updateIronTargets(); calcIron(); });
+      hbInput.addEventListener('input', calcIron);
+
+      updateIronTargets();
+      calcIron();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
