@@ -4,197 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Медицинские калькуляторы</title>
-
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="stylesheet" href="assets/css/base.css">
-
   <style>
-    .category-section {
-      margin-bottom: 28px;
-    }
-
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--border);
-    }
-
-    .category-title {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 0;
-    }
-
-    .category-count {
-      font-size: 0.85rem;
-      color: var(--muted);
-      background: var(--info);
-      padding: 2px 10px;
-      border-radius: 12px;
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-
-    .calc-card {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 18px;
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .calc-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-lg);
-      border-color: var(--accent);
-    }
-
-    .calc-card.coming-soon {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    .calc-card h3 {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .calc-card p {
-      margin: 0;
-      font-size: 0.88rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .calc-card .go {
-      margin-top: auto;
-      color: var(--accent);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .calc-card.coming-soon .go {
-      color: var(--muted);
-    }
-
-    .summary-panel {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 28px;
-    }
-
-    .summary-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .summary-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .summary-actions {
-      display: flex;
-      gap: 10px;
-    }
-
-    .btn-new-patient {
-      padding: 8px 16px;
-      background: var(--danger);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.18s;
-    }
-
-    .btn-new-patient:hover {
-      background: #991b1b;
-    }
-
-    .btn-copy-all {
-      padding: 8px 16px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.18s;
-    }
-
-    .btn-copy-all:hover {
-      background: #1d4ed8;
-    }
-
-    .summary-empty {
-      text-align: center;
-      color: var(--muted);
-      font-style: italic;
-      padding: 24px 16px;
-    }
-
-    .summary-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .summary-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .summary-item:last-child {
-      border-bottom: none;
-    }
-
-    .summary-label {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .summary-value {
-      font-weight: 700;
-      text-align: right;
-    }
+    .category-section { margin-bottom: 28px; }
+    .category-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+    .category-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 0; }
+    .category-count { font-size: 0.85rem; color: var(--muted); background: var(--info); padding: 2px 10px; border-radius: 12px; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .calc-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px; text-decoration: none; color: inherit; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s; display: flex; flex-direction: column; gap: 10px; }
+    .calc-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+    .calc-card.coming-soon { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .calc-card h3 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .calc-card p { margin: 0; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+    .calc-card .go { margin-top: auto; color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+    .calc-card.coming-soon .go { color: var(--muted); }
+    .summary-panel { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+    .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+    .summary-title { font-size: 1.15rem; font-weight: 700; margin: 0; }
+    .summary-actions { display: flex; gap: 10px; }
+    .btn-new-patient { padding: 8px 16px; background: var(--danger); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+    .btn-new-patient:hover { background: #991b1b; }
+    .btn-copy-all { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.18s; }
+    .btn-copy-all:hover { background: #1d4ed8; }
+    .summary-empty { text-align: center; color: var(--muted); font-style: italic; padding: 24px 16px; }
+    .summary-list { display: flex; flex-direction: column; gap: 8px; }
+    .summary-item { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-label { color: var(--muted); font-size: 0.9rem; }
+    .summary-value { font-weight: 700; text-align: right; }
   </style>
 </head>
 <body>
-
   <div class="top-stripe"></div>
-
   <div class="wrap">
-
     <header>
       <div>
         <h1>Медицинские калькуляторы</h1>
@@ -218,11 +61,71 @@
 
     <!-- Категории калькуляторов -->
     <div id="categoriesContainer"></div>
-
   </div>
 
   <script src="assets/js/catalog.js"></script>
   <script src="assets/js/summary.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof CATALOG === 'undefined') {
+        console.error('CATALOG не загружен! Проверьте файл assets/js/catalog.js');
+        return;
+      }
 
+      var categories = {};
+      CATALOG.forEach(function (item) {
+        if (!categories[item.category]) categories[item.category] = [];
+        categories[item.category].push(item);
+      });
+
+      var categoryOrder = [
+        'Общие', 'Эндокринология', 'Кардиология', 'Нефрология',
+        'Гепатология', 'Гематология', 'Пульмонология / неотложка',
+        'Диетология', 'Антикоагулянты'
+      ];
+
+      var container = document.getElementById('categoriesContainer');
+
+      categoryOrder.forEach(function (catName) {
+        var items = categories[catName] || [];
+        if (items.length === 0) return;
+
+        var section = document.createElement('div');
+        section.className = 'category-section';
+
+        var header = document.createElement('div');
+        header.className = 'category-header';
+        header.innerHTML = '<h2 class="category-title">' + catName + '</h2>' +
+          '<span class="category-count">' + items.length + '</span>';
+        section.appendChild(header);
+
+        var grid = document.createElement('div');
+        grid.className = 'cards-grid';
+
+        items.forEach(function (item) {
+          var card = document.createElement('a');
+          card.className = 'calc-card';
+
+          if (item.comingSoon) {
+            card.classList.add('coming-soon');
+            card.href = '#';
+          } else {
+            card.href = item.file;
+            card.target = '_blank';
+            card.rel = 'noopener';
+          }
+
+          card.innerHTML = '<h3>' + item.title + '</h3>' +
+            '<p>' + item.description + '</p>' +
+            '<span class="go">' + (item.comingSoon ? 'Скоро' : 'Открыть →') + '</span>';
+
+          grid.appendChild(card);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+      });
+    });
+  </script>
 </body>
 </html>
