@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Целевой HbA1c — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover {
+      background: var(--accent-soft);
+    }
+
+    .unit-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .checkbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      font-size: .88rem;
+      margin-top: 6px;
+    }
+
+    .checkbox-item:hover {
+      border-color: var(--accent);
+      background: var(--info);
+    }
+
+    .checkbox-item input {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+
+    .checkbox-item.checked {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .hint {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1 1 200px;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 14px rgba(37,99,235,.35);
+    }
+
+    .big-score {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .banner.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-left: 4px solid var(--ok);
+    }
+
+    .banner.warn {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border-left: 4px solid var(--warn);
+    }
+
+    .banner.danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Целевой HbA1c</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= Целевой HbA1c ================= -->
+    <div class="panel active" id="panel-target-a1c">
+      <h2>Целевой уровень HbA1c</h2>
+      <p class="desc">Индивидуальная цель по гликированному гемоглобину — для обсуждения с врачом</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>Возрастная группа</label>
+              <select id="ta-age">
+                <option value="u45">До 45 лет</option>
+                <option value="45-59">45–59 лет</option>
+                <option value="60+">60 лет и старше</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Текущий HbA1c (необязательно)</label>
+              <div class="input-with-unit">
+                <input
+                  type="number"
+                  id="ta-cur"
+                  step="0.1"
+                  placeholder="Например, 8.0"
+                  data-min="4"
+                  data-max="20"
+                  data-canonical-unit="percent"
+                  data-canonical="NaN"
+                  data-current-unit="percent"
+                >
+                <select class="unit-select" id="ta-cur-unit">
+                  <option value="percent" selected>%</option>
+                  <option value="mmol_mol">ммоль/моль</option>
+                </select>
+              </div>
+              <div class="field-error" id="ta-cur-error"></div>
+            </div>
+
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="ta-comp">
+            <span>
+              Есть тяжёлые осложнения диабета и/или риск тяжёлой гипогликемии
+              <div class="hint">
+                Риск тяжёлой гипогликемии: тяжёлая гипогликемия в анамнезе,
+                бессимптомная гипогликемия, длительность диабета более 10 лет,
+                ХБП С3–С5, деменция.
+              </div>
+            </span>
+          </div>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="ta-ast">
+            <span>
+              Старческая астения, деменция или ожидаемая продолжительность жизни менее 5 лет
+            </span>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="ta-calc-btn">Определить цель</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="ta-result">
+            <span class="empty-msg">Выберите параметры и нажмите «Определить цель»</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Что с этим делать</summary>
+        <div class="note-content">
+          <p>Результат калькулятора — не назначение и не диагноз. Цель подбирает врач индивидуально. Калькулятор не относится к детям, подросткам и беременным женщинам.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Работа с переключателем единиц для текущего HbA1c ======
+      var curInput = document.getElementById('ta-cur');
+      var curUnitSelect = document.getElementById('ta-cur-unit');
+
+      function a1cToCanonical(rawValue, unit) {
+        if (isNaN(rawValue)) return NaN;
+        if (unit === 'mmol_mol') return rawValue / 10.929 + 2.15;
+        return rawValue;
+      }
+
+      function a1cFromCanonical(canonicalValue, unit) {
+        if (isNaN(canonicalValue)) return NaN;
+        if (unit === 'mmol_mol') return (canonicalValue - 2.15) * 10.929;
+        return canonicalValue;
+      }
+
+      function updateCurCanonical() {
+        var raw = parseFloat(curInput.value.replace(',', '.'));
+        if (isNaN(raw)) {
+          curInput.dataset.canonical = 'NaN';
+          return;
+        }
+        var unit = curInput.dataset.currentUnit || 'percent';
+        var canonical = a1cToCanonical(raw, unit);
+        curInput.dataset.canonical = String(canonical);
+      }
+
+      function getCurCanonical() {
+        var v = parseFloat(curInput.dataset.canonical);
+        return isNaN(v) ? NaN : v;
+      }
+
+      curInput.addEventListener('input', function () {
+        updateCurCanonical();
+      });
+
+      curUnitSelect.addEventListener('change', function () {
+        var newUnit = curUnitSelect.value;
+        var oldUnit = curInput.dataset.currentUnit || 'percent';
+        if (oldUnit === newUnit) return;
+
+        var canonical = getCurCanonical();
+        if (!isNaN(canonical)) {
+          var displayed = a1cFromCanonical(canonical, newUnit);
+          curInput.value = (Math.round(displayed * 100) / 100).toString();
+        }
+
+        curInput.dataset.currentUnit = newUnit;
+        curInput.placeholder = (newUnit === 'mmol_mol') ? 'Например, 64' : 'Например, 8.0';
+        updateCurCanonical();
+      });
+
+      // ====== Стилизация чекбоксов ======
+      document.querySelectorAll('.checkbox-item input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.checkbox-item').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      // ====== Расчёт целевого HbA1c ======
+      function calcTarget() {
+        var age = document.getElementById('ta-age').value;
+        var comp = document.getElementById('ta-comp').checked;
+        var ast = document.getElementById('ta-ast').checked;
+        var cur = getCurCanonical();
+        var el = document.getElementById('ta-result');
+
+        var target, cls;
+
+        if (ast) {
+          target = 8.5;
+          cls = 'danger';
+        } else if (age === 'u45') {
+          target = comp ? 7.0 : 6.5;
+          cls = comp ? 'warn' : 'ok';
+        } else if (age === '45-59') {
+          target = comp ? 7.5 : 7.0;
+          cls = 'warn';
+        } else {
+          target = comp ? 8.0 : 7.5;
+          cls = 'warn';
+        }
+
+        var eagMmol = (1.59 * target - 2.59).toFixed(1);
+        var eagMgdl = (28.7 * target - 46.7).toFixed(0);
+
+        var cmp = '';
+        if (cur && !isNaN(cur)) {
+          if (cur <= target) {
+            cmp = '<div class="banner ok">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — в пределах цели.</div>';
+          } else if (cur <= target + 1) {
+            cmp = '<div class="banner warn">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — чуть выше цели.</div>';
+          } else {
+            cmp = '<div class="banner danger">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — заметно выше цели.</div>';
+          }
+        }
+
+        el.className = 'result ' + cls;
+        el.innerHTML =
+          '<div class="big-score">&lt; ' + target.toFixed(1) + ' %</div>' +
+          '<div class="ref" style="text-align:center;">целевой уровень HbA1c</div>' +
+          '<div class="banner ' + cls + '">Это соответствует средней глюкозе примерно <b>' + eagMmol + ' ммоль/л</b> (' + eagMgdl + ' мг/дл).</div>' +
+          cmp;
+      }
+
+      document.getElementById('ta-calc-btn').addEventListener('click', calcTarget);
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
