@@ -205,12 +205,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'wells',
-    title: 'Wells',
-    description: 'Клиническая вероятность ТЭЛА',
-    category: 'Пульмонология / неотложка',
-    file: '',
-    comingSoon: true
+  id: 'wells',
+  title: 'Wells',
+  description: 'Клиническая вероятность ТЭЛА',
+  category: 'Пульмонология / неотложка',
+  file: 'calculators/emergency/wells.html',
+  comingSoon: false
   },
 
   // Диетология
