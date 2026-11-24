@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIB-4 — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>FIB-4</h1>
+        <p class="subtitle">Гепатология</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-fib4">
+      <h2>FIB-4 (фиброз печени)</h2>
+      <p class="desc">Неинвазивный индекс фиброза для пациентов с МАСГ/НАЖБП, ожирением, диабетом 2 типа</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="fib4-age" step="1" placeholder="Например, 55" data-min="18" data-max="120">
+              <div class="field-error" id="fib4-age-error"></div>
+            </div>
+            <div class="field">
+              <label>АсАТ / AST (Ед/л)</label>
+              <input type="number" id="fib4-ast" step="1" placeholder="Например, 35" data-min="1" data-max="5000">
+              <div class="field-error" id="fib4-ast-error"></div>
+            </div>
+            <div class="field">
+              <label>АлАТ / ALT (Ед/л)</label>
+              <input type="number" id="fib4-alt" step="1" placeholder="Например, 45" data-min="1" data-max="5000">
+              <div class="field-error" id="fib4-alt-error"></div>
+            </div>
+            <div class="field">
+              <label>Тромбоциты (×10⁹/л)</label>
+              <input type="number" id="fib4-plt" step="1" placeholder="Например, 200" data-min="1" data-max="1500">
+              <div class="field-error" id="fib4-plt-error"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="fib4-result">
+            <span class="empty-msg">Введите возраст, АсАТ, АлАТ и тромбоциты</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О формуле и порогах</summary>
+        <div class="note-content">
+          <p><strong>Формула:</strong> FIB-4 = Возраст × АсАТ / (Тромбоциты × √АлАТ).</p>
+          <p><strong>Интерпретация (NAFLD/MASLD):</strong> &lt;1.3 — продвинутый фиброз маловероятен; 1.3–2.67 — неопределённый; &gt;2.67 — фиброз вероятен.</p>
+          <p><strong>Важно:</strong> у пациентов ≥65 лет порог низкого риска сдвигается до &lt;2.0.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcFIB4() {
+        var age = MedCore.num('fib4-age');
+        var ast = MedCore.num('fib4-ast');
+        var alt = MedCore.num('fib4-alt');
+        var plt = MedCore.num('fib4-plt');
+        var el = document.getElementById('fib4-result');
+
+        if (!age || !ast || !alt || !plt) {
+          MedCore.showEmpty(el, 'Введите возраст, АсАТ, АлАТ и тромбоциты');
+          return;
+        }
+
+        if (alt <= 0 || plt <= 0) {
+          MedCore.showEmpty(el, 'АлАТ и тромбоциты должны быть больше нуля');
+          return;
+        }
+
+        var fib4 = (age * ast) / (plt * Math.sqrt(alt));
+        var lowCutoff = age >= 65 ? 2.0 : 1.3;
+
+        var label, cls;
+        if (fib4 < lowCutoff) {
+          label = 'Низкий риск';
+          cls = 'ok';
+        } else if (fib4 <= 2.67) {
+          label = 'Неопределённо';
+          cls = 'warn';
+        } else {
+          label = 'Высокий риск';
+          cls = 'danger';
+        }
+
+        var extra = '<div class="ref" style="margin-top:8px;">' +
+          (age >= 65
+            ? 'Порог низкого риска для возраста ≥65 лет: &lt;2.0'
+            : 'Порог низкого риска: &lt;1.3') +
+          ' · Неопределённо: 1.3–2.67 · Высокий риск: &gt;2.67</div>';
+
+        MedCore.render(el, fib4.toFixed(2), '', label, cls,
+          'FIB-4 = ' + age + ' × ' + ast + ' / (' + plt + ' × √' + alt + ')', extra);
+      }
+
+      MedCore.bindCalc(['fib4-age', 'fib4-ast', 'fib4-alt', 'fib4-plt'], calcFIB4);
+
+      calcFIB4();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
