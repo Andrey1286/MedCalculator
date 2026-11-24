@@ -241,12 +241,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'warfarin',
-    title: 'Варфарин',
-    description: 'Стартовая доза и коррекция',
-    category: 'Антикоагулянты',
-    file: '',
-    comingSoon: true
+  id: 'warfarin',
+  title: 'Варфарин',
+  description: 'Стартовая доза и коррекция по МНО',
+  category: 'Антикоагулянты',
+  file: 'calculators/anticoagulants/warfarin.html',
+  comingSoon: false
   },
   {
     id: 'heparin-iv',
