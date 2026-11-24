@@ -158,13 +158,13 @@ var CATALOG = [
   file: 'calculators/nephrology/gfr-creatinine.html',
   comingSoon: false
   },
-  {
-    id: 'ckd-cys',
-    title: 'СКФ (цистатин C)',
-    description: 'CKD-EPI 2012 по цистатину C',
-    category: 'Нефрология',
-    file: '',
-    comingSoon: true
+ {
+  id: 'ckd-cys',
+  title: 'СКФ (цистатин C)',
+  description: 'CKD-EPI 2012 по цистатину C',
+  category: 'Нефрология',
+  file: 'calculators/nephrology/gfr-cystatin.html',
+  comingSoon: false
   },
 
   // Гепатология
