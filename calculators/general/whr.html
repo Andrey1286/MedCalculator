@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ОТ/ОБ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>ОТ/ОБ</h1>
+        <p class="subtitle">Общие калькуляторы</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= WHR ================= -->
+    <div class="panel active" id="panel-whr">
+      <h2>Отношение талия / бёдра (WHR)</h2>
+      <p class="desc">
+        Показатель распределения жировой ткани: «яблоко» (абдоминальное)
+        vs «груша» (гиноидное)
+      </p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+
+            <div class="field">
+              <label>
+                Окружность талии (см)
+                <span
+                  class="tooltip-icon"
+                  tabindex="0"
+                  data-tip="Измеряйте посередине между нижним краем рёбер и верхней остью подвздошной кости, на выдохе, не втягивая живот"
+                >?</span>
+              </label>
+              <input
+                type="number"
+                id="whr-waist"
+                step="0.5"
+                placeholder="Например, 90"
+                data-min="40"
+                data-max="200"
+              >
+              <div class="field-error" id="whr-waist-error"></div>
+            </div>
+
+            <div class="field">
+              <label>
+                Окружность бёдер (см)
+                <span
+                  class="tooltip-icon"
+                  tabindex="0"
+                  data-tip="Измеряйте по наиболее выступающим точкам ягодиц, ноги вместе"
+                >?</span>
+              </label>
+              <input
+                type="number"
+                id="whr-hip"
+                step="0.5"
+                placeholder="Например, 100"
+                data-min="50"
+                data-max="200"
+              >
+              <div class="field-error" id="whr-hip-error"></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="whr-result">
+            <span class="empty-msg">Введите талию и бёдра</span>
+          </div>
+          <div class="mini-scale" id="whr-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Норма и интерпретация</summary>
+        <div class="note-content">
+          <p>
+            <strong>Пороги ВОЗ:</strong>
+            у мужчин повышенный риск при WHR ≥0.90, у женщин — при WHR ≥0.85.
+          </p>
+          <p>
+            <strong>О чём говорит результат:</strong>
+            WHR отражает тип распределения жировой ткани.
+            Более высокие значения (талия ≈ бёдра или больше) характерны
+            для абдоминального («яблоко») ожирения, которое связано
+            с повышенным риском сердечно-сосудистых заболеваний
+            и диабета 2 типа.
+            Более низкие значения (талия заметно меньше бёдер) —
+            для гиноидного («груша») типа, метаболически более благоприятного.
+          </p>
+          <p>
+            <strong>Ограничения:</strong>
+            WHR не учитывает общее количество жира и мышечную массу,
+            поэтому не заменяет ИМТ и оценку состава тела.
+          </p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function renderWhrScale(value) {
+        var el = document.getElementById('whr-scale');
+        if (!el) return;
+
+        MedCore.renderMiniScale(el, value, 0.6, 1.2, [
+          { until: 0.85, class: 'ok' },
+          { until: 0.9, class: 'warn' },
+          { until: 1.0, class: 'danger' },
+          { until: 1.2, class: 'danger' }
+        ], 'Ваш WHR: <strong>' + value.toFixed(2) + '</strong> · шкала 0.6–1.2');
+      }
+
+      function calcWHR() {
+        var waist = MedCore.num('whr-waist');
+        var hip = MedCore.num('whr-hip');
+        var el = document.getElementById('whr-result');
+
+        if (!waist || !hip || hip <= 0) {
+          MedCore.showEmpty(el, 'Введите талию и бёдра');
+          var s = document.getElementById('whr-scale');
+          if (s) s.style.display = 'none';
+          return;
+        }
+
+        var ratio = waist / hip;
+
+        var label, cls;
+
+        if (ratio < 0.85) {
+          label = 'Норма';
+          cls = 'ok';
+        } else if (ratio < 0.90) {
+          label = 'Пограничное';
+          cls = 'warn';
+        } else {
+          label = 'Повышенный риск';
+          cls = 'danger';
+        }
+
+        var type = ratio >= 0.85
+          ? 'абдоминальный («яблоко»)'
+          : 'гиноидный («груша»)';
+
+        MedCore.render(
+          el,
+          ratio.toFixed(2),
+          '',
+          label,
+          cls,
+          'Пороги ВОЗ: мужчины ≥0.90, женщины ≥0.85 · Тип распределения жира: ' + type
+        );
+
+        renderWhrScale(ratio);
+      }
+
+      MedCore.bindCalc(['whr-waist', 'whr-hip'], calcWHR);
+
+      calcWHR();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
