@@ -27,12 +27,12 @@ var CATALOG = [
 
   // Эндокринология
   {
-    id: 'ft',
-    title: 'Свободный тестостерон',
-    description: 'Расчёт по уравнению Vermeulen',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'ft',
+  title: 'Свободный тестостерон',
+  description: 'Расчёт по уравнению Vermeulen',
+  category: 'Эндокринология',
+  file: '',
+  comingSoon: true
   },
   {
   id: 'ca',
