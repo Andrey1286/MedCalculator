@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FINDRISC — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn {
+      text-decoration: none;
+    }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+
+    .qtitle:first-child {
+      margin-top: 0;
+    }
+
+    .radio-group {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      font-size: .88rem;
+    }
+
+    .radio-item:hover {
+      border-color: var(--accent);
+      background: var(--info);
+    }
+
+    .radio-item input {
+      margin-top: 3px;
+      accent-color: var(--accent);
+    }
+
+    .radio-item.checked {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .hint {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1 1 200px;
+      padding: 12px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 14px rgba(37,99,235,.35);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--info);
+    }
+
+    .big-score {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .banner.ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-left: 4px solid var(--ok);
+    }
+
+    .banner.warn {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border-left: 4px solid var(--warn);
+    }
+
+    .banner.danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>FINDRISC</h1>
+        <p class="subtitle">Эндокринология</p>
+      </div>
+
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= FINDRISC ================= -->
+    <div class="panel active" id="panel-findrisc">
+      <h2>Риск сахарного диабета 2 типа (FINDRISC)</h2>
+      <p class="desc">Опросник FINDRISC: 9 вопросов, оценка риска диабета или предиабета в ближайшие 10 лет</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+
+          <div class="qtitle">1. Ваш пол</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-gender" value="m"><span>Мужской</span></label>
+            <label class="radio-item"><input type="radio" name="fr-gender" value="f"><span>Женский</span></label>
+          </div>
+
+          <div class="qtitle">2. Ваш возраст</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-age" value="0"><span>До 45 лет</span></label>
+            <label class="radio-item"><input type="radio" name="fr-age" value="2"><span>45–54 года</span></label>
+            <label class="radio-item"><input type="radio" name="fr-age" value="3"><span>55–64 года</span></label>
+            <label class="radio-item"><input type="radio" name="fr-age" value="4"><span>Старше 65 лет</span></label>
+          </div>
+
+          <div class="qtitle">3. Ваш вес и рост</div>
+          <div class="grid">
+            <div class="field">
+              <label>Вес, кг</label>
+              <input type="number" id="fr-weight" step="0.1" placeholder="Например, 80" data-min="20" data-max="300">
+              <div class="field-error" id="fr-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>Рост, см</label>
+              <input type="number" id="fr-height" step="0.5" placeholder="Например, 175" data-min="100" data-max="250">
+              <div class="field-error" id="fr-height-error"></div>
+            </div>
+          </div>
+
+          <div class="qtitle">4. Окружность талии</div>
+          <div class="grid">
+            <div class="field">
+              <label>Талия, см</label>
+              <input type="number" id="fr-waist" step="0.5" placeholder="Например, 90" data-min="40" data-max="200">
+              <div class="field-error" id="fr-waist-error"></div>
+              <div class="hint">Измеряйте на уровне пупка, не втягивая живот.</div>
+            </div>
+          </div>
+
+          <div class="qtitle">5. Физическая активность</div>
+          <div class="hint" style="margin-bottom:8px;">Занимаетесь ли вы спортом, прогулками или физическим трудом не менее 30 минут в день?</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-act" value="0"><span>Да, регулярно</span></label>
+            <label class="radio-item"><input type="radio" name="fr-act" value="2"><span>Нет</span></label>
+          </div>
+
+          <div class="qtitle">6. Овощи, фрукты или ягоды</div>
+          <div class="hint" style="margin-bottom:8px;">Едите ли вы их каждый день?</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-veg" value="0"><span>Да</span></label>
+            <label class="radio-item"><input type="radio" name="fr-veg" value="1"><span>Нет</span></label>
+          </div>
+
+          <div class="qtitle">7. Препараты от давления</div>
+          <div class="hint" style="margin-bottom:8px;">Принимаете ли вы регулярно лекарства от повышенного давления?</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-bp" value="0"><span>Нет</span></label>
+            <label class="radio-item"><input type="radio" name="fr-bp" value="2"><span>Да</span></label>
+          </div>
+
+          <div class="qtitle">8. Случалось ли, что уровень сахара в крови был повышен?</div>
+          <div class="hint" style="margin-bottom:8px;">Например, по результатам анализа, медосмотра, во время беременности.</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-glu" value="0"><span>Нет</span></label>
+            <label class="radio-item"><input type="radio" name="fr-glu" value="5"><span>Да</span></label>
+          </div>
+
+          <div class="qtitle">9. Диабет у родственников</div>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="fr-fam" value="0"><span>Нет</span></label>
+            <label class="radio-item"><input type="radio" name="fr-fam" value="3"><span>Да: бабушка/дедушка, тётя/дядя, двоюродные братья и сёстры</span></label>
+            <label class="radio-item"><input type="radio" name="fr-fam" value="5"><span>Да: родители, брат/сестра или собственный ребёнок</span></label>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="fr-calc-btn">Рассчитать риск</button>
+            <button type="button" class="btn btn-secondary" id="fr-reset-btn">Сбросить ответы</button>
+          </div>
+
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="fr-result">
+            <span class="empty-msg">Ответьте на вопросы и нажмите «Рассчитать риск»</span>
+          </div>
+          <div class="mini-scale" id="fr-scale" style="display:none"></div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О шкале FINDRISC</summary>
+        <div class="note-content">
+          <p>Калькулятор носит информационный характер и не является диагнозом. При результате 12 баллов и выше имеет смысл обсудить с врачом обследование: глюкозу натощак, HbA1c или глюкозотолерантный тест.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function num(id) {
+        var el = document.getElementById(id);
+        if (!el) return NaN;
+        var v = parseFloat(el.value);
+        return isNaN(v) ? NaN : v;
+      }
+
+      function radioVal(name) {
+        var el = document.querySelector('input[name="' + name + '"]:checked');
+        return el ? el.value : null;
+      }
+
+      function renderFrScale(value) {
+        var el = document.getElementById('fr-scale');
+        if (!el) return;
+        MedCore.renderMiniScale(el, value, 0, 26, [
+          { until: 7, class: 'ok' },
+          { until: 12, class: 'warn' },
+          { until: 15, class: 'warn' },
+          { until: 21, class: 'danger' },
+          { until: 26, class: 'danger' }
+        ], 'Ваш FINDRISC: <strong>' + value + ' балл(ов)</strong> · шкала 0–26');
+      }
+
+      function calcFindrisc() {
+        var g = radioVal('fr-gender');
+        var age = radioVal('fr-age');
+        var act = radioVal('fr-act');
+        var veg = radioVal('fr-veg');
+        var bp = radioVal('fr-bp');
+        var glu = radioVal('fr-glu');
+        var fam = radioVal('fr-fam');
+        var el = document.getElementById('fr-result');
+
+        if (!g) { MedCore.showEmpty(el, 'Выберите пол'); return; }
+        if (age === null) { MedCore.showEmpty(el, 'Выберите возраст'); return; }
+
+        var w = num('fr-weight'), h = num('fr-height'), waist = num('fr-waist');
+        if (!w || !h) { MedCore.showEmpty(el, 'Введите вес и рост'); return; }
+        if (!waist) { MedCore.showEmpty(el, 'Введите окружность талии'); return; }
+        if (act === null || veg === null || bp === null || glu === null || fam === null) {
+          MedCore.showEmpty(el, 'Ответьте на все вопросы');
+          return;
+        }
+
+        var bmi = w / Math.pow(h / 100, 2);
+        var bmiScore = bmi < 25 ? 0 : (bmi <= 30 ? 1 : 3);
+
+        var waistScore;
+        if (g === 'm') {
+          waistScore = waist < 94 ? 0 : (waist <= 102 ? 3 : 4);
+        } else {
+          waistScore = waist < 80 ? 0 : (waist <= 88 ? 3 : 4);
+        }
+
+        var total = parseInt(age) + bmiScore + waistScore +
+          parseInt(act) + parseInt(veg) + parseInt(bp) + parseInt(glu) + parseInt(fam);
+
+        var cls, title, prob, advice;
+
+        if (total < 7) {
+          cls = 'ok';
+          title = 'Низкий риск';
+          prob = '≈ 1 из 100';
+          advice = 'Поддерживайте активный образ жизни и здоровое питание.';
+        } else if (total < 12) {
+          cls = 'warn';
+          title = 'Незначительно повышенный риск';
+          prob = '≈ 4 из 100';
+          advice = 'Стоит обратить внимание на вес, питание и активность.';
+        } else if (total < 15) {
+          cls = 'warn';
+          title = 'Умеренный риск';
+          prob = '≈ 17 из 100';
+          advice = 'Обсудите с врачом обследование: глюкозу натощак, HbA1c или ГТТ.';
+        } else if (total < 21) {
+          cls = 'danger';
+          title = 'Высокий риск';
+          prob = '≈ 33 из 100';
+          advice = 'Рекомендуется обратиться к врачу для обследования.';
+        } else {
+          cls = 'danger';
+          title = 'Очень высокий риск';
+          prob = '≈ 50 из 100';
+          advice = 'Рекомендуется как можно скорее обратиться к врачу.';
+        }
+
+        el.className = 'result ' + cls;
+        el.innerHTML =
+          '<div class="big-score">' + total + '</div>' +
+          '<div class="ref" style="text-align:center;">из 26 баллов</div>' +
+          '<div class="banner ' + cls + '"><b>' + title + '</b> — вероятность за 10 лет: ' + prob + '.<br>' + advice + '</div>' +
+          '<div class="ref">ИМТ: ' + bmi.toFixed(1) + ' кг/м²</div>';
+
+        renderFrScale(total);
+      }
+
+      document.getElementById('fr-calc-btn').addEventListener('click', calcFindrisc);
+
+      document.getElementById('fr-reset-btn').addEventListener('click', function () {
+        document.querySelectorAll('#panel-findrisc input[type=radio]').forEach(function (r) {
+          r.checked = false;
+        });
+        ['fr-weight', 'fr-height', 'fr-waist'].forEach(function (id) {
+          document.getElementById(id).value = '';
+        });
+        MedCore.showEmpty(document.getElementById('fr-result'), 'Ответьте на вопросы и нажмите «Рассчитать риск»');
+        var s = document.getElementById('fr-scale');
+        if (s) s.style.display = 'none';
+      });
+
+      document.querySelectorAll('.radio-item input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          var name = inp.name;
+          document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+            r.closest('.radio-item').classList.toggle('checked', r.checked);
+          });
+        });
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
