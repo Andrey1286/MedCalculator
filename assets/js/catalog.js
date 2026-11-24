@@ -249,11 +249,11 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'heparin-iv',
-    title: 'В/в гепарин',
-    description: 'Внутривенный нефракционированный гепарин',
-    category: 'Антикоагулянты',
-    file: '',
-    comingSoon: true
-  }
+  id: 'heparin-iv',
+  title: 'В/в гепарин',
+  description: 'Болюс и инфузия нефракционированного гепарина',
+  category: 'Антикоагулянты',
+  file: 'calculators/anticoagulants/heparin-iv.html',
+  comingSoon: false
+  },
 ];
