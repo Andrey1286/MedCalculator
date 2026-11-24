@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор антикоагулянтов</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --card-bg: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 20px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.theme-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.theme-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.theme-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.theme-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 12px 20px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-item label {
+  margin: 0;
+  cursor: pointer;
+}
+
+.btn {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: var(--primary-hover);
+}
+
+.result {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+}
+
+.result-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+.result-value {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.result-details {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.warning {
+  border-left-color: var(--warning);
+}
+
+.warning .result-title {
+  color: var(--warning);
+}
+
+.danger {
+  border-left-color: var(--danger);
+}
+
+.danger .result-title {
+  color: var(--danger);
+}
+
+.source {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.source strong {
+  color: var(--text);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 600px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .tabs {
+    flex-direction: column;
+  }
+  
+  .tab {
+    width: 100%;
+  }
+}
+
+.hidden {
+  display: none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Калькулятор антикоагулянтов</h1>
+    <div class="theme-toggle">
+      <button class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>
+      <button class="theme-btn" data-theme="auto" title="Системная тема">🌫️</button>
+      <button class="theme-btn" data-theme="dark" title="Темная тема">🌙</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="noac">НОАК</button>
+    <button class="tab" data-tab="nmh">НМГ</button>
+    <button class="tab" data-tab="warfarin">Варфарин</button>
+    <button class="tab" data-tab="heparin">В/в гепарин</button>
+  </div>
+
+  <!-- НОАК -->
+  <div class="tab-content active" id="noac">
+    <div class="card">
+      <div class="card-title">Новые оральные антикоагулянты (НОАК)</div>
+      
+      <div class="form-group">
+        <label>Препарат</label>
+        <select id="noac-drug">
+          <option value="apixaban">Апиксабан (Эликвис)</option>
+          <option value="rivaroxaban">Ривароксабан (Ксарелто)</option>
+          <option value="dabigatran">Дабигатран (Прадакса)</option>
+          <option value="edoxaban">Эдоксабан (Ликсиар)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Показание</label>
+        <select id="noac-indication">
+          <option value="af">Фибрилляция предсердий (неклапанная)</option>
+          <option value="vtv">Лечение ТГВ/ТЭЛА</option>
+          <option value="vtv-proph">Профилактика рецидива ТГВ/ТЭЛА</option>
+          <option value="ortho-proph">Профилактика после ортопедических операций</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Возраст (лет)</label>
+          <input type="number" id="noac-age" min="18" max="120" placeholder="Например, 65">
+        </div>
+        <div class="form-group">
+          <label>Масса тела (кг)</label>
+          <input type="number" id="noac-weight" min="30" max="200" placeholder="Например, 70">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Креатинин сыворотки (мкмоль/л)</label>
+        <input type="number" id="noac-creatinine" min="30" max="1000" placeholder="Например, 90">
+      </div>
+
+      <div class="form-group">
+        <label>Пол</label>
+        <select id="noac-sex">
+          <option value="male">Мужской</option>
+          <option value="female">Женский</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Сопутствующие препараты (для апиксабана)</label>
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="noac-strong-inhibitor">
+            <label for="noac-strong-inhibitor">Сильные ингибиторы CYP3A4 и P-gp (кетоконазол, итраконазол, ритонавир и др.)</label>
+          </div>
+          <div class="checkbox-item">
+            <input type="checkbox" id="noac-inducer">
+            <label for="noac-inducer">Индукторы CYP3A4 и P-gp (рифампицин, карбамазепин, фенитоин и др.)</label>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="calculateNOAC()">Рассчитать дозу</button>
+
+      <div id="noac-result" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- НМГ -->
+  <div class="tab-content" id="nmh">
+    <div class="card">
+      <div class="card-title">Низкомолекулярные гепарины (эноксапарин)</div>
+      
+      <div class="form-group">
+        <label>Показание</label>
+        <select id="nmh-indication">
+          <option value="treatment">Лечение ТГВ/ТЭЛА</option>
+          <option value="prophylaxis">Профилактика ВТЭО</option>
+        </select>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Масса тела (кг)</label>
+          <input type="number" id="nmh-weight" min="30" max="200" placeholder="Например, 70">
+        </div>
+        <div class="form-group">
+          <label>Креатинин сыворотки (мкмоль/л)</label>
+          <input type="number" id="nmh-creatinine" min="30" max="1000" placeholder="Например, 90">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Возраст (лет)</label>
+          <input type="number" id="nmh-age" min="18" max="120" placeholder="Например, 65">
+        </div>
+        <div class="form-group">
+          <label>Пол</label>
+          <select id="nmh-sex">
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn" onclick="calculateNMH()">Рассчитать дозу</button>
+
+      <div id="nmh-result" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Варфарин -->
+  <div class="tab-content" id="warfarin">
+    <div class="card">
+      <div class="card-title">Варфарин</div>
+      
+      <div class="form-group">
+        <label>Режим расчета</label>
+        <select id="warfarin-mode">
+          <option value="starting">Стартовая доза</option>
+          <option value="maintenance">Коррекция поддерживающей дозы</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Целевой диапазон МНО</label>
+        <select id="warfarin-target">
+          <option value="2-3">2,0–3,0 (ФП, ТГВ/ТЭЛА, биологические протезы)</option>
+          <option value="2.5-3.5">2,5–3,5 (механические протезы клапанов)</option>
+        </select>
+      </div>
+
+      <div id="warfarin-starting-fields">
+        <div class="form-group">
+          <label>Возраст (лет)</label>
+          <input type="number" id="warfarin-age" min="18" max="120" placeholder="Например, 70">
+        </div>
+
+        <div class="form-group">
+          <label>Масса тела (кг)</label>
+          <input type="number" id="warfarin-weight" min="30" max="200" placeholder="Например, 65">
+        </div>
+
+        <div class="form-group">
+          <label>Факторы, повышающие чувствительность к варфарину</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="warfarin-amiodarone">
+              <label for="warfarin-amiodarone">Прием амиодарона</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="warfarin-hf">
+              <label for="warfarin-hf">Сердечная недостаточность</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="warfarin-liver">
+              <label for="warfarin-liver">Печеночная недостаточность</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="warfarin-other">
+              <label for="warfarin-other">Другие взаимодействующие препараты (флуконазол, метронидазол и др.)</label>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="calculateWarfarinStarting()">Рассчитать стартовую дозу</button>
+      </div>
+
+      <div id="warfarin-maintenance-fields" class="hidden">
+        <div class="form-group">
+          <label>Текущее МНО</label>
+          <input type="number" id="warfarin-inr" min="0.5" max="20" step="0.1" placeholder="Например, 2.5">
+        </div>
+
+        <div class="form-group">
+          <label>Текущая недельная доза варфарина (мг)</label>
+          <input type="number" id="warfarin-weekly-dose" min="0" max="100" step="0.5" placeholder="Например, 35">
+        </div>
+
+        <div class="form-group">
+          <label>Есть ли кровотечение?</label>
+          <select id="warfarin-bleeding">
+            <option value="no">Нет</option>
+            <option value="yes">Да</option>
+          </select>
+        </div>
+
+        <button class="btn" onclick="calculateWarfarinMaintenance()">Рассчитать коррекцию</button>
+      </div>
+
+      <div id="warfarin-result" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- В/в гепарин -->
+  <div class="tab-content" id="heparin">
+    <div class="card">
+      <div class="card-title">Внутривенный нефракционированный гепарин</div>
+      
+      <div class="form-group">
+        <label>Режим расчета</label>
+        <select id="heparin-mode">
+          <option value="starting">Стартовая доза (болюс + инфузия)</option>
+          <option value="adjustment">Коррекция по АЧТВ</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Масса тела (кг)</label>
+        <input type="number" id="heparin-weight" min="30" max="200" placeholder="Например, 70">
+      </div>
+
+      <div id="heparin-adjustment-fields" class="hidden">
+        <div class="form-group">
+          <label>Текущее АЧТВ (сек)</label>
+          <input type="number" id="heparin-aptt" min="15" max="200" step="0.1" placeholder="Например, 60">
+        </div>
+
+        <div class="form-group">
+          <label>Текущая скорость инфузии (ЕД/час)</label>
+          <input type="number" id="heparin-current-rate" min="0" max="5000" placeholder="Например, 1000">
+        </div>
+      </div>
+
+      <button class="btn" onclick="calculateHeparin()">Рассчитать</button>
+
+      <div id="heparin-result" class="hidden"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Переключение тем
+const themeButtons = document.querySelectorAll('.theme-btn');
+const savedTheme = localStorage.getItem('theme') || 'auto';
+applyTheme(savedTheme);
+
+themeButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const theme = btn.dataset.theme;
+    applyTheme(theme);
+    localStorage.setItem('theme', theme);
+  });
+});
+
+function applyTheme(theme) {
+  themeButtons.forEach(btn => btn.classList.remove('active'));
+  document.querySelector(`[data-theme="${theme}"]`).classList.add('active');
+  
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else if (theme === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }
+}
+
+// Переключение вкладок
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    
+    tab.classList.add('active');
+    document.getElementById(targetTab).classList.add('active');
+  });
+});
+
+// Переключение режимов варфарина
+document.getElementById('warfarin-mode').addEventListener('change', (e) => {
+  const mode = e.target.value;
+  if (mode === 'starting') {
+    document.getElementById('warfarin-starting-fields').classList.remove('hidden');
+    document.getElementById('warfarin-maintenance-fields').classList.add('hidden');
+  } else {
+    document.getElementById('warfarin-starting-fields').classList.add('hidden');
+    document.getElementById('warfarin-maintenance-fields').classList.remove('hidden');
+  }
+  document.getElementById('warfarin-result').classList.add('hidden');
+});
+
+// Переключение режимов гепарина
+document.getElementById('heparin-mode').addEventListener('change', (e) => {
+  const mode = e.target.value;
+  if (mode === 'adjustment') {
+    document.getElementById('heparin-adjustment-fields').classList.remove('hidden');
+  } else {
+    document.getElementById('heparin-adjustment-fields').classList.add('hidden');
+  }
+  document.getElementById('heparin-result').classList.add('hidden');
+});
+
+// Расчет клиренса креатинина по Кокрофту-Голту
+function calculateCrCl(creatinine, age, weight, sex) {
+  let crcl = ((140 - age) * weight) / (creatinine * 0.814);
+  if (sex === 'female') {
+    crcl *= 0.85;
+  }
+  return Math.round(crcl);
+}
+
+// НОАК
+function calculateNOAC() {
+  const drug = document.getElementById('noac-drug').value;
+  const indication = document.getElementById('noac-indication').value;
+  const age = parseInt(document.getElementById('noac-age').value);
+  const weight = parseInt(document.getElementById('noac-weight').value);
+  const creatinine = parseInt(document.getElementById('noac-creatinine').value);
+  const sex = document.getElementById('noac-sex').value;
+  const strongInhibitor = document.getElementById('noac-strong-inhibitor').checked;
+  const inducer = document.getElementById('noac-inducer').checked;
+
+  if (!age || !weight || !creatinine) {
+    alert('Заполните все обязательные поля');
+    return;
+  }
+
+  const crcl = calculateCrCl(creatinine, age, weight, sex);
+  let dose = '';
+  let warning = '';
+
+  if (drug === 'apixaban') {
+    if (indication === 'af') {
+      if (strongInhibitor && inducer) {
+        dose = 'Противопоказано';
+        warning = 'Одновременный прием сильных ингибиторов и индукторов';
+      } else if (strongInhibitor) {
+        dose = '2.5 мг 2 раза/сут';
+        warning = 'Сильный ингибитор CYP3A4 и P-gp';
+      } else if (inducer) {
+        dose = 'Противопоказано';
+        warning = 'Индуктор CYP3A4 и P-gp';
+      } else if (age >= 80 || weight <= 60 || creatinine >= 133) {
+        const criteria = [age >= 80, weight <= 60, creatinine >= 133].filter(Boolean).length;
+        if (criteria >= 2) {
+          dose = '2.5 мг 2 раза/сут';
+          warning = 'Снижение дозы при наличии ≥2 критериев';
+        } else {
+          dose = '5 мг 2 раза/сут';
+        }
+      } else {
+        dose = '5 мг 2 раза/сут';
+      }
+    } else if (indication === 'vtv') {
+      dose = '10 мг 2 раза/сут (7 дней), затем 5 мг 2 раза/сут';
+    } else if (indication === 'vtv-proph') {
+      dose = '2.5 мг 2 раза/сут';
+    }
+  } else if (drug === 'rivaroxaban') {
+    if (indication === 'af') {
+      if (crcl < 15) {
+        dose = 'Противопоказано';
+        warning = 'КК < 15 мл/мин';
+      } else if (crcl < 30) {
+        dose = '15 мг 1 раз/сут';
+        warning = 'КК 15-29 мл/мин';
+      } else {
+        dose = '20 мг 1 раз/сут с пищей';
+      }
+    } else if (indication === 'vtv') {
+      dose = '15 мг 2 раза/сут (21 день), затем 20 мг 1 раз/сут';
+    } else if (indication === 'vtv-proph') {
+      if (crcl < 30) {
+        dose = 'Противопоказано';
+        warning = 'КК < 30 мл/мин';
+      } else {
+        dose = '20 мг 1 раз/сут';
+      }
+    } else if (indication === 'ortho-proph') {
+      dose = '10 мг 1 раз/сут (12-35 дней для ТБС, 12-19 дней для коленного сустава)';
+    }
+  } else if (drug === 'dabigatran') {
+    if (indication === 'af') {
+      if (crcl < 30) {
+        dose = 'Противопоказано';
+        warning = 'КК < 30 мл/мин';
+      } else if (age >= 80 || crcl < 50) {
+        dose = '110 мг 2 раза/сут';
+        warning = 'Возраст ≥80 лет или КК 30-49 мл/мин';
+      } else {
+        dose = '150 мг 2 раза/сут';
+      }
+    } else if (indication === 'vtv') {
+      if (crcl < 30) {
+        dose = 'Противопоказано';
+        warning = 'КК < 30 мл/мин';
+      } else {
+        dose = '150 мг 2 раза/сут';
+      }
+    } else if (indication === 'vtv-proph') {
+      if (crcl < 30) {
+        dose = 'Противопоказано';
+        warning = 'КК < 30 мл/мин';
+      } else {
+        dose = '150 мг 2 раза/сут';
+      }
+    }
+  } else if (drug === 'edoxaban') {
+    if (indication === 'af') {
+      if (crcl < 15) {
+        dose = 'Противопоказано';
+        warning = 'КК < 15 мл/мин';
+      } else if (crcl > 95) {
+        dose = 'Противопоказано';
+        warning = 'КК > 95 мл/мин (сниженная эффективность)';
+      } else if (crcl >= 15 && crcl <= 50) {
+        dose = '30 мг 1 раз/сут';
+        warning = 'КК 15-50 мл/мин';
+      } else {
+        dose = '60 мг 1 раз/сут';
+      }
+    } else if (indication === 'vtv') {
+      if (crcl < 15) {
+        dose = 'Противопоказано';
+        warning = 'КК < 15 мл/мин';
+      } else {
+        dose = '60 мг 1 раз/сут после 5-10 дней парентеральной антикоагуляции';
+      }
+    } else if (indication === 'vtv-proph') {
+      if (crcl < 15) {
+        dose = 'Противопоказано';
+        warning = 'КК < 15 мл/мин';
+      } else {
+        dose = '60 мг 1 раз/сут';
+      }
+    }
+  }
+
+  const resultDiv = document.getElementById('noac-result');
+  resultDiv.classList.remove('hidden');
+  
+  let resultClass = 'result';
+  if (warning) resultClass += ' warning';
+  
+  resultDiv.className = resultClass;
+  resultDiv.innerHTML = `
+    <div class="result-title">Рекомендуемая доза</div>
+    <div class="result-value">${dose}</div>
+    ${warning ? `<div class="result-details"><strong>Предупреждение:</strong> ${warning}</div>` : ''}
+    <div class="result-details">Клиренс креатинина (Кокрофт-Голт): ${crcl} мл/мин</div>
+    <div class="source">
+      <strong>Источники:</strong><br>
+      • ESC Guidelines 2024 по фибрилляции предсердий<br>
+      • Российские клинические рекомендации по диагностике и лечению ВТЭО<br>
+      • Инструкции к препаратам (Эликвис, Ксарелто, Прадакса, Ликсиар)
+    </div>
+  `;
+}
+
+// НМГ
+function calculateNMH() {
+  const indication = document.getElementById('nmh-indication').value;
+  const weight = parseInt(document.getElementById('nmh-weight').value);
+  const creatinine = parseInt(document.getElementById('nmh-creatinine').value);
+  const age = parseInt(document.getElementById('nmh-age').value);
+  const sex = document.getElementById('nmh-sex').value;
+
+  if (!weight || !creatinine || !age) {
+    alert('Заполните все обязательные поля');
+    return;
+  }
+
+  const crcl = calculateCrCl(creatinine, age, weight, sex);
+  let dose = '';
+  let warning = '';
+
+  if (indication === 'treatment') {
+    if (crcl < 30) {
+      dose = '1 мг/кг 1 раз/сут';
+      warning = 'КК < 30 мл/мин: снижение частоты введения до 1 раза/сут';
+    } else {
+      dose = '1 мг/кг 2 раза/сут (или 1.5 мг/кг 1 раз/сут)';
+    }
+  } else if (indication === 'prophylaxis') {
+    if (crcl < 30) {
+      dose = '20 мг 1 раз/сут';
+      warning = 'КК < 30 мл/мин: снижение профилактической дозы';
+    } else if (weight < 50) {
+      dose = '20 мг 1 раз/сут';
+    } else if (weight >= 50 && weight <= 100) {
+      dose = '40 мг 1 раз/сут';
+    } else {
+      dose = '40 мг 1 раз/сут (возможно увеличение до 60 мг при очень высоком риске)';
+    }
+  }
+
+  const resultDiv = document.getElementById('nmh-result');
+  resultDiv.classList.remove('hidden');
+  
+  let resultClass = 'result';
+  if (warning) resultClass += ' warning';
+  
+  resultDiv.className = resultClass;
+  resultDiv.innerHTML = `
+    <div class="result-title">Рекомендуемая доза эноксапарина</div>
+    <div class="result-value">${dose}</div>
+    ${warning ? `<div class="result-details"><strong>Предупреждение:</strong> ${warning}</div>` : ''}
+    <div class="result-details">Клиренс креатинина (Кокрофт-Голт): ${crcl} мл/мин</div>
+    <div class="source">
+      <strong>Источники:</strong><br>
+      • Российские клинические рекомендации по диагностике и лечению ВТЭО<br>
+      • Инструкция к препарату Клексан
+    </div>
+  `;
+}
+
+// Варфарин - стартовая доза
+function calculateWarfarinStarting() {
+  const age = parseInt(document.getElementById('warfarin-age').value);
+  const weight = parseInt(document.getElementById('warfarin-weight').value);
+  const amiodarone = document.getElementById('warfarin-amiodarone').checked;
+  const hf = document.getElementById('warfarin-hf').checked;
+  const liver = document.getElementById('warfarin-liver').checked;
+  const other = document.getElementById('warfarin-other').checked;
+
+  if (!age || !weight) {
+    alert('Заполните все обязательные поля');
+    return;
+  }
+
+  let dose = '5 мг/сут';
+  let warning = '';
+  const riskFactors = [];
+
+  if (age >= 75) riskFactors.push('возраст ≥75 лет');
+  if (weight <= 60) riskFactors.push('масса тела ≤60 кг');
+  if (amiodarone) riskFactors.push('прием амиодарона');
+  if (hf) riskFactors.push('сердечная недостаточность');
+  if (liver) riskFactors.push('печеночная недостаточность');
+  if (other) riskFactors.push('взаимодействующие препараты');
+
+  if (riskFactors.length > 0) {
+    dose = '2.5 мг/сут (или 2 мг/сут)';
+    warning = `Факторы чувствительности: ${riskFactors.join(', ')}`;
+  }
+
+  const resultDiv = document.getElementById('warfarin-result');
+  resultDiv.classList.remove('hidden');
+  
+  let resultClass = 'result';
+  if (warning) resultClass += ' warning';
+  
+  resultDiv.className = resultClass;
+  resultDiv.innerHTML = `
+    <div class="result-title">Рекомендуемая стартовая доза</div>
+    <div class="result-value">${dose}</div>
+    ${warning ? `<div class="result-details"><strong>Предупреждение:</strong> ${warning}</div>` : ''}
+    <div class="result-details">Контроль МНО через 3-5 дней после начала терапии</div>
+    <div class="source">
+      <strong>Источники:</strong><br>
+      • ACCP Antithrombotic Therapy Guidelines<br>
+      • Российские рекомендации по антикоагулянтной терапии
+    </div>
+  `;
+}
+
+// Варфарин - коррекция поддерживающей дозы
+function calculateWarfarinMaintenance() {
+  const target = document.getElementById('warfarin-target').value;
+  const inr = parseFloat(document.getElementById('warfarin-inr').value);
+  const weeklyDose = parseFloat(document.getElementById('warfarin-weekly-dose').value);
+  const bleeding = document.getElementById('warfarin-bleeding').value;
+
+  if (!inr || !weeklyDose) {
+    alert('Заполните все обязательные поля');
+    return;
+  }
+
+  let recommendation = '';
+  let warning = '';
+  let targetMin, targetMax;
+
+  if (target === '2-3') {
+    targetMin = 2.0;
+    targetMax = 3.0;
+  } else {
+    targetMin = 2.5;
+    targetMax = 3.5;
+  }
+
+  if (bleeding === 'yes') {
+    recommendation = 'Отменить варфарин, назначить витамин К 5-10 мг в/в, срочная консультация';
+    warning = 'Кровотечение!';
+  } else if (inr > 10.0) {
+    recommendation = 'Отменить варфарин, назначить витамин К 2.5-5 мг внутрь, контроль МНО через 24-48 часов';
+    warning = 'МНО > 10.0 без кровотечения';
+  } else if (inr > targetMax && inr <= 10.0) {
+    if (inr <= 4.5) {
+      const newDose = (weeklyDose * 0.8).toFixed(1);
+      recommendation = `Пропустить 1 прием, затем снизить недельную дозу на 10-20% до ${newDose} мг/нед`;
+    } else {
+      const newDose = (weeklyDose * 0.7).toFixed(1);
+      recommendation = `Пропустить 1-2 приема, затем снизить недельную дозу на 20-30% до ${newDose} мг/нед`;
+    }
+  } else if (inr >= targetMin && inr <= targetMax) {
+    recommendation = `Продолжить текущую дозу ${weeklyDose} мг/нед без изменений`;
+  } else if (inr < targetMin) {
+    const newDose = (weeklyDose * 1.15).toFixed(1);
+    recommendation = `Увеличить недельную дозу на 10-20% до ${newDose} мг/нед`;
+  }
+
+  const resultDiv = document.getElementById('warfarin-result');
+  resultDiv.classList.remove('hidden');
+  
+  let resultClass = 'result';
+  if (warning) resultClass += ' warning';
+  if (bleeding === 'yes' || inr > 10.0) resultClass += ' danger';
+  
+  resultDiv.className = resultClass;
+  resultDiv.innerHTML = `
+    <div class="result-title">Рекомендация по коррекции</div>
+    <div class="result-value">${recommendation}</div>
+    ${warning ? `<div class="result-details"><strong>Предупреждение:</strong> ${warning}</div>` : ''}
+    <div class="result-details">Целевой диапазон МНО: ${targetMin}–${targetMax}</div>
+    <div class="source">
+      <strong>Источники:</strong><br>
+      • ACCP Antithrombotic Therapy Guidelines<br>
+      • Российские рекомендации по антикоагулянтной терапии
+    </div>
+  `;
+}
+
+// Гепарин
+function calculateHeparin() {
+  const mode = document.getElementById('heparin-mode').value;
+  const weight = parseInt(document.getElementById('heparin-weight').value);
+
+  if (!weight) {
+    alert('Введите массу тела');
+    return;
+  }
+
+  let recommendation = '';
+  let warning = '';
+
+  if (mode === 'starting') {
+    const bolus = Math.min(weight * 80, 10000);
+    const infusionRate = weight * 18;
+    recommendation = `Болюс: ${bolus} ЕД в/в струйно<br>Начальная скорость инфузии: ${infusionRate} ЕД/час (или ${(infusionRate/1000).toFixed(1)} тыс. ЕД/час)`;
+  } else {
+    const aptt = parseFloat(document.getElementById('heparin-aptt').value);
+    const currentRate = parseInt(document.getElementById('heparin-current-rate').value);
+
+    if (!aptt || !currentRate) {
+      alert('Заполните текущее АЧТВ и скорость инфузии');
+      return;
+    }
+
+    let newRate;
+    if (aptt < 35) {
+      newRate = currentRate * 1.5;
+      recommendation = `Увеличить скорость инфузии на 50% до ${Math.round(newRate)} ЕД/час. Повторить АЧТВ через 6 часов`;
+    } else if (aptt >= 35 && aptt < 45) {
+      newRate = currentRate * 1.2;
+      recommendation = `Увеличить скорость инфузии на 20% до ${Math.round(newRate)} ЕД/час. Повторить АЧТВ через 6 часов`;
+    } else if (aptt >= 45 && aptt <= 70) {
+      recommendation = `Продолжить текущую скорость ${currentRate} ЕД/час. Повторить АЧТВ через 6 часов`;
+    } else if (aptt > 70 && aptt <= 90) {
+      newRate = currentRate * 0.8;
+      recommendation = `Снизить скорость инфузии на 20% до ${Math.round(newRate)} ЕД/час. Повторить АЧТВ через 6 часов`;
+    } else if (aptt > 90) {
+      recommendation = `Остановить инфузию на 1 час, затем возобновить со скоростью ${Math.round(currentRate * 0.7)} ЕД/час (снижение на 30%). Повторить АЧТВ через 6 часов`;
+      warning = 'АЧТВ > 90 сек: высокая опасность кровотечения';
+    }
+  }
+
+  const resultDiv = document.getElementById('heparin-result');
+  resultDiv.classList.remove('hidden');
+  
+  let resultClass = 'result';
+  if (warning) resultClass += ' danger';
+  
+  resultDiv.className = resultClass;
+  resultDiv.innerHTML = `
+    <div class="result-title">Рекомендация</div>
+    <div class="result-value">${recommendation}</div>
+    ${warning ? `<div class="result-details"><strong>Предупреждение:</strong> ${warning}</div>` : ''}
+    <div class="source">
+      <strong>Источники:</strong><br>
+      • ACCP Antithrombotic Therapy Guidelines<br>
+      • Стандартный весовой протокол введения нефракционированного гепарина
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
