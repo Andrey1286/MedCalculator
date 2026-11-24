@@ -50,13 +50,13 @@ var CATALOG = [
   file: 'calculators/endocrinology/osmo-blood.html',
   comingSoon: false
   },
-  {
-    id: 'osmo-urine',
-    title: 'Осмоляльность мочи',
-    description: 'Оценка концентрационной способности почек',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+ {
+  id: 'osmo-urine',
+  title: 'Осмоляльность мочи',
+  description: 'Оценка концентрационной способности почек',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/osmo-urine.html',
+  comingSoon: false
   },
   {
     id: 'a1c',
