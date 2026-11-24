@@ -91,12 +91,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'findrisc',
-    title: 'FINDRISC',
-    description: 'Риск сахарного диабета 2 типа',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
+  id: 'findrisc',
+  title: 'FINDRISC',
+  description: 'Риск сахарного диабета 2 типа',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/findrisc.html',
+  comingSoon: false
   },
   {
     id: 'score2dm',
