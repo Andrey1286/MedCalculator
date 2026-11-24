@@ -179,12 +179,12 @@ var CATALOG = [
 
   // Гематология
   {
-    id: 'iron',
-    title: 'Железо в/в',
-    description: 'Расчёт дозы внутривенного железа по формуле Ганзони',
-    category: 'Гематология',
-    file: '',
-    comingSoon: true
+  id: 'iron',
+  title: 'Железо в/в',
+  description: 'Расчёт дозы внутривенного железа по формуле Ганзони',
+  category: 'Гематология',
+  file: 'calculators/hematology/iron-iv.html',
+  comingSoon: false
   },
   {
   id: 'mentzer',
