@@ -31,8 +31,8 @@ var CATALOG = [
   title: 'Свободный тестостерон',
   description: 'Расчёт по уравнению Vermeulen',
   category: 'Эндокринология',
-  file: '',
-  comingSoon: true
+  file: 'calculators/endocrinology/free-testosterone.html',
+  comingSoon: false
   },
   {
   id: 'ca',
