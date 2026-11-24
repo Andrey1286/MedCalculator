@@ -215,12 +215,12 @@ var CATALOG = [
 
   // Диетология
   {
-    id: 'calories',
-    title: 'Калории/БЖУ',
-    description: 'Норма калорий и макронутриентов по Миффлину–Сан Жеору',
-    category: 'Диетология',
-    file: '',
-    comingSoon: true
+  id: 'calories',
+  title: 'Калории/БЖУ',
+  description: 'Норма калорий и макронутриентов по Миффлину–Сан Жеору',
+  category: 'Диетология',
+  file: 'calculators/dietology/calories.html',
+  comingSoon: false
   },
 
   // Антикоагулянты
