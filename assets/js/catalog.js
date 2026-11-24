@@ -233,12 +233,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'lmwh',
-    title: 'НМГ',
-    description: 'Низкомолекулярные гепарины',
-    category: 'Антикоагулянты',
-    file: '',
-    comingSoon: true
+  id: 'lmwh',
+  title: 'НМГ',
+  description: 'Дозировка эноксапарина с учётом СКФ и веса',
+  category: 'Антикоагулянты',
+  file: 'calculators/anticoagulants/lmwh.html',
+  comingSoon: false
   },
   {
     id: 'warfarin',
