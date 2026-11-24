@@ -35,13 +35,13 @@ var CATALOG = [
     comingSoon: true
   },
   {
-    id: 'ca',
-    title: 'Кальций',
-    description: 'Коррекция по альбумину',
-    category: 'Эндокринология',
-    file: '',
-    comingSoon: true
-  },
+  id: 'ca',
+  title: 'Кальций',
+  description: 'Коррекция по альбумину',
+  category: 'Эндокринология',
+  file: 'calculators/endocrinology/calcium.html',
+  comingSoon: false
+},
   {
     id: 'osmo-blood',
     title: 'Осмоляльность крови',
