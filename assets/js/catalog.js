@@ -133,12 +133,12 @@ var CATALOG = [
   comingSoon: false
   },
   {
-    id: 'hasbled',
-    title: 'HAS-BLED',
-    description: 'Риск кровотечения на антикоагулянтах',
-    category: 'Кардиология',
-    file: '',
-    comingSoon: true
+  id: 'hasbled',
+  title: 'HAS-BLED',
+  description: 'Риск кровотечения на антикоагулянтах',
+  category: 'Кардиология',
+  file: 'calculators/cardiology/hasbled.html',
+  comingSoon: false
   },
   {
     id: 'qt',
