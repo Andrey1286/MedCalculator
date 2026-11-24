@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>В/в гепарин — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+    .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .result-table th { background: var(--info); font-weight: 700; }
+    .result-table td:last-child { text-align: right; font-weight: 600; }
+
+    .banner { padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem; }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
+    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn {
+      flex: 1 1 200px; padding: 12px 16px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background: var(--info); }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>В/в гепарин</h1>
+        <p class="subtitle">Антикоагулянты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-heparin">
+      <h2>Нефракционированный гепарин в/в</h2>
+      <p class="desc">Расчёт болюса и скорости инфузии для лечения ТЭЛА / ТГВ / ОКС</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="hep-weight" step="0.1" placeholder="Например, 70" data-min="20" data-max="300">
+              <div class="field-error" id="hep-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>Концентрация раствора (ЕД/мл)</label>
+              <select id="hep-conc">
+                <option value="5000" selected>5 000 ЕД/мл (стандарт)</option>
+                <option value="10000">10 000 ЕД/мл</option>
+                <option value="25000">25 000 ЕД/мл</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Текущее АЧТВ (сек)</label>
+              <input type="number" id="hep-aptt" step="1" placeholder="Например, 35" data-min="10" data-max="200">
+              <div class="field-error" id="hep-aptt-error"></div>
+              <div class="hint">Целевой диапазон: 60–85 сек (или 1.5–2.5 × контроль)</div>
+            </div>
+            <div class="field">
+              <label>Контрольное АЧТВ (сек)</label>
+              <input type="number" id="hep-aptt-ctrl" step="1" value="30" data-min="10" data-max="100">
+              <div class="field-error" id="hep-aptt-ctrl-error"></div>
+            </div>
+          </div>
+
+          <div class="banner info" style="margin-top:14px">
+            <strong>Стандартный протокол:</strong> болюс 80 ЕД/кг (макс. 5 000 ЕД), затем инфузия 18 ЕД/кг/ч. Коррекция по АЧТВ каждые 6 часов.
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="hep-calc-btn">Рассчитать</button>
+            <button type="button" class="btn btn-secondary" id="hep-reset-btn">Сбросить</button>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="hep-result">
+            <span class="empty-msg">Введите вес и нажмите «Рассчитать»</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О протоколе и коррекции</summary>
+        <div class="note-content">
+          <p><strong>Начальная доза:</strong> болюс 80 ЕД/кг (макс. 5 000 ЕД) + инфузия 18 ЕД/кг/ч.</p>
+          <p><strong>Коррекция по АЧТВ:</strong></p>
+          <p>&lt;35 сек → повторный болюс 80 ЕД/кг, увеличить инфузию на 4 ЕД/кг/ч.</p>
+          <p>35–45 сек → увеличить инфузию на 2 ЕД/кг/ч.</p>
+          <p>46–70 сек → без изменений (если целевой диапазон 46–70).</p>
+          <p>71–90 сек → уменьшить инфузию на 2 ЕД/кг/ч.</p>
+          <p>&gt;90 сек → остановить инфузию на 1 ч, затем уменьшить на 3 ЕД/кг/ч.</p>
+          <p><strong>Важно:</strong> калькулятор даёт справочный расчёт. Титрация гепарина требует контроля АЧТВ каждые 6 часов и клинической оценки.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcHeparin() {
+        var weight = MedCore.num('hep-weight');
+        var conc = parseFloat(document.getElementById('hep-conc').value);
+        var aptt = MedCore.num('hep-aptt');
+        var apttCtrl = MedCore.num('hep-aptt-ctrl');
+        var el = document.getElementById('hep-result');
+
+        if (!weight || !conc) {
+          MedCore.showEmpty(el, 'Введите вес и выберите концентрацию');
+          return;
+        }
+
+        // Начальные дозы
+        var bolusUnits = Math.min(80 * weight, 5000);
+        var infusionRate = 18 * weight;
+        var bolusMl = (bolusUnits / conc).toFixed(1);
+        var infusionMlH = (infusionRate / conc).toFixed(1);
+
+        var tableHtml = '<table class="result-table">' +
+          '<tr><th>Параметр</th><th>Значение</th></tr>' +
+          '<tr><td>Болюс</td><td>' + Math.round(bolusUnits) + ' ЕД (' + bolusMl + ' мл)</td></tr>' +
+          '<tr><td>Инфузия</td><td>' + Math.round(infusionRate) + ' ЕД/ч (' + infusionMlH + ' мл/ч)</td></tr>' +
+          '</table>';
+
+        var correctionBanner = '';
+
+        if (aptt && apttCtrl) {
+          var ratio = aptt / apttCtrl;
+          var adjLabel, adjCls;
+
+          if (aptt < 35) {
+            adjLabel = 'АЧТВ <35 сек: повторный болюс 80 ЕД/кг, увеличить инфузию на 4 ЕД/кг/ч';
+            adjCls = 'danger';
+          } else if (aptt < 46) {
+            adjLabel = 'АЧТВ 35–45 сек: увеличить инфузию на 2 ЕД/кг/ч';
+            adjCls = 'warn';
+          } else if (aptt <= 70) {
+            adjLabel = 'АЧТВ 46–70 сек: без изменений (терапевтический диапазон)';
+            adjCls = 'ok';
+          } else if (aptt <= 90) {
+            adjLabel = 'АЧТВ 71–90 сек: уменьшить инфузию на 2 ЕД/кг/ч';
+            adjCls = 'warn';
+          } else {
+            adjLabel = 'АЧТВ >90 сек: остановить инфузию на 1 ч, затем уменьшить на 3 ЕД/кг/ч';
+            adjCls = 'danger';
+          }
+
+          correctionBanner = '<div class="banner ' + adjCls + '">' +
+            '<strong>Коррекция:</strong> ' + adjLabel +
+            '<br>АЧТВ/контроль = ' + ratio.toFixed(2) +
+            '</div>';
+        }
+
+        el.className = 'result ok';
+        el.innerHTML = '<div class="value">Протокол рассчитан</div>' +
+          '<div class="ref">Вес ' + weight + ' кг · Концентрация ' + conc + ' ЕД/мл</div>' +
+          tableHtml + correctionBanner;
+
+        MedCore.attachCopyButtons();
+        MedCore.updateCopyButtons();
+      }
+
+      document.getElementById('hep-calc-btn').addEventListener('click', calcHeparin);
+
+      document.getElementById('hep-reset-btn').addEventListener('click', function () {
+        document.getElementById('hep-weight').value = '';
+        document.getElementById('hep-aptt').value = '';
+        document.getElementById('hep-aptt-ctrl').value = '30';
+        document.getElementById('hep-conc').value = '5000';
+        MedCore.showEmpty(document.getElementById('hep-result'), 'Введите вес и нажмите «Рассчитать»');
+      });
+
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
