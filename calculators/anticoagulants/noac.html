@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>НОАК — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .qtitle {
+      font-weight: 700;
+      margin: 16px 0 8px;
+      font-size: .92rem;
+      color: var(--text);
+    }
+    .qtitle:first-child { margin-top: 0; }
+
+    .checks { display: grid; gap: 8px; }
+
+    .check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .18s, background .18s;
+      user-select: none; font-size: .88rem;
+    }
+    .check:hover { border-color: var(--accent); background: var(--info); }
+    .check input { display: none; }
+    .check .box {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; display: grid; place-items: center;
+      transition: all .18s; position: relative;
+    }
+    .check .box::after {
+      content: ''; width: 10px; height: 6px;
+      border-left: 2.5px solid #fff; border-bottom: 2.5px solid #fff;
+      transform: rotate(-45deg) scale(0); transition: transform .18s; margin-top: -3px;
+    }
+    .check input:checked + .box { background: var(--accent); border-color: var(--accent); }
+    .check input:checked + .box::after { transform: rotate(-45deg) scale(1); }
+    .check input:checked ~ .lbl { font-weight: 600; color: var(--text); }
+    .check .lbl { color: var(--muted); transition: color .18s; }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    .banner {
+      padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem;
+    }
+    .banner.ok { background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
+    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
+    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: .88rem; }
+    .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .result-table th { background: var(--info); font-weight: 700; }
+    .result-table td:last-child { text-align: right; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>Подбор дозы НОАК</h1>
+        <p class="subtitle">Антикоагулянты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-noac">
+      <h2>Подбор дозы НОАК при ФП</h2>
+      <p class="desc">Ривароксабан, апиксабан, дабигатран, эдоксабан · учёт СКФ, возраста, веса</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="noac-age" step="1" placeholder="Например, 72" data-min="18" data-max="120">
+              <div class="field-error" id="noac-age-error"></div>
+            </div>
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="noac-weight" step="0.1" placeholder="Например, 58" data-min="20" data-max="300">
+              <div class="field-error" id="noac-weight-error"></div>
+            </div>
+            <div class="field">
+              <label>СКФ (мл/мин/1.73м²)</label>
+              <input type="number" id="noac-gfr" step="1" placeholder="Например, 45" data-min="5" data-max="200">
+              <div class="field-error" id="noac-gfr-error"></div>
+              <div class="hint">CKD-EPI или Кокрофт-Голт. При СКФ &lt;15 НОАК обычно противопоказаны.</div>
+            </div>
+          </div>
+
+          <div class="qtitle">Дополнительные факторы</div>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="noac-crp"><span class="box"></span><span class="lbl">Креатинин ≥133 мкмоль/л (≥1.5 мг/дл)</span></label>
+            <label class="check"><input type="checkbox" id="noac-pgp"><span class="box"></span><span class="lbl">Приём сильных ингибиторов P-gp (амиодарон, верапамил, дронедарон, кетоконазол и др.)</span></label>
+          </div>
+
+          <div class="banner info" style="margin-top:14px">
+            <strong>Важно:</strong> калькулятор предназначен для профилактики инсульта при неклапанной фибрилляции предсердий. Для ТЭЛА/ТГВ, механических клапанов или стеноза митрального клапана дозировки другие. Окончательное решение принимает врач.
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="noac-result">
+            <span class="empty-msg">Введите возраст, вес и СКФ</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>Критерии снижения дозы</summary>
+        <div class="note-content">
+          <p><strong>Апиксабан:</strong> снижение дозы при наличии ≥2 из 3 критериев: возраст ≥80 лет, вес ≤60 кг, креатинин ≥133 мкмоль/л.</p>
+          <p><strong>Ривароксабан:</strong> снижение дозы при СКФ 15–49 мл/мин.</p>
+          <p><strong>Дабигатран:</strong> снижение дозы при возрасте ≥80 лет, или при приёме верапамила/амиодарона, или высоком риске кровотечения.</p>
+          <p><strong>Эдоксабан:</strong> снижение дозы при СКФ 15–50 мл/мин, весе ≤60 кг или приёме сильных ингибиторов P-gp.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Стилизация чекбоксов
+      document.querySelectorAll('.check input').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+          inp.closest('.check').classList.toggle('checked', inp.checked);
+        });
+      });
+
+      function calcNOAC() {
+        var age = MedCore.num('noac-age');
+        var weight = MedCore.num('noac-weight');
+        var gfr = MedCore.num('noac-gfr');
+        var crpHigh = document.getElementById('noac-crp').checked;
+        var pgpInhibitor = document.getElementById('noac-pgp').checked;
+        var el = document.getElementById('noac-result');
+
+        if (!age || !weight || !gfr) {
+          MedCore.showEmpty(el, 'Введите возраст, вес и СКФ');
+          return;
+        }
+
+        if (gfr < 15) {
+          MedCore.render(el, '—', '', 'Противопоказано', 'danger',
+            'При СКФ <15 мл/мин НОАК обычно противопоказаны. Рассмотрите варфарин или консультацию нефролога.');
+          return;
+        }
+
+        // Апиксабан
+        var apxCriteria = 0;
+        if (age >= 80) apxCriteria++;
+        if (weight <= 60) apxCriteria++;
+        if (crpHigh) apxCriteria++;
+        var apxDose = apxCriteria >= 2 ? '2.5 мг × 2' : '5 мг × 2';
+        var apxNote = apxCriteria >= 2
+          ? 'Снижение дозы: ≥2 критерия (возраст ≥80, вес ≤60, Cr ≥133)'
+          : 'Стандартная доза (менее 2 критериев снижения)';
+
+        // Ривароксабан
+        var rvxDose, rvxNote;
+        if (gfr >= 50) {
+          rvxDose = '20 мг × 1';
+          rvxNote = 'СКФ ≥50 — стандартная доза';
+        } else {
+          rvxDose = '15 мг × 1';
+          rvxNote = 'СКФ 15–49 — снижение дозы';
+        }
+
+        // Дабигатран
+        var dbgDose, dbgNote;
+        if (age >= 80 || pgpInhibitor) {
+          dbgDose = '110 мг × 2';
+          dbgNote = age >= 80 && pgpInhibitor
+            ? 'Снижение дозы: возраст ≥80 + ингибитор P-gp'
+            : age >= 80
+              ? 'Снижение дозы: возраст ≥80'
+              : 'Снижение дозы: приём ингибитора P-gp';
+        } else {
+          dbgDose = '150 мг × 2';
+          dbgNote = 'Стандартная доза';
+        }
+
+        // Эдоксабан
+        var edxDose, edxNote;
+        var edxReduce = gfr <= 50 || weight <= 60 || pgpInhibitor;
+        if (edxReduce) {
+          edxDose = '30 мг × 1';
+          var reasons = [];
+          if (gfr <= 50) reasons.push('СКФ ≤50');
+          if (weight <= 60) reasons.push('вес ≤60');
+          if (pgpInhibitor) reasons.push('ингибитор P-gp');
+          edxNote = 'Снижение дозы: ' + reasons.join(', ');
+        } else {
+          edxDose = '60 мг × 1';
+          edxNote = 'Стандартная доза';
+        }
+
+        var tableHtml = '<table class="result-table">' +
+          '<tr><th>Препарат</th><th>Доза</th><th>Основание</th></tr>' +
+          '<tr><td>Апиксабан</td><td>' + apxDose + '</td><td>' + apxNote + '</td></tr>' +
+          '<tr><td>Ривароксабан</td><td>' + rvxDose + '</td><td>' + rvxNote + '</td></tr>' +
+          '<tr><td>Дабигатран</td><td>' + dbgDose + '</td><td>' + dbgNote + '</td></tr>' +
+          '<tr><td>Эдоксабан</td><td>' + edxDose + '</td><td>' + edxNote + '</td></tr>' +
+          '</table>';
+
+        el.className = 'result ok';
+        el.innerHTML = '<div class="value">Подобрано</div>' +
+          '<div class="ref">Возраст ' + age + ' · Вес ' + weight + ' кг · СКФ ' + gfr + '</div>' +
+          tableHtml;
+
+        MedCore.attachCopyButtons();
+        MedCore.updateCopyButtons();
+      }
+
+      MedCore.bindCalc(['noac-age', 'noac-weight', 'noac-gfr'], calcNOAC);
+      document.getElementById('noac-crp').addEventListener('change', calcNOAC);
+      document.getElementById('noac-pgp').addEventListener('change', calcNOAC);
+
+      calcNOAC();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
