@@ -12,22 +12,14 @@
   <style>
     a.file-btn { text-decoration: none; }
 
-    .qtitle {
-      font-weight: 700;
-      margin: 16px 0 8px;
-      font-size: .92rem;
-      color: var(--text);
-    }
+    .qtitle { font-weight: 700; margin: 16px 0 8px; font-size: .92rem; color: var(--text); }
     .qtitle:first-child { margin-top: 0; }
 
     .radio-group { display: grid; gap: 6px; margin-bottom: 10px; }
-
     .radio-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 9px 12px;
+      display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px;
       border: 1.5px solid var(--border); border-radius: 8px;
-      cursor: pointer; transition: border-color .18s, background .18s;
-      font-size: .88rem;
+      cursor: pointer; transition: border-color .18s, background .18s; font-size: .88rem;
     }
     .radio-item:hover { border-color: var(--accent); background: var(--info); }
     .radio-item input { margin-top: 3px; accent-color: var(--accent); }
@@ -40,20 +32,22 @@
       transition: background .18s, transform .1s, box-shadow .18s;
     }
     .btn:active { transform: scale(.98); }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
-    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25); }
     .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
     .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
     .btn-secondary:hover { background: var(--info); }
 
-    .big-score { font-size: 2.2rem; font-weight: 800; text-align: center; margin: 6px 0; }
-
-    .banner { padding: 12px 14px; border-radius: 10px; margin-top: 12px; font-size: .9rem; }
-    .banner.ok { background: var(--ok-bg); color: var(--ok); border-left: 4px solid var(--ok); }
-    .banner.warn { background: var(--warn-bg); color: var(--warn); border-left: 4px solid var(--warn); }
-    .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
+    .score-legend {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; font-size: 0.85rem;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 6px; padding: 6px 10px;
+      border-radius: 6px; background: var(--info); border: 1px solid var(--border);
+    }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-dot.ok { background: var(--ok); }
+    .legend-dot.warn { background: var(--warn); }
+    .legend-dot.danger { background: var(--danger); }
   </style>
 </head>
 <body>
@@ -79,7 +73,6 @@
 
         <div class="panel-fields-col">
           <div class="qtitle">За последние 2 недели как часто вас беспокоили:</div>
-
           <div id="gad7-questions"></div>
 
           <div class="btn-row">
@@ -89,6 +82,15 @@
         </div>
 
         <div class="panel-result-col">
+          
+          <!-- Шкала оценки -->
+          <div class="score-legend">
+            <div class="legend-item"><span class="legend-dot ok"></span> 0–4: Минимальная</div>
+            <div class="legend-item"><span class="legend-dot warn"></span> 5–9: Лёгкая</div>
+            <div class="legend-item"><span class="legend-dot warn"></span> 10–14: Умеренная</div>
+            <div class="legend-item"><span class="legend-dot danger"></span> 15–21: Тяжёлая</div>
+          </div>
+
           <div class="result" id="gad7-result">
             <span class="empty-msg">Ответьте на все вопросы и нажмите «Рассчитать»</span>
           </div>
@@ -131,21 +133,17 @@
         { value: 3, label: 'Почти каждый день' }
       ];
 
-      // Генерация вопросов
       var container = document.getElementById('gad7-questions');
       QUESTIONS.forEach(function (q, i) {
         var qDiv = document.createElement('div');
         qDiv.innerHTML = '<div class="qtitle">' + (i + 1) + '. ' + q + '</div>' +
           '<div class="radio-group" id="gad7-q' + i + '">' +
           OPTIONS.map(function (opt) {
-            return '<label class="radio-item">' +
-              '<input type="radio" name="gad7-q' + i + '" value="' + opt.value + '">' +
-              '<span>' + opt.label + '</span></label>';
+            return '<label class="radio-item"><input type="radio" name="gad7-q' + i + '" value="' + opt.value + '"><span>' + opt.label + '</span></label>';
           }).join('') + '</div>';
         container.appendChild(qDiv);
       });
 
-      // Стилизация радио-кнопок
       document.querySelectorAll('.radio-item input').forEach(function (inp) {
         inp.addEventListener('change', function () {
           var name = inp.name;
@@ -172,10 +170,7 @@
 
         for (var i = 0; i < 7; i++) {
           var checked = document.querySelector('input[name="gad7-q' + i + '"]:checked');
-          if (checked) {
-            total += parseInt(checked.value);
-            answered++;
-          }
+          if (checked) { total += parseInt(checked.value); answered++; }
         }
 
         var el = document.getElementById('gad7-result');
@@ -188,19 +183,10 @@
         }
 
         var label, cls, advice;
-        if (total <= 4) {
-          label = 'Минимальная тревога'; cls = 'ok';
-          advice = 'Наблюдение. Повторный скрининг при изменении состояния.';
-        } else if (total <= 9) {
-          label = 'Лёгкая тревога'; cls = 'warn';
-          advice = 'Мониторинг, психообразование, техники релаксации.';
-        } else if (total <= 14) {
-          label = 'Умеренная тревога'; cls = 'warn';
-          advice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).';
-        } else {
-          label = 'Тяжёлая тревога'; cls = 'danger';
-          advice = 'Показана терапия. Обратитесь к специалисту.';
-        }
+        if (total <= 4) { label = 'Минимальная тревога'; cls = 'ok'; advice = 'Наблюдение. Повторный скрининг при изменении состояния.'; } 
+        else if (total <= 9) { label = 'Лёгкая тревога'; cls = 'warn'; advice = 'Мониторинг, психообразование, техники релаксации.'; } 
+        else if (total <= 14) { label = 'Умеренная тревога'; cls = 'warn'; advice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).'; } 
+        else { label = 'Тяжёлая тревога'; cls = 'danger'; advice = 'Показана терапия. Обратитесь к специалисту.'; }
 
         MedCore.render(el, total, ' баллов', label, cls, advice);
         renderGad7Scale(total);
@@ -210,8 +196,7 @@
 
       document.getElementById('gad7-reset-btn').addEventListener('click', function () {
         document.querySelectorAll('#panel-gad7 input[type=radio]').forEach(function (r) {
-          r.checked = false;
-          r.closest('.radio-item').classList.remove('checked');
+          r.checked = false; r.closest('.radio-item').classList.remove('checked');
         });
         MedCore.showEmpty(document.getElementById('gad7-result'), 'Ответьте на все вопросы и нажмите «Рассчитать»');
         var s = document.getElementById('gad7-scale');
@@ -219,9 +204,7 @@
       });
 
       MedCore.init();
-
     });
   </script>
-
 </body>
 </html>
