@@ -92,6 +92,8 @@
     .btn-action {
       padding: 8px 16px; color: #fff; border: none; border-radius: 8px;
       font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.18s;
+      text-decoration: none;
+      display: inline-block;
     }
     .btn-copy-all { background: var(--accent); }
     .btn-copy-all:hover { background: #1d4ed8; }
@@ -105,6 +107,37 @@
     .summary-item:last-child { border-bottom: none; }
     .summary-label { color: var(--muted); font-size: 0.9rem; }
     .summary-value { font-weight: 700; text-align: right; }
+
+    /* Шапка с кнопкой OCR */
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .btn-ocr {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+      white-space: nowrap;
+    }
+    .btn-ocr:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
 
     /* Стили для печати */
     @media print {
@@ -133,9 +166,15 @@
   <div class="top-stripe"></div>
   <div class="wrap">
     <header>
-      <div>
-        <h1>Медицинские калькуляторы</h1>
-        <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
+      <div class="header-top">
+        <div>
+          <h1>Медицинские калькуляторы</h1>
+          <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
+        </div>
+        <a class="btn-ocr" href="tools/ocr.html" target="_blank" rel="noopener">
+          <span>🔍</span>
+          <span>OCR / Распознавание</span>
+        </a>
       </div>
     </header>
 
@@ -200,7 +239,6 @@
 
         var section = document.createElement('div');
         section.className = 'category-section';
-        // Первая категория раскрыта по умолчанию
         if (index === 0) {
           section.classList.add('expanded');
         }
@@ -247,7 +285,6 @@
         container.appendChild(section);
         allSections.push(section);
 
-        // Обработчик клика для раскрытия/сворачивания
         header.addEventListener('click', function () {
           section.classList.toggle('expanded');
         });
@@ -273,11 +310,9 @@
 
           section.style.display = sectionVisible ? '' : 'none';
           
-          // Если есть совпадения при поиске - раскрываем категорию
           if (query && sectionVisible) {
             section.classList.add('expanded');
           } else if (!query) {
-            // При очистке поиска - возвращаем исходное состояние (первая раскрыта)
             if (section === allSections[0]) {
               section.classList.add('expanded');
             } else {
