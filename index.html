@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Медицинские калькуляторы</title>
   
-  <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -43,35 +42,18 @@
       transition: background .18s, border-color .18s;
       user-select: none;
     }
-    .category-header:hover { 
-      background: var(--info); 
-      border-color: var(--accent);
-    }
+    .category-header:hover { background: var(--info); border-color: var(--accent); }
     .category-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0; flex: 1; }
     .category-count { font-size: 0.85rem; color: var(--muted); background: var(--info); padding: 2px 10px; border-radius: 12px; }
-    .category-arrow {
-      width: 24px; height: 24px;
-      transition: transform .25s ease;
-      color: var(--muted);
-    }
-    .category-section.expanded .category-arrow {
-      transform: rotate(180deg);
-    }
+    .category-arrow { width: 24px; height: 24px; transition: transform .25s ease; color: var(--muted); }
+    .category-section.expanded .category-arrow { transform: rotate(180deg); }
     
     .cards-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-      gap: 16px; 
-      margin-top: 16px;
-      max-height: 0;
-      overflow: hidden;
-      opacity: 0;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; 
+      margin-top: 16px; max-height: 0; overflow: hidden; opacity: 0;
       transition: max-height .3s ease, opacity .3s ease, margin-top .3s ease;
     }
-    .category-section.expanded .cards-grid {
-      max-height: 2000px;
-      opacity: 1;
-    }
+    .category-section.expanded .cards-grid { max-height: 2000px; opacity: 1; }
     
     .calc-card {
       background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px;
@@ -92,8 +74,7 @@
     .btn-action {
       padding: 8px 16px; color: #fff; border: none; border-radius: 8px;
       font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.18s;
-      text-decoration: none;
-      display: inline-block;
+      text-decoration: none; display: inline-block;
     }
     .btn-copy-all { background: var(--accent); }
     .btn-copy-all:hover { background: #1d4ed8; }
@@ -109,47 +90,25 @@
     .summary-value { font-weight: 700; text-align: right; }
 
     .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 8px;
     }
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
     .btn-ocr {
       padding: 10px 16px;
       background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
       transition: transform .18s, box-shadow .18s;
-      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
-      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25); white-space: nowrap;
     }
-    .btn-ocr:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
-    }
+    .btn-ocr:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35); }
 
     @media print {
       body * { visibility: hidden; }
       .summary-panel, .summary-panel * { visibility: visible; }
-      .summary-panel {
-        position: absolute; left: 0; top: 0; width: 100%;
-        border: none; padding: 0; margin: 0; background: #fff;
-      }
+      .summary-panel { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; margin: 0; background: #fff; }
       .summary-actions { display: none !important; }
       .summary-header { margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
       .summary-title { font-size: 18pt; color: #000; }
@@ -157,7 +116,6 @@
       .summary-label { color: #333; }
       .summary-value { color: #000; }
       .summary-empty { display: none; }
-      
       .summary-panel::after {
         content: "Дата формирования: " attr(data-print-date);
         display: block; margin-top: 20px; font-size: 10pt; color: #666; text-align: right;
@@ -175,9 +133,10 @@
           <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
         </div>
         <div class="header-actions">
-          <button type="button" class="theme-toggle" id="themeToggle" title="Переключить тему">
-            <span id="themeIcon">🌙</span>
-          </button>
+          <div class="theme-switch">
+            <button type="button" class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>
+            <button type="button" class="theme-btn" data-theme="dark" title="Тёмная тема">🌙</button>
+          </div>
           <a class="btn-ocr" href="tools/ocr.html" target="_blank" rel="noopener">
             <span>🔍</span>
             <span>OCR / Распознавание</span>
@@ -186,7 +145,6 @@
       </div>
     </header>
 
-    <!-- Поиск -->
     <div class="search-box">
       <div class="search-icon-wrapper">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -197,7 +155,6 @@
       <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, органам, маркерам...">
     </div>
 
-    <!-- Сводка по пациенту -->
     <div class="summary-panel" id="summaryPanel">
       <div class="summary-header">
         <h2 class="summary-title">Сводка по пациенту</h2>
@@ -212,7 +169,6 @@
       </div>
     </div>
 
-    <!-- Категории калькуляторов -->
     <div id="categoriesContainer"></div>
     <div class="no-results" id="noResults">Ничего не найдено</div>
   </div>
@@ -247,9 +203,7 @@
 
         var section = document.createElement('div');
         section.className = 'category-section';
-        if (index === 0) {
-          section.classList.add('expanded');
-        }
+        if (index === 0) section.classList.add('expanded');
         section.dataset.category = catName.toLowerCase();
 
         var header = document.createElement('div');
@@ -298,7 +252,6 @@
         });
       });
 
-      // Логика поиска
       var searchInput = document.getElementById('searchInput');
       var noResults = document.getElementById('noResults');
 
@@ -318,14 +271,10 @@
 
           section.style.display = sectionVisible ? '' : 'none';
           
-          if (query && sectionVisible) {
-            section.classList.add('expanded');
-          } else if (!query) {
-            if (section === allSections[0]) {
-              section.classList.add('expanded');
-            } else {
-              section.classList.remove('expanded');
-            }
+          if (query && sectionVisible) section.classList.add('expanded');
+          else if (!query) {
+            if (section === allSections[0]) section.classList.add('expanded');
+            else section.classList.remove('expanded');
           }
           
           if (sectionVisible) visibleCount++;
@@ -334,7 +283,6 @@
         noResults.style.display = visibleCount === 0 ? 'block' : 'none';
       });
 
-      // Печать / Сохранение в PDF
       document.getElementById('printBtn').addEventListener('click', function () {
         var panel = document.getElementById('summaryPanel');
         var now = new Date();
@@ -345,21 +293,30 @@
 
       // ===== Переключение темы на главной =====
       (function () {
-        var savedTheme = localStorage.getItem('medcalc-theme');
-        if (savedTheme === 'dark') {
-          document.body.classList.add('dark-theme');
-          document.getElementById('themeIcon').textContent = '☀️';
-        }
-        document.getElementById('themeToggle').addEventListener('click', function () {
-          document.body.classList.toggle('dark-theme');
-          var isDark = document.body.classList.contains('dark-theme');
-          document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
-          localStorage.setItem('medcalc-theme', isDark ? 'dark' : 'light');
+        var THEME_KEY = 'medcalc-theme';
+        var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+
+        // Применяем сохранённую тему
+        document.body.classList.remove('theme-dark', 'theme-gray');
+        if (savedTheme === 'dark') document.body.classList.add('theme-dark');
+        else if (savedTheme === 'gray') document.body.classList.add('theme-gray');
+
+        // Подсвечиваем активную кнопку
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+          btn.addEventListener('click', function () {
+            var newTheme = btn.dataset.theme;
+            document.body.classList.remove('theme-dark', 'theme-gray');
+            if (newTheme === 'dark') document.body.classList.add('theme-dark');
+            else if (newTheme === 'gray') document.body.classList.add('theme-gray');
+            localStorage.setItem(THEME_KEY, newTheme);
+            document.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+          });
         });
       })();
     });
 
-    // Регистрация Service Worker для офлайн-режима
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('/sw.js')
