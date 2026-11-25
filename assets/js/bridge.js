@@ -1,32 +1,22 @@
 (function () {
   var SUMMARY_KEY = 'medcalc-summary';
+  var THEME_KEY = 'medcalc-theme';
 
   function saveToSummary(id, title, value, unit, cls) {
     if (!value || value === '') return;
 
     var data = {};
-    try {
-      data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {};
-    } catch (e) {
-      data = {};
-    }
+    try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) { data = {}; }
 
     data[id] = {
-      title: title,
-      value: value,
-      unit: unit || '',
-      cls: cls || '',
-      timestamp: Date.now()
+      title: title, value: value, unit: unit || '', cls: cls || '', timestamp: Date.now()
     };
 
-    try {
-      localStorage.setItem(SUMMARY_KEY, JSON.stringify(data));
-    } catch (e) {}
+    try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(data)); } catch (e) {}
 
     try {
       window.dispatchEvent(new StorageEvent('storage', {
-        key: SUMMARY_KEY,
-        newValue: JSON.stringify(data)
+        key: SUMMARY_KEY, newValue: JSON.stringify(data)
       }));
     } catch (e) {}
   }
@@ -38,8 +28,7 @@
         delete data[id];
         localStorage.setItem(SUMMARY_KEY, JSON.stringify(data));
         window.dispatchEvent(new StorageEvent('storage', {
-          key: SUMMARY_KEY,
-          newValue: JSON.stringify(data)
+          key: SUMMARY_KEY, newValue: JSON.stringify(data)
         }));
       }
     } catch (e) {}
@@ -65,28 +54,20 @@
       if (valueEl) {
         var nodes = valueEl.childNodes;
         for (var i = 0; i < nodes.length; i++) {
-          if (nodes[i].nodeType === 3) {
-            textValue += nodes[i].textContent;
-          } else if (nodes[i].classList && nodes[i].classList.contains('unit')) {
-            textValue += nodes[i].textContent;
-          }
+          if (nodes[i].nodeType === 3) textValue += nodes[i].textContent;
+          else if (nodes[i].classList && nodes[i].classList.contains('unit')) textValue += nodes[i].textContent;
         }
         textValue = textValue.trim();
       }
 
-      if (textValue) {
-        saveToSummary(panelId, title, textValue, unit, tagCls);
-      }
+      if (textValue) saveToSummary(panelId, title, textValue, unit, tagCls);
     };
 
     MedCore.showEmpty = function (el, msg) {
       _origShowEmpty(el, msg);
-
       var panel = el.closest('.panel');
       if (!panel) return;
-
-      var panelId = panel.id.replace('panel-', '');
-      clearFromSummary(panelId);
+      clearFromSummary(panel.id.replace('panel-', ''));
     };
   }
 
@@ -97,85 +78,72 @@
         inp.value = '';
         inp.classList.remove('invalid');
       });
-      document.querySelectorAll('select:not(.unit-select)').forEach(function (sel) {
-        sel.selectedIndex = 0;
-      });
-      document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function (cb) {
-        cb.checked = false;
-      });
+      document.querySelectorAll('select:not(.unit-select)').forEach(function (sel) { sel.selectedIndex = 0; });
+      document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function (cb) { cb.checked = false; });
       document.querySelectorAll('.result').forEach(function (el) {
         el.className = 'result';
         el.innerHTML = '<span class="empty-msg">Заполните поля для расчёта</span>';
       });
-      document.querySelectorAll('.mini-scale').forEach(function (el) {
-        el.style.display = 'none';
-      });
+      document.querySelectorAll('.mini-scale').forEach(function (el) { el.style.display = 'none'; });
     }
   });
 
-  // ====== ТЁМНАЯ ТЕМА ======
+  // ====== ТЁМНАЯ ТЕМА (использует существующий класс theme-dark из base.css) ======
   function initTheme() {
-    var savedTheme = localStorage.getItem('medcalc-theme');
-    var isDark = savedTheme === 'dark';
-
-    if (isDark) {
-      document.body.classList.add('dark-theme');
-    }
+    var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    applyTheme(savedTheme);
 
     var headerControls = document.querySelector('.header-controls');
-    if (headerControls) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'theme-toggle';
-      btn.title = 'Переключить тему';
-      btn.innerHTML = '<span id="themeIcon">' + (isDark ? '☀️' : '🌙') + '</span>';
+    if (!headerControls) return;
 
-      var homeLink = headerControls.querySelector('.file-btn');
-      if (homeLink) {
-        headerControls.insertBefore(btn, homeLink);
-      } else {
-        headerControls.appendChild(btn);
-      }
+    // Создаём компактный переключатель из двух кнопок (🌙 / ☀️)
+    var switcher = document.createElement('div');
+    switcher.className = 'theme-switch';
+    switcher.innerHTML =
+      '<button type="button" class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>' +
+      '<button type="button" class="theme-btn" data-theme="dark" title="Тёмная тема">🌙</button>';
 
+    // Подсветка активной кнопки
+    switcher.querySelectorAll('.theme-btn').forEach(function (btn) {
+      if (btn.dataset.theme === savedTheme) btn.classList.add('active');
       btn.addEventListener('click', function () {
-        document.body.classList.toggle('dark-theme');
-        var nowDark = document.body.classList.contains('dark-theme');
-        document.getElementById('themeIcon').textContent = nowDark ? '☀️' : '🌙';
-        localStorage.setItem('medcalc-theme', nowDark ? 'dark' : 'light');
+        var newTheme = btn.dataset.theme;
+        applyTheme(newTheme);
+        localStorage.setItem(THEME_KEY, newTheme);
+        switcher.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
       });
-    }
+    });
+
+    // Вставляем ПЕРЕД ссылкой "На главную"
+    var homeLink = headerControls.querySelector('.file-btn');
+    if (homeLink) headerControls.insertBefore(switcher, homeLink);
+    else headerControls.appendChild(switcher);
+  }
+
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-dark', 'theme-gray');
+    if (theme === 'dark') document.body.classList.add('theme-dark');
+    else if (theme === 'gray') document.body.classList.add('theme-gray');
   }
 
   // ====== ПЛАВАЮЩАЯ ПАНЕЛЬ СВОДКИ ======
   function initFloatingSummary() {
-    // Не показываем на главной странице и на странице OCR
     var path = window.location.pathname;
-    if (path.endsWith('/index.html') || path === '/' || path.endsWith('/tools/ocr.html')) {
-      return;
-    }
+    if (path.endsWith('/index.html') || path === '/' || path.endsWith('/tools/ocr.html')) return;
 
-    // Добавляем стили (один раз)
     if (!document.getElementById('floating-summary-styles')) {
       var style = document.createElement('style');
       style.id = 'floating-summary-styles';
       style.textContent = `
         .floating-summary-fab {
-          position: fixed;
-          right: 20px;
-          bottom: 20px;
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
+          position: fixed; right: 20px; bottom: 20px;
+          width: 56px; height: 56px; border-radius: 50%;
           background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          color: #fff;
-          border: none;
-          cursor: pointer;
+          color: #fff; border: none; cursor: pointer;
           box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.5rem;
-          z-index: 999;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.5rem; z-index: 999;
           transition: transform .18s, box-shadow .18s;
         }
         .floating-summary-fab:hover {
@@ -183,143 +151,71 @@
           box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
         }
         .floating-summary-fab .badge {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          background: var(--danger);
-          color: #fff;
-          border-radius: 10px;
-          padding: 2px 7px;
-          font-size: .75rem;
-          font-weight: 700;
-          min-width: 20px;
-          text-align: center;
+          position: absolute; top: -4px; right: -4px;
+          background: var(--danger); color: #fff;
+          border-radius: 10px; padding: 2px 7px;
+          font-size: .75rem; font-weight: 700;
+          min-width: 20px; text-align: center;
         }
-
         .floating-summary-panel {
-          position: fixed;
-          right: 20px;
-          bottom: 90px;
-          width: 340px;
-          max-height: 70vh;
-          background: var(--card);
-          border: 1.5px solid var(--border);
-          border-radius: 14px;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-          z-index: 999;
-          display: none;
-          flex-direction: column;
-          overflow: hidden;
+          position: fixed; right: 20px; bottom: 90px;
+          width: 340px; max-height: 70vh;
+          background: var(--card); border: 1.5px solid var(--border);
+          border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+          z-index: 999; display: none; flex-direction: column; overflow: hidden;
         }
-        .floating-summary-panel.open {
-          display: flex;
-        }
-
+        .floating-summary-panel.open { display: flex; }
         .floating-summary-header {
-          padding: 14px 16px;
-          border-bottom: 1.5px solid var(--border);
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 10px;
+          padding: 14px 16px; border-bottom: 1.5px solid var(--border);
+          display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .floating-summary-title {
-          font-size: 1rem;
-          font-weight: 700;
-          color: var(--text);
-          margin: 0;
-        }
+        .floating-summary-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
         .floating-summary-close {
-          background: none;
-          border: none;
-          color: var(--muted);
-          cursor: pointer;
-          font-size: 1.3rem;
-          padding: 0 4px;
-          line-height: 1;
+          background: none; border: none; color: var(--muted);
+          cursor: pointer; font-size: 1.3rem; padding: 0 4px; line-height: 1;
         }
         .floating-summary-close:hover { color: var(--danger); }
-
-        .floating-summary-body {
-          padding: 12px 16px;
-          overflow-y: auto;
-          flex: 1;
-        }
+        .floating-summary-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
         .floating-summary-empty {
-          text-align: center;
-          color: var(--muted);
-          font-style: italic;
-          padding: 20px 8px;
-          font-size: .9rem;
+          text-align: center; color: var(--muted); font-style: italic;
+          padding: 20px 8px; font-size: .9rem;
         }
-        .floating-summary-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
+        .floating-summary-list { display: flex; flex-direction: column; gap: 6px; }
         .floating-summary-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          padding: 6px 0;
-          border-bottom: 1px solid var(--border);
-          font-size: .88rem;
+          display: flex; justify-content: space-between; align-items: baseline;
+          padding: 6px 0; border-bottom: 1px solid var(--border); font-size: .88rem;
         }
         .floating-summary-item:last-child { border-bottom: none; }
         .floating-summary-label {
-          color: var(--muted);
-          flex: 1;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          padding-right: 8px;
+          color: var(--muted); flex: 1; overflow: hidden;
+          text-overflow: ellipsis; white-space: nowrap; padding-right: 8px;
         }
         .floating-summary-value {
-          font-weight: 700;
-          color: var(--text);
-          text-align: right;
-          white-space: nowrap;
+          font-weight: 700; color: var(--text); text-align: right; white-space: nowrap;
         }
-
         .floating-summary-footer {
-          padding: 10px 16px;
-          border-top: 1.5px solid var(--border);
-          display: flex;
-          gap: 8px;
+          padding: 10px 16px; border-top: 1.5px solid var(--border); display: flex; gap: 8px;
         }
         .floating-summary-footer a {
-          flex: 1;
-          text-align: center;
-          padding: 8px 10px;
-          background: var(--accent);
-          color: #fff;
-          text-decoration: none;
-          border-radius: 8px;
-          font-size: .85rem;
-          font-weight: 600;
+          flex: 1; text-align: center; padding: 8px 10px;
+          background: var(--accent); color: #fff; text-decoration: none;
+          border-radius: 8px; font-size: .85rem; font-weight: 600;
           transition: background .18s;
         }
         .floating-summary-footer a:hover { background: #1d4ed8; }
-
         @media (max-width: 480px) {
-          .floating-summary-panel {
-            width: calc(100vw - 40px);
-            right: 20px;
-            left: 20px;
-          }
+          .floating-summary-panel { width: calc(100vw - 40px); right: 20px; left: 20px; }
         }
       `;
       document.head.appendChild(style);
     }
 
-    // Создаём кнопку (FAB)
     var fab = document.createElement('button');
     fab.className = 'floating-summary-fab';
     fab.title = 'Сводка по пациенту';
     fab.innerHTML = '📋<span class="badge" id="floatingSummaryBadge" style="display:none">0</span>';
     document.body.appendChild(fab);
 
-    // Создаём панель
     var panel = document.createElement('div');
     panel.className = 'floating-summary-panel';
     panel.id = 'floatingSummaryPanel';
@@ -343,21 +239,16 @@
 
     function render() {
       var data = {};
-      try {
-        data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {};
-      } catch (e) {}
+      try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) {}
 
       var keys = Object.keys(data);
-
       if (keys.length === 0) {
         body.innerHTML = '<div class="floating-summary-empty">Пока ничего не заполнено</div>';
         badge.style.display = 'none';
         return;
       }
 
-      keys.sort(function (a, b) {
-        return (data[a].timestamp || 0) - (data[b].timestamp || 0);
-      });
+      keys.sort(function (a, b) { return (data[a].timestamp || 0) - (data[b].timestamp || 0); });
 
       var html = '<div class="floating-summary-list">';
       keys.forEach(function (key) {
@@ -374,42 +265,29 @@
       badge.style.display = 'inline-block';
     }
 
-    // Открытие/закрытие
     fab.addEventListener('click', function () {
       panel.classList.toggle('open');
-      if (panel.classList.contains('open')) {
-        render();
-      }
+      if (panel.classList.contains('open')) render();
     });
 
-    closeBtn.addEventListener('click', function () {
-      panel.classList.remove('open');
-    });
+    closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
 
-    // Закрытие по клику вне панели
     document.addEventListener('click', function (e) {
       if (!panel.contains(e.target) && !fab.contains(e.target) && panel.classList.contains('open')) {
         panel.classList.remove('open');
       }
     });
 
-    // Обновление при изменении сводки (из других вкладок или из текущего калькулятора)
     window.addEventListener('storage', function (e) {
-      if (e.key === SUMMARY_KEY && panel.classList.contains('open')) {
-        render();
-      }
+      if (e.key === SUMMARY_KEY && panel.classList.contains('open')) render();
     });
 
-    // Также обновляем при каждом вызове saveToSummary (для той же вкладки)
     var _origSave = saveToSummary;
     saveToSummary = function () {
       _origSave.apply(this, arguments);
-      if (panel.classList.contains('open')) {
-        render();
-      }
+      if (panel.classList.contains('open')) render();
     };
 
-    // Первоначальный рендер бейджа
     render();
   }
 
@@ -419,10 +297,7 @@
     initFloatingSummary();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAll);
-  } else {
-    initAll();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else initAll();
 
 })();
