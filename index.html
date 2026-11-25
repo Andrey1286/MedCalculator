@@ -108,7 +108,6 @@
     .summary-label { color: var(--muted); font-size: 0.9rem; }
     .summary-value { font-weight: 700; text-align: right; }
 
-    /* Шапка с кнопкой OCR */
     .header-top {
       display: flex;
       justify-content: space-between;
@@ -116,6 +115,11 @@
       gap: 16px;
       flex-wrap: wrap;
       margin-bottom: 8px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
     }
     .btn-ocr {
       padding: 10px 16px;
@@ -139,7 +143,6 @@
       box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
     }
 
-    /* Стили для печати */
     @media print {
       body * { visibility: hidden; }
       .summary-panel, .summary-panel * { visibility: visible; }
@@ -171,10 +174,15 @@
           <h1>Медицинские калькуляторы</h1>
           <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
         </div>
-        <a class="btn-ocr" href="tools/ocr.html" target="_blank" rel="noopener">
-          <span>🔍</span>
-          <span>Распознавание текста (PDF/картинки)</span>
-        </a>
+        <div class="header-actions">
+          <button type="button" class="theme-toggle" id="themeToggle" title="Переключить тему">
+            <span id="themeIcon">🌙</span>
+          </button>
+          <a class="btn-ocr" href="tools/ocr.html" target="_blank" rel="noopener">
+            <span>🔍</span>
+            <span>OCR / Распознавание</span>
+          </a>
+        </div>
       </div>
     </header>
 
@@ -334,6 +342,21 @@
         panel.setAttribute('data-print-date', dateStr);
         window.print();
       });
+
+      // ===== Переключение темы на главной =====
+      (function () {
+        var savedTheme = localStorage.getItem('medcalc-theme');
+        if (savedTheme === 'dark') {
+          document.body.classList.add('dark-theme');
+          document.getElementById('themeIcon').textContent = '☀️';
+        }
+        document.getElementById('themeToggle').addEventListener('click', function () {
+          document.body.classList.toggle('dark-theme');
+          var isDark = document.body.classList.contains('dark-theme');
+          document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+          localStorage.setItem('medcalc-theme', isDark ? 'dark' : 'light');
+        });
+      })();
     });
 
     // Регистрация Service Worker для офлайн-режима
