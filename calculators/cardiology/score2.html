@@ -102,9 +102,11 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="fixed-region"><span class="flag">🇷🇺</span> Регион риска: Российская Федерация — очень высокий</div>
 
           <div class="grid">
+
             <div class="field">
               <label>Возраст (лет, 40–89)</label>
               <input
@@ -134,9 +136,11 @@
                 <option value="1">Да</option>
               </select>
             </div>
+
           </div>
 
           <div class="grid" style="margin-top:14px">
+
             <div class="field">
               <label>САД (мм рт.ст.)</label>
               <input
@@ -193,7 +197,9 @@
               </div>
               <div class="field-error" id="s2-hdl-error"></div>
             </div>
+
           </div>
+
         </div>
 
         <div class="panel-result-col">
@@ -218,12 +224,22 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
+        var inp = document.getElementById(id);
+        if (!inp) return NaN;
+        var val = inp.value.replace(',', '.');
+        var num = parseFloat(val);
+        return isNaN(num) ? NaN : num;
+      }
+
       // ====== Работа с переключателями единиц ======
       var CHOL_FACTOR = 38.67;
 
       function setupUnitSwitch(inputId, unitId, toCanonical, fromCanonical, placeholders) {
         var inp = document.getElementById(inputId);
         var sel = document.getElementById(unitId);
+
         if (!inp || !sel) return { get: function () { return NaN; } };
 
         function updateCanonical() {
@@ -256,6 +272,7 @@
           if (placeholders && placeholders[newUnit]) {
             inp.placeholder = placeholders[newUnit];
           }
+
           updateCanonical();
           MedCore.validateInput(inp);
           calcSCORE2();
@@ -280,6 +297,7 @@
       function renderScale(value) {
         var el = document.getElementById('s2-scale');
         if (!el) return;
+
         MedCore.renderMiniScale(el, value, 0, 30, [
           { until: 2.5, class: 'ok' },
           { until: 7.5, class: 'warn' },
@@ -290,7 +308,7 @@
 
       // ====== Расчёт SCORE2 ======
       function calcSCORE2() {
-        var age = MedCore.num('s2-age'), sbp = MedCore.num('s2-sbp');
+        var age = getNum('s2-age'), sbp = getNum('s2-sbp');
         var tc = tcCtrl.get(), hdl = hdlCtrl.get();
         var male = document.getElementById('s2-sex').value === 'm';
         var smoke = document.getElementById('s2-smoke').value === '1';
@@ -358,10 +376,11 @@
 
         MedCore.render(el, risk.toFixed(1), ' %', label, cls,
           model + ' · точный расчёт · РФ (очень высокий риск)', extra);
+
         renderScale(risk);
       }
 
-      MedCore.bindCalc(['s2-age', 's2-sbp'], calcSCORE2);
+      MedCore.bindCalc(['s2-age', 's2-sbp', 's2-tc', 's2-hdl'], calcSCORE2);
       document.getElementById('s2-sex').addEventListener('change', calcSCORE2);
       document.getElementById('s2-smoke').addEventListener('change', calcSCORE2);
 
