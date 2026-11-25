@@ -1,303 +1,329 @@
-(function () {
-  var SUMMARY_KEY = 'medcalc-summary';
-  var THEME_KEY = 'medcalc-theme';
-
-  function saveToSummary(id, title, value, unit, cls) {
-    if (!value || value === '') return;
-
-    var data = {};
-    try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) { data = {}; }
-
-    data[id] = {
-      title: title, value: value, unit: unit || '', cls: cls || '', timestamp: Date.now()
-    };
-
-    try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(data)); } catch (e) {}
-
-    try {
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: SUMMARY_KEY, newValue: JSON.stringify(data)
-      }));
-    } catch (e) {}
-  }
-
-  function clearFromSummary(id) {
-    try {
-      var data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {};
-      if (data[id]) {
-        delete data[id];
-        localStorage.setItem(SUMMARY_KEY, JSON.stringify(data));
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: SUMMARY_KEY, newValue: JSON.stringify(data)
-        }));
-      }
-    } catch (e) {}
-  }
-
-  // Перехватываем MedCore.render и MedCore.showEmpty
-  if (window.MedCore) {
-    var _origRender = MedCore.render;
-    var _origShowEmpty = MedCore.showEmpty;
-
-    MedCore.render = function (el, value, unit, tagText, tagCls, refText, extraHtml) {
-      _origRender(el, value, unit, tagText, tagCls, refText, extraHtml);
-
-      var panel = el.closest('.panel');
-      if (!panel) return;
-
-      var panelId = panel.id.replace('panel-', '');
-      var h2 = panel.querySelector('h2');
-      var title = h2 ? h2.textContent.trim() : panelId;
-
-      var valueEl = el.querySelector('.value');
-      var textValue = '';
-      if (valueEl) {
-        var nodes = valueEl.childNodes;
-        for (var i = 0; i < nodes.length; i++) {
-          if (nodes[i].nodeType === 3) textValue += nodes[i].textContent;
-          else if (nodes[i].classList && nodes[i].classList.contains('unit')) textValue += nodes[i].textContent;
-        }
-        textValue = textValue.trim();
-      }
-
-      if (textValue) saveToSummary(panelId, title, textValue, unit, tagCls);
-    };
-
-    MedCore.showEmpty = function (el, msg) {
-      _origShowEmpty(el, msg);
-      var panel = el.closest('.panel');
-      if (!panel) return;
-      clearFromSummary(panel.id.replace('panel-', ''));
-    };
-  }
-
-  // Слушаем очистку от главной страницы («Новый пациент»)
-  window.addEventListener('storage', function (e) {
-    if (e.key === SUMMARY_KEY && e.newValue === null) {
-      document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function (inp) {
-        inp.value = '';
-        inp.classList.remove('invalid');
-      });
-      document.querySelectorAll('select:not(.unit-select)').forEach(function (sel) { sel.selectedIndex = 0; });
-      document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function (cb) { cb.checked = false; });
-      document.querySelectorAll('.result').forEach(function (el) {
-        el.className = 'result';
-        el.innerHTML = '<span class="empty-msg">Заполните поля для расчёта</span>';
-      });
-      document.querySelectorAll('.mini-scale').forEach(function (el) { el.style.display = 'none'; });
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Медицинские калькуляторы</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="MedCalc">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  
+  <link rel="stylesheet" href="assets/css/base.css">
+  <style>
+    .search-box { margin-bottom: 24px; display: flex; align-items: center; gap: 0; }
+    .search-icon-wrapper {
+      display: flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px; background: var(--accent);
+      border-radius: 12px 0 0 12px; flex-shrink: 0;
     }
-  });
-
-  // ====== ТЁМНАЯ ТЕМА (использует существующий класс theme-dark из base.css) ======
-  function initTheme() {
-    var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
-    applyTheme(savedTheme);
-
-    var headerControls = document.querySelector('.header-controls');
-    if (!headerControls) return;
-
-    // Создаём компактный переключатель из двух кнопок (🌙 / ☀️)
-    var switcher = document.createElement('div');
-    switcher.className = 'theme-switch';
-    switcher.innerHTML =
-      '<button type="button" class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>' +
-      '<button type="button" class="theme-btn" data-theme="dark" title="Тёмная тема">🌙</button>';
-
-    // Подсветка активной кнопки
-    switcher.querySelectorAll('.theme-btn').forEach(function (btn) {
-      if (btn.dataset.theme === savedTheme) btn.classList.add('active');
-      btn.addEventListener('click', function () {
-        var newTheme = btn.dataset.theme;
-        applyTheme(newTheme);
-        localStorage.setItem(THEME_KEY, newTheme);
-        switcher.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-      });
-    });
-
-    // Вставляем ПЕРЕД ссылкой "На главную"
-    var homeLink = headerControls.querySelector('.file-btn');
-    if (homeLink) headerControls.insertBefore(switcher, homeLink);
-    else headerControls.appendChild(switcher);
-  }
-
-  function applyTheme(theme) {
-    document.body.classList.remove('theme-dark', 'theme-gray');
-    if (theme === 'dark') document.body.classList.add('theme-dark');
-    else if (theme === 'gray') document.body.classList.add('theme-gray');
-  }
-
-  // ====== ПЛАВАЮЩАЯ ПАНЕЛЬ СВОДКИ ======
-  function initFloatingSummary() {
-    var path = window.location.pathname;
-    if (path.endsWith('/index.html') || path === '/' || path.endsWith('/tools/ocr.html')) return;
-
-    if (!document.getElementById('floating-summary-styles')) {
-      var style = document.createElement('style');
-      style.id = 'floating-summary-styles';
-      style.textContent = `
-        .floating-summary-fab {
-          position: fixed; right: 20px; bottom: 20px;
-          width: 56px; height: 56px; border-radius: 50%;
-          background: linear-gradient(135deg, var(--accent), var(--accent-2));
-          color: #fff; border: none; cursor: pointer;
-          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 1.5rem; z-index: 999;
-          transition: transform .18s, box-shadow .18s;
-        }
-        .floating-summary-fab:hover {
-          transform: scale(1.08);
-          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
-        }
-        .floating-summary-fab .badge {
-          position: absolute; top: -4px; right: -4px;
-          background: var(--danger); color: #fff;
-          border-radius: 10px; padding: 2px 7px;
-          font-size: .75rem; font-weight: 700;
-          min-width: 20px; text-align: center;
-        }
-        .floating-summary-panel {
-          position: fixed; right: 20px; bottom: 90px;
-          width: 340px; max-height: 70vh;
-          background: var(--card); border: 1.5px solid var(--border);
-          border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-          z-index: 999; display: none; flex-direction: column; overflow: hidden;
-        }
-        .floating-summary-panel.open { display: flex; }
-        .floating-summary-header {
-          padding: 14px 16px; border-bottom: 1.5px solid var(--border);
-          display: flex; justify-content: space-between; align-items: center; gap: 10px;
-        }
-        .floating-summary-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
-        .floating-summary-close {
-          background: none; border: none; color: var(--muted);
-          cursor: pointer; font-size: 1.3rem; padding: 0 4px; line-height: 1;
-        }
-        .floating-summary-close:hover { color: var(--danger); }
-        .floating-summary-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
-        .floating-summary-empty {
-          text-align: center; color: var(--muted); font-style: italic;
-          padding: 20px 8px; font-size: .9rem;
-        }
-        .floating-summary-list { display: flex; flex-direction: column; gap: 6px; }
-        .floating-summary-item {
-          display: flex; justify-content: space-between; align-items: baseline;
-          padding: 6px 0; border-bottom: 1px solid var(--border); font-size: .88rem;
-        }
-        .floating-summary-item:last-child { border-bottom: none; }
-        .floating-summary-label {
-          color: var(--muted); flex: 1; overflow: hidden;
-          text-overflow: ellipsis; white-space: nowrap; padding-right: 8px;
-        }
-        .floating-summary-value {
-          font-weight: 700; color: var(--text); text-align: right; white-space: nowrap;
-        }
-        .floating-summary-footer {
-          padding: 10px 16px; border-top: 1.5px solid var(--border); display: flex; gap: 8px;
-        }
-        .floating-summary-footer a {
-          flex: 1; text-align: center; padding: 8px 10px;
-          background: var(--accent); color: #fff; text-decoration: none;
-          border-radius: 8px; font-size: .85rem; font-weight: 600;
-          transition: background .18s;
-        }
-        .floating-summary-footer a:hover { background: #1d4ed8; }
-        @media (max-width: 480px) {
-          .floating-summary-panel { width: calc(100vw - 40px); right: 20px; left: 20px; }
-        }
-      `;
-      document.head.appendChild(style);
+    .search-icon-wrapper svg { width: 22px; height: 22px; color: #fff; }
+    .search-input {
+      flex: 1; padding: 14px 18px; font-size: 1rem;
+      border: 1.5px solid var(--border); border-left: none;
+      border-radius: 0 12px 12px 0; background: var(--card); color: var(--text);
+      transition: border-color .18s, box-shadow .18s; font-family: inherit;
+      box-sizing: border-box; min-width: 0;
     }
+    .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .no-results { text-align: center; padding: 40px 16px; color: var(--muted); font-style: italic; display: none; }
+    
+    .category-section { margin-bottom: 16px; }
+    .category-header { 
+      display: flex; align-items: center; gap: 12px; 
+      padding: 14px 18px; 
+      border: 1.5px solid var(--border); border-radius: 12px;
+      background: var(--card);
+      cursor: pointer; 
+      transition: background .18s, border-color .18s;
+      user-select: none;
+    }
+    .category-header:hover { background: var(--info); border-color: var(--accent); }
+    .category-title { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 0; flex: 1; }
+    .category-count { font-size: 0.85rem; color: var(--muted); background: var(--info); padding: 2px 10px; border-radius: 12px; }
+    .category-arrow { width: 24px; height: 24px; transition: transform .25s ease; color: var(--muted); }
+    .category-section.expanded .category-arrow { transform: rotate(180deg); }
+    
+    .cards-grid { 
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; 
+      margin-top: 16px; max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height .3s ease, opacity .3s ease, margin-top .3s ease;
+    }
+    .category-section.expanded .cards-grid { max-height: 2000px; opacity: 1; }
+    
+    .calc-card {
+      background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px;
+      text-decoration: none; color: inherit; transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .calc-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--accent); }
+    .calc-card.coming-soon { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .calc-card h3 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .calc-card p { margin: 0; font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+    .calc-card .go { margin-top: auto; color: var(--accent); font-weight: 600; font-size: 0.9rem; }
+    .calc-card.coming-soon .go { color: var(--muted); }
+    
+    .summary-panel { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 28px; }
+    .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px; }
+    .summary-title { font-size: 1.15rem; font-weight: 700; margin: 0; }
+    .summary-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-action {
+      padding: 8px 16px; color: #fff; border: none; border-radius: 8px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.18s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-copy-all { background: var(--accent); }
+    .btn-copy-all:hover { background: #1d4ed8; }
+    .btn-print { background: #059669; }
+    .btn-print:hover { background: #047857; }
+    .btn-new-patient { background: var(--danger); }
+    .btn-new-patient:hover { background: #991b1b; }
+    .summary-empty { text-align: center; color: var(--muted); font-style: italic; padding: 24px 16px; }
+    .summary-list { display: flex; flex-direction: column; gap: 8px; }
+    .summary-item { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .summary-item:last-child { border-bottom: none; }
+    .summary-label { color: var(--muted); font-size: 0.9rem; }
+    .summary-value { font-weight: 700; text-align: right; }
 
-    var fab = document.createElement('button');
-    fab.className = 'floating-summary-fab';
-    fab.title = 'Сводка по пациенту';
-    fab.innerHTML = '📋<span class="badge" id="floatingSummaryBadge" style="display:none">0</span>';
-    document.body.appendChild(fab);
+    .header-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-ocr {
+      padding: 10px 16px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25); white-space: nowrap;
+    }
+    .btn-ocr:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35); }
 
-    var panel = document.createElement('div');
-    panel.className = 'floating-summary-panel';
-    panel.id = 'floatingSummaryPanel';
-    panel.innerHTML = `
-      <div class="floating-summary-header">
-        <h3 class="floating-summary-title">Сводка</h3>
-        <button class="floating-summary-close" id="floatingSummaryClose" title="Закрыть">×</button>
+    @media print {
+      body * { visibility: hidden; }
+      .summary-panel, .summary-panel * { visibility: visible; }
+      .summary-panel { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; margin: 0; background: #fff; }
+      .summary-actions { display: none !important; }
+      .summary-header { margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+      .summary-title { font-size: 18pt; color: #000; }
+      .summary-item { border-bottom: 1px solid #ccc; padding: 6px 0; }
+      .summary-label { color: #333; }
+      .summary-value { color: #000; }
+      .summary-empty { display: none; }
+      .summary-panel::after {
+        content: "Дата формирования: " attr(data-print-date);
+        display: block; margin-top: 20px; font-size: 10pt; color: #666; text-align: right;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-stripe"></div>
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <div>
+          <h1>Медицинские калькуляторы</h1>
+          <p class="subtitle">Быстрые расчёты на приёме · работают локально</p>
+        </div>
+        <div class="header-actions">
+          <div class="theme-switch">
+            <button type="button" class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>
+            <button type="button" class="theme-btn" data-theme="dark" title="Тёмная тема">🌙</button>
+          </div>
+          <a class="btn-ocr" href="tools/ocr.html" target="_blank" rel="noopener">
+            <span>🔍</span>
+            <span>OCR / Распознавание</span>
+          </a>
+        </div>
       </div>
-      <div class="floating-summary-body" id="floatingSummaryBody">
-        <div class="floating-summary-empty">Пока ничего не заполнено</div>
+    </header>
+
+    <div class="search-box">
+      <div class="search-icon-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
       </div>
-      <div class="floating-summary-footer">
-        <a href="../index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по названию, органам, маркерам...">
+    </div>
+
+    <div class="summary-panel" id="summaryPanel">
+      <div class="summary-header">
+        <h2 class="summary-title">Сводка по пациенту</h2>
+        <div class="summary-actions">
+          <button type="button" class="btn-action btn-copy-all" id="copyAllBtn">Скопировать</button>
+          <button type="button" class="btn-action btn-print" id="printBtn">🖨 Печать / PDF</button>
+          <button type="button" class="btn-action btn-new-patient" id="newPatientBtn">Новый пациент</button>
+        </div>
       </div>
-    `;
-    document.body.appendChild(panel);
+      <div id="summaryContent">
+        <div class="summary-empty">Пока ничего не заполнено. Откройте калькулятор и введите данные — результаты появятся здесь автоматически.</div>
+      </div>
+    </div>
 
-    var body = document.getElementById('floatingSummaryBody');
-    var badge = document.getElementById('floatingSummaryBadge');
-    var closeBtn = document.getElementById('floatingSummaryClose');
+    <div id="categoriesContainer"></div>
+    <div class="no-results" id="noResults">Ничего не найдено</div>
+  </div>
 
-    function render() {
-      var data = {};
-      try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) {}
-
-      var keys = Object.keys(data);
-      if (keys.length === 0) {
-        body.innerHTML = '<div class="floating-summary-empty">Пока ничего не заполнено</div>';
-        badge.style.display = 'none';
+  <script src="assets/js/catalog.js"></script>
+  <script src="assets/js/summary.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof CATALOG === 'undefined') {
+        console.error('CATALOG не загружен! Проверьте файл assets/js/catalog.js');
         return;
       }
 
-      keys.sort(function (a, b) { return (data[a].timestamp || 0) - (data[b].timestamp || 0); });
-
-      var html = '<div class="floating-summary-list">';
-      keys.forEach(function (key) {
-        var item = data[key];
-        html += '<div class="floating-summary-item">' +
-          '<span class="floating-summary-label">' + item.title + '</span>' +
-          '<span class="floating-summary-value">' + item.value + (item.unit ? ' ' + item.unit : '') + '</span>' +
-          '</div>';
+      var categories = {};
+      CATALOG.forEach(function (item) {
+        if (!categories[item.category]) categories[item.category] = [];
+        categories[item.category].push(item);
       });
-      html += '</div>';
-      body.innerHTML = html;
 
-      badge.textContent = keys.length;
-      badge.style.display = 'inline-block';
+      var categoryOrder = [
+        'Общие', 'Эндокринология', 'Кардиология', 'Нефрология',
+        'Гепатология', 'Гематология', 'Пульмонология / неотложка',
+        'Диетология', 'Антикоагулянты', 'Психиатрия'
+      ];
+
+      var container = document.getElementById('categoriesContainer');
+      var allSections = [];
+
+      categoryOrder.forEach(function (catName, index) {
+        var items = categories[catName] || [];
+        if (items.length === 0) return;
+
+        var section = document.createElement('div');
+        section.className = 'category-section';
+        if (index === 0) section.classList.add('expanded');
+        section.dataset.category = catName.toLowerCase();
+
+        var header = document.createElement('div');
+        header.className = 'category-header';
+        header.innerHTML = '<h2 class="category-title">' + catName + '</h2>' +
+          '<span class="category-count">' + items.length + '</span>' +
+          '<svg class="category-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+          '<polyline points="6 9 12 15 18 9"></polyline></svg>';
+        section.appendChild(header);
+
+        var grid = document.createElement('div');
+        grid.className = 'cards-grid';
+
+        items.forEach(function (item) {
+          var card = document.createElement('a');
+          card.className = 'calc-card';
+          card.dataset.search = (
+            item.title + ' ' + 
+            item.description + ' ' + 
+            catName + ' ' + 
+            (item.tags || '')
+          ).toLowerCase();
+
+          if (item.comingSoon) {
+            card.classList.add('coming-soon');
+            card.href = '#';
+          } else {
+            card.href = item.file;
+            card.target = '_blank';
+            card.rel = 'noopener';
+          }
+
+          card.innerHTML = '<h3>' + item.title + '</h3>' +
+            '<p>' + item.description + '</p>' +
+            '<span class="go">' + (item.comingSoon ? 'Скоро' : 'Открыть →') + '</span>';
+
+          grid.appendChild(card);
+        });
+
+        section.appendChild(grid);
+        container.appendChild(section);
+        allSections.push(section);
+
+        header.addEventListener('click', function () {
+          section.classList.toggle('expanded');
+        });
+      });
+
+      var searchInput = document.getElementById('searchInput');
+      var noResults = document.getElementById('noResults');
+
+      searchInput.addEventListener('input', function () {
+        var query = searchInput.value.trim().toLowerCase();
+        var visibleCount = 0;
+
+        allSections.forEach(function (section) {
+          var cards = section.querySelectorAll('.calc-card');
+          var sectionVisible = false;
+
+          cards.forEach(function (card) {
+            var match = !query || card.dataset.search.indexOf(query) !== -1;
+            card.style.display = match ? '' : 'none';
+            if (match) sectionVisible = true;
+          });
+
+          section.style.display = sectionVisible ? '' : 'none';
+          
+          if (query && sectionVisible) section.classList.add('expanded');
+          else if (!query) {
+            if (section === allSections[0]) section.classList.add('expanded');
+            else section.classList.remove('expanded');
+          }
+          
+          if (sectionVisible) visibleCount++;
+        });
+
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      });
+
+      document.getElementById('printBtn').addEventListener('click', function () {
+        var panel = document.getElementById('summaryPanel');
+        var now = new Date();
+        var dateStr = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'});
+        panel.setAttribute('data-print-date', dateStr);
+        window.print();
+      });
+
+      // ===== Переключение темы на главной =====
+      (function () {
+        var THEME_KEY = 'medcalc-theme';
+        var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+
+        // Применяем сохранённую тему
+        document.body.classList.remove('theme-dark', 'theme-gray');
+        if (savedTheme === 'dark') document.body.classList.add('theme-dark');
+        else if (savedTheme === 'gray') document.body.classList.add('theme-gray');
+
+        // Подсвечиваем активную кнопку
+        document.querySelectorAll('.theme-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.dataset.theme === savedTheme);
+          btn.addEventListener('click', function () {
+            var newTheme = btn.dataset.theme;
+            document.body.classList.remove('theme-dark', 'theme-gray');
+            if (newTheme === 'dark') document.body.classList.add('theme-dark');
+            else if (newTheme === 'gray') document.body.classList.add('theme-gray');
+            localStorage.setItem(THEME_KEY, newTheme);
+            document.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+          });
+        });
+      })();
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+          .then(function(reg) { console.log('SW registered:', reg.scope); })
+          .catch(function(err) { console.error('SW registration failed:', err); });
+      });
     }
-
-    fab.addEventListener('click', function () {
-      panel.classList.toggle('open');
-      if (panel.classList.contains('open')) render();
-    });
-
-    closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
-
-    document.addEventListener('click', function (e) {
-      if (!panel.contains(e.target) && !fab.contains(e.target) && panel.classList.contains('open')) {
-        panel.classList.remove('open');
-      }
-    });
-
-    window.addEventListener('storage', function (e) {
-      if (e.key === SUMMARY_KEY && panel.classList.contains('open')) render();
-    });
-
-    var _origSave = saveToSummary;
-    saveToSummary = function () {
-      _origSave.apply(this, arguments);
-      if (panel.classList.contains('open')) render();
-    };
-
-    render();
-  }
-
-  // Запуск после загрузки DOM
-  function initAll() {
-    initTheme();
-    initFloatingSummary();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
-  else initAll();
-
-})();
+  </script>
+</body>
+</html>
