@@ -231,6 +231,8 @@
         else { stage = 'G5'; cls = 'danger'; }
 
         var extra = '';
+        var cgValue = null;
+        var cgCls = null;
 
         if (heightCm > 0 && weightKg > 0) {
           var bsa = 0.007184 * Math.pow(heightCm, 0.725) * Math.pow(weightKg, 0.425);
@@ -245,8 +247,9 @@
         if (weightKg > 0) {
           var crcl = ((140 - age) * weightKg) / (0.814 * scrUmol);
           if (female) crcl *= 0.85;
+          cgValue = crcl;
 
-          var cgLabel, cgCls;
+          var cgLabel;
           if (crcl >= 90) { cgLabel = 'Норма'; cgCls = 'ok'; }
           else if (crcl >= 60) { cgLabel = 'Снижено'; cgCls = 'warn'; }
           else if (crcl >= 30) { cgLabel = 'ХБП'; cgCls = 'danger'; }
@@ -261,6 +264,17 @@
         MedCore.render(el, Math.round(egfr), ' мл/мин/1.73м²', stage, cls,
           'CKD-EPI 2021 · приведено к площади тела 1.73 м²', extra);
         renderCkdScale(egfr);
+
+        // Сохраняем в сводку оба результата
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // CKD-EPI
+          MedCore.saveToSummary('ckd', 'СКФ по CKD-EPI', Math.round(egfr) + ' мл/мин/1.73м²', '', cls);
+          
+          // Кокрофт-Голт (если рассчитан)
+          if (cgValue !== null) {
+            MedCore.saveToSummary('ckd-cg', 'Клиренс по Кокрофту-Голту', cgValue.toFixed(1) + ' мл/мин', '', cgCls);
+          }
+        }
       }
 
       MedCore.bindCalc(['ckd-scr', 'ckd-age', 'ckd-height', 'ckd-weight'], calcCKD);
