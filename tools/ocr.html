@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OCR — распознавание текста — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../assets/css/base.css">
+
+  <!-- Tesseract.js для распознавания текста -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- PDF.js для работы с PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+      background: var(--card);
+      margin-bottom: 16px;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .drop-zone-icon {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+    .drop-zone-text {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .drop-zone-hint {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .drop-zone input[type="file"] { display: none; }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .controls-row label {
+      font-size: .9rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .controls-row select {
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
+    }
+
+    .file-list {
+      margin-bottom: 16px;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: .88rem;
+    }
+    .file-item .file-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .file-item .file-status {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+    .file-item .file-status.done { color: var(--ok); }
+    .file-item .file-status.error { color: var(--danger); }
+    .file-item .remove-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0 4px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .btn {
+      padding: 12px 20px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: background .18s, transform .1s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37,99,235,.25);
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: var(--info); }
+    .btn-success {
+      background: #059669;
+      color: #fff;
+    }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+
+    .progress-wrap {
+      margin-bottom: 16px;
+      display: none;
+    }
+    .progress-wrap.active { display: block; }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--info);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0%;
+      transition: width .3s ease;
+    }
+    .progress-text {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .result-area {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 200px;
+    }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .result-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+    .result-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .result-text {
+      width: 100%;
+      min-height: 300px;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: .9rem;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .result-text:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: .9rem;
+    }
+    .banner.info {
+      background: var(--info);
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+    }
+    .banner.warn {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border-left: 4px solid var(--warn);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--text);
+      color: var(--card);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: .9rem;
+      box-shadow: var(--shadow-lg);
+      transition: transform .3s ease;
+      z-index: 1000;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>OCR — распознавание текста</h1>
+        <p class="subtitle">Инструменты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active" id="panel-ocr">
+      <h2>Распознавание текста из PDF и картинок</h2>
+      <p class="desc">Загрузите анализы, выписки или результаты исследований — текст будет извлечён автоматически</p>
+
+      <div class="panel-body" style="display:block">
+
+        <div class="banner info">
+          <strong>Поддерживаемые форматы:</strong> PDF (текстовые и сканы), JPG, PNG. Русский и английский языки. Обработка происходит локально в браузере — файлы никуда не отправляются.
+        </div>
+
+        <!-- Зона загрузки -->
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone-icon">📄</div>
+          <div class="drop-zone-text">Перетащите файлы сюда или нажмите для выбора</div>
+          <div class="drop-zone-hint">PDF, JPG, PNG · несколько файлов сразу</div>
+          <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf">
+        </div>
+
+        <!-- Список файлов -->
+        <div class="file-list" id="fileList"></div>
+
+        <!-- Настройки -->
+        <div class="controls-row">
+          <label for="langSelect">Язык распознавания:</label>
+          <select id="langSelect">
+            <option value="rus+eng" selected>Русский + English</option>
+            <option value="rus">Только русский</option>
+            <option value="eng">Только English</option>
+          </select>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" id="recognizeBtn" disabled>🔍 Распознать текст</button>
+          <button type="button" class="btn btn-secondary" id="clearBtn">Очистить всё</button>
+        </div>
+
+        <!-- Прогресс -->
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="progress-text" id="progressText">Подготовка...</div>
+        </div>
+
+        <!-- Результат -->
+        <div class="result-area" id="resultArea" style="display:none">
+          <div class="result-header">
+            <h3 class="result-title">Распознанный текст</h3>
+            <div class="result-actions">
+              <button type="button" class="btn btn-success" id="copyBtn">📋 Копировать</button>
+              <button type="button" class="btn btn-secondary" id="downloadBtn">💾 Скачать .txt</button>
+            </div>
+          </div>
+          <textarea class="result-text" id="resultText" placeholder="Здесь появится распознанный текст..."></textarea>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О работе инструмента</summary>
+        <div class="note-content">
+          <p><strong>Как это работает:</strong> PDF-файлы сначала проверяются на наличие текстового слоя (быстрое извлечение). Если текста нет (скан) — страницы конвертируются в изображения и распознаются через Tesseract.js. Картинки сразу идут на распознавание.</p>
+          <p><strong>Приватность:</strong> вся обработка происходит в вашем браузере. Файлы не загружаются на сервер. Модели языков (~10 МБ для русского) кэшируются после первой загрузки.</p>
+          <p><strong>Качество:</strong> чем чётче исходное изображение и чем меньше искажений, тем лучше результат. Для бумажных анализов делайте фото при хорошем освещении, без бликов.</p>
+          <p><strong>Совет:</strong> после распознавания вы можете отредактировать текст прямо в поле и скопировать нужные значения в калькуляторы.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Настройка PDF.js worker
+      if (window.pdfjsLib) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.js';
+      }
+
+      var dropZone = document.getElementById('dropZone');
+      var fileInput = document.getElementById('fileInput');
+      var fileList = document.getElementById('fileList');
+      var recognizeBtn = document.getElementById('recognizeBtn');
+      var clearBtn = document.getElementById('clearBtn');
+      var progressWrap = document.getElementById('progressWrap');
+      var progressFill = document.getElementById('progressFill');
+      var progressText = document.getElementById('progressText');
+      var resultArea = document.getElementById('resultArea');
+      var resultText = document.getElementById('resultText');
+      var copyBtn = document.getElementById('copyBtn');
+      var downloadBtn = document.getElementById('downloadBtn');
+      var langSelect = document.getElementById('langSelect');
+      var toast = document.getElementById('toast');
+
+      var files = [];
+
+      // ===== Drag & Drop =====
+      dropZone.addEventListener('click', function () { fileInput.click(); });
+
+      dropZone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', function () {
+        dropZone.classList.remove('dragover');
+      });
+      dropZone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener('change', function (e) {
+        handleFiles(e.target.files);
+        fileInput.value = '';
+      });
+
+      function handleFiles(newFiles) {
+        for (var i = 0; i < newFiles.length; i++) {
+          var f = newFiles[i];
+          var type = f.type;
+          if (type === 'application/pdf' || type === 'image/jpeg' || type === 'image/png') {
+            files.push({ file: f, status: 'ready' });
+          } else {
+            showToast('Файл ' + f.name + ' имеет неподдерживаемый формат');
+          }
+        }
+        renderFileList();
+        recognizeBtn.disabled = files.length === 0;
+      }
+
+      function renderFileList() {
+        if (files.length === 0) {
+          fileList.innerHTML = '';
+          return;
+        }
+        fileList.innerHTML = files.map(function (item, idx) {
+          var statusText = item.status === 'ready' ? 'Готов' :
+                           item.status === 'done' ? '✓ Готово' :
+                           item.status === 'error' ? '✗ Ошибка' : 'Обработка...';
+          var statusClass = item.status === 'done' ? 'done' : item.status === 'error' ? 'error' : '';
+          return '<div class="file-item">' +
+            '<span>📄</span>' +
+            '<span class="file-name">' + item.file.name + '</span>' +
+            '<span class="file-status ' + statusClass + '">' + statusText + '</span>' +
+            '<button class="remove-btn" data-idx="' + idx + '" title="Удалить">×</button>' +
+            '</div>';
+        }).join('');
+
+        fileList.querySelectorAll('.remove-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            files.splice(parseInt(btn.dataset.idx), 1);
+            renderFileList();
+            recognizeBtn.disabled = files.length === 0;
+          });
+        });
+      }
+
+      // ===== Распознавание =====
+      recognizeBtn.addEventListener('click', async function () {
+        if (files.length === 0) return;
+
+        recognizeBtn.disabled = true;
+        clearBtn.disabled = true;
+        progressWrap.classList.add('active');
+        resultArea.style.display = 'block';
+        resultText.value = '';
+
+        var allText = [];
+        var lang = langSelect.value;
+        var totalFiles = files.length;
+        var currentFileIdx = 0;
+
+        try {
+          // Инициализация воркера Tesseract
+          updateProgress(0, 'Загрузка языковой модели (при первом использовании)...');
+          var worker = await Tesseract.createWorker(lang, 1, {
+            logger: function (m) {
+              if (m.status === 'recognizing text') {
+                var fileProgress = currentFileIdx / totalFiles;
+                var totalProgress = (fileProgress + m.progress / totalFiles) * 100;
+                updateProgress(totalProgress, 'Распознавание: ' + files[currentFileIdx].file.name + ' (' + Math.round(m.progress * 100) + '%)');
+              }
+            }
+          });
+
+          for (var i = 0; i < files.length; i++) {
+            currentFileIdx = i;
+            var item = files[i];
+            updateProgress((i / totalFiles) * 100, 'Обработка: ' + item.file.name);
+
+            try {
+              var text = '';
+              if (item.file.type === 'application/pdf') {
+                text = await processPdf(item.file, worker);
+              } else {
+                text = await processImage(item.file, worker);
+              }
+
+              if (text && text.trim()) {
+                allText.push('=== ' + item.file.name + ' ===\n' + text.trim());
+                item.status = 'done';
+              } else {
+                allText.push('=== ' + item.file.name + ' ===\n[Текст не найден]');
+                item.status = 'error';
+              }
+            } catch (err) {
+              console.error('Ошибка обработки файла:', item.file.name, err);
+              allText.push('=== ' + item.file.name + ' ===\n[Ошибка: ' + err.message + ']');
+              item.status = 'error';
+            }
+            renderFileList();
+          }
+
+          await worker.terminate();
+          updateProgress(100, 'Готово!');
+          resultText.value = allText.join('\n\n');
+          showToast('Распознавание завершено');
+
+        } catch (err) {
+          console.error(err);
+          showToast('Ошибка: ' + err.message);
+          updateProgress(0, 'Ошибка: ' + err.message);
+        } finally {
+          recognizeBtn.disabled = false;
+          clearBtn.disabled = false;
+          setTimeout(function () { progressWrap.classList.remove('active'); }, 2000);
+        }
+      });
+
+      async function processImage(file, worker) {
+        var url = URL.createObjectURL(file);
+        try {
+          var result = await worker.recognize(url);
+          return result.data.text;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+
+      async function processPdf(file, worker) {
+        var arrayBuffer = await file.arrayBuffer();
+        var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        var allText = [];
+
+        // Сначала пробуем извлечь текстовый слой
+        var hasTextLayer = false;
+        for (var p = 1; p <= pdf.numPages; p++) {
+          var page = await pdf.getPage(p);
+          var content = await page.getTextContent();
+          var pageText = content.items.map(function (it) { return it.str; }).join(' ').trim();
+          if (pageText.length > 20) {
+            hasTextLayer = true;
+            allText.push('[Страница ' + p + ' — текстовый слой]\n' + pageText);
+          }
+        }
+
+        // Если текстового слоя нет или он почти пустой — распознаём как скан
+        if (!hasTextLayer) {
+          for (var p = 1; p <= pdf.numPages; p++) {
+            var page = await pdf.getPage(p);
+            var viewport = page.getViewport({ scale: 2.0 });
+            var canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            var ctx = canvas.getContext('2d');
+
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            var result = await worker.recognize(canvas);
+            if (result.data.text.trim()) {
+              allText.push('[Страница ' + p + ' — OCR]\n' + result.data.text.trim());
+            }
+          }
+        }
+
+        return allText.join('\n\n');
+      }
+
+      function updateProgress(percent, text) {
+        progressFill.style.width = percent + '%';
+        progressText.textContent = text;
+      }
+
+      // ===== Копирование и скачивание =====
+      copyBtn.addEventListener('click', function () {
+        var text = resultText.value;
+        if (!text) { showToast('Нечего копировать'); return; }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () {
+            showToast('Текст скопирован в буфер обмена');
+          }).catch(function () { fallbackCopy(text); });
+        } else {
+          fallbackCopy(text);
+        }
+      });
+
+      function fallbackCopy(text) {
+        resultText.select();
+        try {
+          document.execCommand('copy');
+          showToast('Текст скопирован');
+        } catch (e) {
+          showToast('Не удалось скопировать');
+        }
+      }
+
+      downloadBtn.addEventListener('click', function () {
+        var text = resultText.value;
+        if (!text) { showToast('Нечего сохранять'); return; }
+
+        var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'ocr-result-' + new Date().toISOString().slice(0, 10) + '.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Файл сохранён');
+      });
+
+      // ===== Очистка =====
+      clearBtn.addEventListener('click', function () {
+        files = [];
+        renderFileList();
+        recognizeBtn.disabled = true;
+        resultArea.style.display = 'none';
+        resultText.value = '';
+        progressWrap.classList.remove('active');
+      });
+
+      // ===== Уведомления =====
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(function () { toast.classList.remove('show'); }, 2500);
+      }
+
+    });
+  </script>
+
+</body>
+</html>
