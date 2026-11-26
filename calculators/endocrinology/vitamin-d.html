@@ -158,6 +158,7 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="grid">
 
             <div class="field">
@@ -199,29 +200,26 @@
             Факторы, при которых дозы повышают (можно отметить несколько):
           </div>
 
-          <div class="checkbox-item">
+          <label class="checkbox-item">
             <input type="checkbox" id="vd-obesity">
             <span>Ожирение</span>
-          </div>
+          </label>
 
-          <div class="checkbox-item">
+          <label class="checkbox-item">
             <input type="checkbox" id="vd-malabs">
             <span>Синдром мальабсорбции (целиакия, болезнь Крона, резекция кишечника и др.)</span>
-          </div>
+          </label>
 
-          <div class="checkbox-item">
+          <label class="checkbox-item">
             <input type="checkbox" id="vd-meds">
             <span>Приём препаратов, нарушающих метаболизм витамина D (противосудорожные, глюкокортикоиды, противотуберкулёзные, антиретровирусные и др.)</span>
-          </div>
+          </label>
 
-          <div class="btn-row">
-            <button type="button" class="btn btn-primary" id="vd-calc-btn">Рассчитать</button>
-          </div>
         </div>
 
         <div class="panel-result-col">
           <div class="result" id="vd-result">
-            <span class="empty-msg">Введите данные и нажмите «Рассчитать»</span>
+            <span class="empty-msg">Введите уровень 25(OH)D и возраст</span>
           </div>
         </div>
 
@@ -258,34 +256,33 @@
           return;
         }
 
-        if (!age || age < 18) {
+        if (age < 18) {
           MedCore.showEmpty(el, 'Калькулятор предназначен для лиц 18 лет и старше');
           return;
         }
 
         // Перевод в нг/мл
         var ng = units === 'ng' ? lv : lv / 2.496;
-
         var cls, status, schemes;
 
         if (ng < 10) {
           cls = 'danger';
           status = 'Выраженный дефицит (< 10 нг/мл)';
           schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>8 недель</td></tr>' +
-            '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
-            '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
+                    '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
+                    '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
         } else if (ng < 20) {
           cls = 'danger';
           status = 'Дефицит (10–19,9 нг/мл)';
           schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>8 недель</td></tr>' +
-            '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
-            '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
+                    '<tr><td>200 000 МЕ 1 раз в месяц</td><td>2 месяца</td></tr>' +
+                    '<tr><td>6 000–8 000 МЕ в день</td><td>8 недель</td></tr>';
         } else if (ng < 30) {
           cls = 'warn';
           status = 'Недостаточность (20–29,9 нг/мл)';
           schemes = '<tr><td>50 000 МЕ 1 раз в неделю</td><td>4 недели</td></tr>' +
-            '<tr><td>200 000 МЕ однократно</td><td>—</td></tr>' +
-            '<tr><td>3 000–4 000 МЕ в день</td><td>8 недель</td></tr>';
+                    '<tr><td>200 000 МЕ однократно</td><td>—</td></tr>' +
+                    '<tr><td>3 000–4 000 МЕ в день</td><td>8 недель</td></tr>';
         } else if (ng <= 60) {
           cls = 'ok';
           status = 'Целевой диапазон (30–60 нг/мл)';
@@ -301,8 +298,8 @@
         }
 
         var factors = document.getElementById('vd-obesity').checked ||
-          document.getElementById('vd-malabs').checked ||
-          document.getElementById('vd-meds').checked;
+                      document.getElementById('vd-malabs').checked ||
+                      document.getElementById('vd-meds').checked;
 
         var riskNote = '';
         if (factors) {
@@ -312,18 +309,41 @@
         var schemeBlock = '';
         if (schemes) {
           schemeBlock = '<div class="ref" style="font-weight:bold; margin-top:10px;">Ориентировочные схемы насыщения:</div>' +
-            '<table class="result-table"><tr><th>Схема</th><th>Длительность</th></tr>' + schemes + '</table>';
+                        '<table class="result-table"><tr><th>Схема</th><th>Длительность</th></tr>' + schemes + '</table>';
         }
 
         el.className = 'result ' + cls;
         el.innerHTML = '<div class="big-score">' + ng.toFixed(1) + '</div>' +
-          '<div class="ref" style="text-align:center;">нг/мл</div>' +
-          '<div class="banner ' + cls + '"><b>' + status + '</b></div>' +
-          riskNote + schemeBlock;
+                       '<div class="ref" style="text-align:center;">нг/мл</div>' +
+                       '<div class="banner ' + cls + '"><b>' + status + '</b></div>' +
+                       riskNote + schemeBlock;
+
+        // ====== Сохранение в сводку ======
+        var summaryText = ng.toFixed(1) + ' нг/мл: ' + status;
+        
+        if (schemes) {
+          // Преобразуем HTML-таблицу в компактный читаемый текст для сводки
+          var plainSchemes = schemes.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          summaryText += '. Насыщение: ' + plainSchemes;
+        }
+        
+        if (factors) {
+          summaryText += ' (Потребность повышена: дозы могут быть в 2–3 раза выше)';
+        }
+
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('vitd', 'Витамин D', summaryText, '', cls);
+        }
       }
 
-      document.getElementById('vd-calc-btn').addEventListener('click', calcVitD);
+      document.getElementById('vd-level').addEventListener('input', calcVitD);
+      document.getElementById('vd-units').addEventListener('change', calcVitD);
+      document.getElementById('vd-age').addEventListener('input', calcVitD);
+      document.getElementById('vd-obesity').addEventListener('change', calcVitD);
+      document.getElementById('vd-malabs').addEventListener('change', calcVitD);
+      document.getElementById('vd-meds').addEventListener('change', calcVitD);
 
+      calcVitD();
       MedCore.init();
 
     });
