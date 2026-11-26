@@ -108,14 +108,26 @@
         });
       });
 
+      // Функция склонения слова "балл"
+      function getDeclension(number, one, two, five) {
+        var n = Math.abs(number);
+        n %= 100;
+        if (n >= 5 && n <= 20) return five;
+        n %= 10;
+        if (n === 1) return one;
+        if (n >= 2 && n <= 4) return two;
+        return five;
+      }
+
       function renderHbScale(value) {
         var el = document.getElementById('hb-scale');
         if (!el) return;
+        var unitText = getDeclension(value, 'балл', 'балла', 'баллов');
         MedCore.renderMiniScale(el, value, 0, 9, [
           { until: 2.5, class: 'ok' },
           { until: 3, class: 'warn' },
           { until: 9, class: 'danger' }
-        ], 'Ваш HAS-BLED: <strong>' + value + ' балл(ов)</strong> · шкала 0–9');
+        ], 'Ваш HAS-BLED: <strong>' + value + ' ' + unitText + '</strong> · шкала 0–9');
       }
 
       function calcHASBLED() {
@@ -149,7 +161,10 @@
 
         var riskText = risks[Math.min(score, 5)];
 
-        MedCore.render(el, score, ' баллов', label, cls,
+        // Правильное склонение для сводки и экрана
+        var unitText = getDeclension(score, 'балл', 'балла', 'баллов');
+
+        MedCore.render(el, score, ' ' + unitText, label, cls,
           'Риск больших кровотечений: ' + riskText + '/год');
         renderHbScale(score);
       }
