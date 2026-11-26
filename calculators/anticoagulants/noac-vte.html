@@ -325,10 +325,10 @@
         el.innerHTML = html;
         el.className = 'result';
 
-        // Сохранение в сводку
+        // Сохранение в сводку — полная информация о схеме
         if (window.MedCore && window.MedCore.saveToSummary) {
-          var summaryValue = drugName + ': ' + maintenanceDose;
-          MedCore.saveToSummary('noac-vte', 'НОАК при ВТЭ', summaryValue, '', '');
+          var summaryText = drugName + ': ' + initialDose + ' → ' + maintenanceDose + ' · Длительность: ' + duration;
+          MedCore.saveToSummary('noac-vte', 'НОАК при ВТЭ', summaryText, '', '');
         }
       }
 
