@@ -91,11 +91,14 @@
 
         if (!age || !ast || !alt || !plt) {
           MedCore.showEmpty(el, 'Введите возраст, АсАТ, АлАТ и тромбоциты');
+          // Очищаем сводку при неполных данных
+          clearSummary();
           return;
         }
 
         if (alt <= 0 || plt <= 0) {
           MedCore.showEmpty(el, 'АлАТ и тромбоциты должны быть больше нуля');
+          clearSummary();
           return;
         }
 
@@ -120,8 +123,24 @@
             : 'Порог низкого риска: &lt;1.3') +
           ' · Неопределённо: 1.3–2.67 · Высокий риск: &gt;2.67</div>';
 
+        // Рендерим результат на экране
         MedCore.render(el, fib4.toFixed(2), '', label, cls,
           'FIB-4 = ' + age + ' × ' + ast + ' / (' + plt + ' × √' + alt + ')', extra);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "1.45 — Неопределённо"
+          var summaryText = fib4.toFixed(2) + ' — ' + label;
+          MedCore.saveToSummary('fib4', 'FIB-4', summaryText, '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['fib4'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       MedCore.bindCalc(['fib4-age', 'fib4-ast', 'fib4-alt', 'fib4-plt'], calcFIB4);
