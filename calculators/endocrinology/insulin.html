@@ -108,8 +108,11 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="qtitle">Шаг 1. Ваша чувствительность к инсулину (ФЧИ)</div>
+
           <div class="grid">
+
             <div class="field">
               <label>Средняя суточная доза инсулина за 2–3 дня, ЕД</label>
               <input
@@ -123,6 +126,7 @@
               <div class="field-error" id="ins-tdd-error"></div>
               <div class="hint">Весь инсулин за сутки: продлённый + короткий/ультракороткий. Пример: 20 + 20 = 40 ЕД.</div>
             </div>
+
             <div class="field">
               <label>Тип инсулина для коррекции</label>
               <select id="ins-type">
@@ -130,10 +134,13 @@
                 <option value="short">Короткий человеческий (Актрапид, Хумулин Р)</option>
               </select>
             </div>
+
           </div>
 
           <div class="qtitle" style="margin-top:16px">Шаг 2. Корректирующая доза</div>
+
           <div class="grid">
+
             <div class="field">
               <label>Текущий сахар, ммоль/л</label>
               <input
@@ -146,6 +153,7 @@
               >
               <div class="field-error" id="ins-current-error"></div>
             </div>
+
             <div class="field">
               <label>Целевой сахар, ммоль/л</label>
               <input
@@ -158,6 +166,7 @@
               >
               <div class="field-error" id="ins-target-error"></div>
             </div>
+
             <div class="field">
               <label>Округление дозы</label>
               <select id="ins-rounding">
@@ -166,6 +175,7 @@
                 <option value="0.1">до 0,1 ЕД (помпа)</option>
               </select>
             </div>
+
           </div>
 
           <div class="banner info" style="margin-top:14px">
@@ -175,6 +185,7 @@
           <div class="btn-row">
             <button type="button" class="btn btn-secondary" id="ins-reset-btn">Сбросить</button>
           </div>
+
         </div>
 
         <div class="panel-result-col">
@@ -202,11 +213,13 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      function num(id) {
-        var el = document.getElementById(id);
-        if (!el) return NaN;
-        var v = parseFloat(el.value);
-        return isNaN(v) ? NaN : v;
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
+        var inp = document.getElementById(id);
+        if (!inp) return NaN;
+        var val = inp.value.replace(',', '.');
+        var num = parseFloat(val);
+        return isNaN(num) ? NaN : num;
       }
 
       function fmt(x, d) {
@@ -223,7 +236,7 @@
       }
 
       function computeISF() {
-        var d = num('ins-tdd');
+        var d = getNum('ins-tdd');
         if (!isFinite(d) || d <= 0) return null;
         var factor = document.getElementById('ins-type').value === 'short' ? 83 : 100;
         return factor / d;
@@ -231,15 +244,25 @@
 
       function calcInsulin() {
         var isf = computeISF();
-        var cur = num('ins-current');
-        var tgt = num('ins-target');
+        var cur = getNum('ins-current');
+        var tgt = getNum('ins-target');
         var step = parseFloat(document.getElementById('ins-rounding').value) || 0.5;
-
         var isfEl = document.getElementById('ins-isf-result');
         var doseEl = document.getElementById('ins-dose-result');
 
+        // ====== Сохранение в сводку: очищаем при пустых данных ======
+        function clearSummary(key) {
+          try {
+            var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+            delete data[key];
+            localStorage.setItem('medcalc-summary', JSON.stringify(data));
+          } catch (e) {}
+        }
+
+        // ====== ФЧИ ======
         if (isf === null) {
           MedCore.showEmpty(isfEl, 'Введите суточную дозу инсулина');
+          clearSummary('insulin-isf');
         } else {
           var isfLabel = isf < 2 ? 'Высокая чувствительность' : (isf > 4 ? 'Низкая чувствительность' : 'Средняя чувствительность');
           MedCore.render(
@@ -250,10 +273,16 @@
             'ok',
             '1 ЕД вашего инсулина примерно снижает сахар на ' + fmt(isf, 1) + ' ммоль/л.'
           );
+          // Явное сохранение ФЧИ в сводку
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('insulin-isf', 'ФЧИ (чувствительность)', fmt(isf, 2) + ' ммоль/л на 1 ЕД', '', 'ok');
+          }
         }
 
+        // ====== Корректирующая доза ======
         if (isf === null || !isFinite(cur) || !isFinite(tgt)) {
           MedCore.showEmpty(doseEl, 'Введите текущий и целевой сахар');
+          clearSummary('insulin-dose');
           return;
         }
 
@@ -266,6 +295,9 @@
             'danger',
             'Сахар ниже 3,9 ммоль/л. Корректирующий болюс не вводится.'
           );
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('insulin-dose', 'Корректирующая доза', '0 ЕД (гипогликемия)', '', 'danger');
+          }
           return;
         }
 
@@ -279,6 +311,9 @@
             'ok',
             'Текущий сахар не выше целевого — болюс не нужен.'
           );
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('insulin-dose', 'Корректирующая доза', '0 ЕД (не требуется)', '', 'ok');
+          }
           return;
         }
 
@@ -296,6 +331,11 @@
           cls,
           'Снизить на ' + fmt(diff, 1) + ' ммоль/л ÷ ФЧИ ' + fmt(isf, 2) + ' = ' + fmt(raw, 2) + ' ЕД → округлено до ' + fmt(dose, digits) + ' ЕД.'
         );
+
+        // Явное сохранение дозы в сводку
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('insulin-dose', 'Корректирующая доза', fmt(dose, digits) + ' ЕД', '', cls);
+        }
       }
 
       MedCore.bindCalc(['ins-tdd', 'ins-current', 'ins-target'], calcInsulin);
