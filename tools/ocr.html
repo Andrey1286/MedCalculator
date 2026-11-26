@@ -7,10 +7,9 @@
 
   <link rel="stylesheet" href="../assets/css/base.css">
 
-  <!-- Tesseract.js для распознавания текста -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <!-- PDF.js для работы с PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.js"></script>
+  <!-- Локальные библиотеки для работы офлайн -->
+  <script src="../assets/lib/tesseract.min.js"></script>
+  <script src="../assets/lib/pdf.min.js"></script>
 
   <style>
     a.file-btn { text-decoration: none; }
@@ -330,9 +329,9 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      // Настройка PDF.js worker
+      // Настройка PDF.js worker (локальный файл)
       if (window.pdfjsLib) {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/lib/pdf.worker.min.js';
       }
 
       var dropZone = document.getElementById('dropZone');
@@ -417,6 +416,16 @@
       // ===== Распознавание =====
       recognizeBtn.addEventListener('click', async function () {
         if (files.length === 0) return;
+
+        // Проверка загрузки библиотек
+        if (!window.Tesseract) {
+          showToast('Ошибка: Tesseract.js не загружен. Проверьте наличие файла assets/lib/tesseract.min.js');
+          return;
+        }
+        if (!window.pdfjsLib) {
+          showToast('Ошибка: PDF.js не загружен. Проверьте наличие файла assets/lib/pdf.min.js');
+          return;
+        }
 
         recognizeBtn.disabled = true;
         clearBtn.disabled = true;
