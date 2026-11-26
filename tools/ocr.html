@@ -34,48 +34,96 @@
     .drop-zone input[type="file"] { display: none; }
 
     .controls-row {
-      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
     }
-    .controls-row label { font-size: .9rem; color: var(--muted); font-weight: 600; }
+    .controls-row label {
+      font-size: .9rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
     .controls-row select {
-      padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
-      background: var(--card); color: var(--text); font-family: inherit; font-size: .9rem;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .9rem;
     }
     .controls-row .checkbox-wrap {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 14px; background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 8px; cursor: pointer; transition: border-color .18s, background .18s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
     }
-    .controls-row .checkbox-wrap:hover { border-color: var(--accent); background: var(--info); }
-    .controls-row .checkbox-wrap input { accent-color: var(--accent); cursor: pointer; }
-    .controls-row .checkbox-wrap span { font-size: .88rem; color: var(--text); }
+    .controls-row .checkbox-wrap:hover {
+      border-color: var(--accent);
+      background: var(--info);
+    }
+    .controls-row .checkbox-wrap input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .controls-row .checkbox-wrap span {
+      font-size: .88rem;
+      color: var(--text);
+    }
 
     .file-list { margin-bottom: 16px; }
     .file-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 8px; margin-bottom: 6px; font-size: .88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: .88rem;
     }
-    .file-item .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .file-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .file-item .file-status { font-size: .8rem; color: var(--muted); }
     .file-item .file-status.done { color: var(--ok); }
     .file-item .file-status.error { color: var(--danger); }
     .file-item .remove-btn {
-      background: none; border: none; color: var(--danger);
-      cursor: pointer; font-size: 1.1rem; padding: 0 4px;
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0 4px;
     }
 
     .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .btn {
-      padding: 12px 20px; font-size: .95rem; font-weight: 600;
-      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
+      padding: 12px 20px;
+      font-size: .95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
       transition: background .18s, transform .1s, box-shadow .18s;
     }
     .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(37,99,235,.25);
     }
     .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
     .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
@@ -86,44 +134,81 @@
     .progress-wrap { margin-bottom: 16px; display: none; }
     .progress-wrap.active { display: block; }
     .progress-bar {
-      width: 100%; height: 8px; background: var(--info);
-      border-radius: 4px; overflow: hidden; margin-bottom: 6px;
+      width: 100%;
+      height: 8px;
+      background: var(--info);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px;
     }
     .progress-fill {
-      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      width: 0%; transition: width .3s ease;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0%;
+      transition: width .3s ease;
     }
     .progress-text { font-size: .85rem; color: var(--muted); }
 
     .result-area {
-      background: var(--card); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 16px; min-height: 200px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      min-height: 200px;
     }
     .result-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .result-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
     .result-actions { display: flex; gap: 8px; }
     .result-text {
-      width: 100%; min-height: 300px; padding: 12px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      background: var(--info); color: var(--text);
-      font-family: 'Courier New', monospace; font-size: .9rem; line-height: 1.5;
-      resize: vertical; box-sizing: border-box; white-space: pre-wrap;
+      width: 100%;
+      min-height: 300px;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: .9rem;
+      line-height: 1.5;
+      resize: vertical;
+      box-sizing: border-box;
+      white-space: pre-wrap;
     }
     .result-text:focus { outline: none; border-color: var(--accent); }
 
-    .banner { padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: .9rem; }
-    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
+    .banner {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: .9rem;
+    }
+    .banner.info {
+      background: var(--info);
+      color: var(--muted);
+      border-left: 4px solid var(--border);
+    }
 
     .toast {
-      position: fixed; bottom: 24px; left: 50%;
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: var(--text); color: var(--card);
-      padding: 12px 20px; border-radius: 10px;
-      font-weight: 600; font-size: .9rem;
-      box-shadow: var(--shadow-lg); transition: transform .3s ease; z-index: 1000;
+      background: var(--text);
+      color: var(--card);
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: .9rem;
+      box-shadow: var(--shadow-lg);
+      transition: transform .3s ease;
+      z-index: 1000;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
   </style>
@@ -150,7 +235,7 @@
       <div class="panel-body" style="display:block">
 
         <div class="banner info">
-          <strong>Поддерживаемые форматы:</strong> PDF (текстовые и сканы), JPG, PNG. Русский и английский языки. Обработка происходит локально в браузере — файлы никуда не отправляются.
+          <strong>Поддерживаемые форматы:</strong> PDF (текстовые и сканы), JPG, PNG. Русский и английский языки. Обработка происходит локально в браузере — файлы никуда не отправляются. Можно загружать несколько файлов сразу.
         </div>
 
         <div class="drop-zone" id="dropZone">
@@ -172,7 +257,12 @@
 
           <label class="checkbox-wrap" for="preserveStructure">
             <input type="checkbox" id="preserveStructure" checked>
-            <span>Сохранять структуру (строки, абзацы)</span>
+            <span>Сохранять строки и абзацы</span>
+          </label>
+
+          <label class="checkbox-wrap" for="preserveTable">
+            <input type="checkbox" id="preserveTable">
+            <span>Сохранять структуру таблиц</span>
           </label>
         </div>
 
@@ -202,9 +292,10 @@
       <details class="note">
         <summary>О работе инструмента</summary>
         <div class="note-content">
-          <p><strong>Сохранение структуры:</strong> при включённой опции текст извлекается с учётом расположения строк и абзацев. Для PDF с текстовым слоем используются координаты элементов; для сканов — данные Tesseract о блоках и строках.</p>
+          <p><strong>Сохранение структуры:</strong> опция «Сохранять строки и абзацы» восстанавливает переносы строк. Опция «Сохранять структуру таблиц» дополнительно определяет колонки по координатам слов и выравнивает текст с табуляцией — удобно для распознавания анализов и таблиц.</p>
           <p><strong>Приватность:</strong> вся обработка происходит в вашем браузере. Файлы не загружаются на сервер.</p>
           <p><strong>Качество:</strong> чем чётче исходное изображение, тем лучше результат. Для бумажных анализов делайте фото при хорошем освещении, без бликов.</p>
+          <p><strong>Несколько файлов:</strong> можно перетащить сразу несколько PDF/картинок — все будут обработаны последовательно.</p>
         </div>
       </details>
     </div>
@@ -234,6 +325,7 @@
       var downloadBtn = document.getElementById('downloadBtn');
       var langSelect = document.getElementById('langSelect');
       var preserveStructure = document.getElementById('preserveStructure');
+      var preserveTable = document.getElementById('preserveTable');
       var toast = document.getElementById('toast');
 
       var files = [];
@@ -294,21 +386,24 @@
         var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         var allText = [];
 
-        // Сначала пробуем извлечь текстовый слой
         var hasTextLayer = false;
         for (var p = 1; p <= pdf.numPages; p++) {
           var page = await pdf.getPage(p);
           var content = await page.getTextContent();
           if (content.items.length > 0 && content.items.some(function (it) { return it.str.trim().length > 0; })) {
             hasTextLayer = true;
-            var pageText = preserveStructure.checked
-              ? extractTextWithStructure(content.items)
-              : content.items.map(function (it) { return it.str; }).join(' ').trim();
+            var pageText = '';
+            if (preserveTable.checked) {
+              pageText = extractTableFromPdfItems(content.items);
+            } else if (preserveStructure.checked) {
+              pageText = extractTextWithStructure(content.items);
+            } else {
+              pageText = content.items.map(function (it) { return it.str; }).join(' ').trim();
+            }
             allText.push('[Страница ' + p + ' — текстовый слой]\n' + pageText);
           }
         }
 
-        // Если текстового слоя нет — распознаём как скан
         if (!hasTextLayer) {
           for (var p = 1; p <= pdf.numPages; p++) {
             var page = await pdf.getPage(p);
@@ -320,9 +415,14 @@
             await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
             var result = await worker.recognize(canvas);
-            var pageText = preserveStructure.checked
-              ? extractTesseractStructure(result.data)
-              : result.data.text.trim();
+            var pageText = '';
+            if (preserveTable.checked) {
+              pageText = extractTableFromTesseract(result.data);
+            } else if (preserveStructure.checked) {
+              pageText = extractTesseractStructure(result.data);
+            } else {
+              pageText = result.data.text.trim();
+            }
             if (pageText) {
               allText.push('[Страница ' + p + ' — OCR]\n' + pageText);
             }
@@ -336,14 +436,11 @@
       function extractTextWithStructure(items) {
         if (!items || items.length === 0) return '';
 
-        // Фильтруем пустые элементы
         var validItems = items.filter(function (it) {
           return it.str && it.str.trim().length > 0 && it.transform;
         });
         if (validItems.length === 0) return '';
 
-        // transform[5] — это Y-координата (сверху страницы)
-        // Группируем элементы по строкам: если Y отличается менее чем на 30%, считаем одной строкой
         var lines = [];
         var currentLine = { y: validItems[0].transform[5], height: validItems[0].height || 10, items: [validItems[0]] };
 
@@ -363,10 +460,8 @@
         }
         lines.push(currentLine);
 
-        // Сортируем строки сверху вниз (Y уменьшается)
         lines.sort(function (a, b) { return b.y - a.y; });
 
-        // Внутри каждой строки сортируем элементы слева направо (по X)
         var result = [];
         var prevLineBottom = null;
 
@@ -374,7 +469,6 @@
           var line = lines[li];
           line.items.sort(function (a, b) { return a.transform[4] - b.transform[4]; });
 
-          // Определяем разрыв между абзацами: если расстояние между строками больше 1.5× высоты строки
           var lineTop = line.y;
           var lineBottom = line.y - line.height;
           var isNewParagraph = false;
@@ -385,7 +479,6 @@
             }
           }
 
-          // Собираем текст строки с учётом пробелов между элементами
           var lineText = '';
           var lastRight = null;
           for (var j = 0; j < line.items.length; j++) {
@@ -393,7 +486,6 @@
             var left = it.transform[4];
             var width = it.width || 0;
 
-            // Если расстояние между элементами большое — добавляем пробел
             if (lastRight !== null && left - lastRight > line.height * 0.3) {
               lineText += ' ';
             }
@@ -402,13 +494,12 @@
           }
 
           if (isNewParagraph) {
-            result.push('');  // пустая строка = разделитель абзацев
+            result.push('');
           }
           result.push(lineText.trim());
           prevLineBottom = lineBottom;
         }
 
-        // Убираем лишние пустые строки (более 2 подряд → 2)
         var cleaned = [];
         var emptyCount = 0;
         for (var k = 0; k < result.length; k++) {
@@ -424,14 +515,220 @@
         return cleaned.join('\n').trim();
       }
 
-      // ===== Извлечение структуры из результата Tesseract =====
+      // ===== Извлечение таблицы из PDF по координатам =====
+      function extractTableFromPdfItems(items) {
+        if (!items || items.length === 0) return '';
+
+        var validItems = items.filter(function (it) {
+          return it.str && it.str.trim().length > 0 && it.transform;
+        });
+        if (validItems.length === 0) return '';
+
+        // Собираем все слова с координатами
+        var words = validItems.map(function (it) {
+          return {
+            text: it.str,
+            x: it.transform[4],
+            y: it.transform[5],
+            width: it.width || 0,
+            height: it.height || 10
+          };
+        });
+
+        return buildTableFromWords(words);
+      }
+
+      // ===== Извлечение таблицы из результата Tesseract =====
+      function extractTableFromTesseract(data) {
+        if (!data || !data.words || data.words.length === 0) {
+          return data.text || '';
+        }
+
+        var words = data.words.map(function (w) {
+          return {
+            text: w.text,
+            x: w.bbox.x0,
+            y: w.bbox.y0,
+            width: w.bbox.x1 - w.bbox.x0,
+            height: w.bbox.y1 - w.bbox.y0
+          };
+        }).filter(function (w) { return w.text.trim().length > 0; });
+
+        if (words.length === 0) return data.text || '';
+
+        return buildTableFromWords(words);
+      }
+
+      // ===== Универсальный алгоритм построения таблицы из слов =====
+      function buildTableFromWords(words) {
+        if (words.length === 0) return '';
+
+        // Сортируем слова сверху вниз (Y уменьшается), слева направо
+        words.sort(function (a, b) {
+          var yDiff = b.y - a.y;
+          if (Math.abs(yDiff) > 5) return yDiff;
+          return a.x - b.x;
+        });
+
+        // Группируем слова в строки по Y-координате
+        var lines = [];
+        var currentLine = { y: words[0].y, words: [words[0]] };
+        var avgHeight = words[0].height;
+
+        for (var i = 1; i < words.length; i++) {
+          var w = words[i];
+          avgHeight = (avgHeight * (i) + w.height) / (i + 1);
+
+          if (Math.abs(w.y - currentLine.y) <= avgHeight * 0.6) {
+            currentLine.words.push(w);
+          } else {
+            lines.push(currentLine);
+            currentLine = { y: w.y, words: [w] };
+          }
+        }
+        lines.push(currentLine);
+
+        // Сортируем строки сверху вниз
+        lines.sort(function (a, b) { return b.y - a.y; });
+
+        // Сортируем слова в каждой строке слева направо
+        lines.forEach(function (line) {
+          line.words.sort(function (a, b) { return a.x - b.x; });
+        });
+
+        // Определяем колонки по X-координатам начала слов
+        var columnPositions = detectColumns(lines, avgHeight);
+
+        if (columnPositions.length <= 1) {
+          // Если колонка одна — возвращаем как обычный текст
+          return lines.map(function (line) {
+            return line.words.map(function (w) { return w.text; }).join(' ');
+          }).join('\n');
+        }
+
+        // Распределяем слова по колонкам и форматируем
+        var result = [];
+        var colWidths = computeColumnWidths(columnPositions);
+
+        for (var li = 0; li < lines.length; li++) {
+          var line = lines[li];
+          var cells = new Array(columnPositions.length).fill('');
+
+          for (var wi = 0; wi < line.words.length; wi++) {
+            var w = line.words[wi];
+            var colIdx = findColumn(w.x, columnPositions);
+            if (cells[colIdx]) {
+              cells[colIdx] += ' ' + w.text;
+            } else {
+              cells[colIdx] = w.text;
+            }
+          }
+
+          // Форматируем строку с выравниванием
+          var formatted = cells.map(function (cell, idx) {
+            return padCell(cell, colWidths[idx]);
+          }).join('\t');
+
+          result.push(formatted.replace(/\t+$/g, '').trim());
+        }
+
+        return result.join('\n').trim();
+      }
+
+      // ===== Определение колонок по X-координатам =====
+      function detectColumns(lines, avgHeight) {
+        // Собираем все X-координаты начала слов
+        var xPositions = [];
+        lines.forEach(function (line) {
+          line.words.forEach(function (w) {
+            xPositions.push(w.x);
+          });
+        });
+
+        if (xPositions.length === 0) return [0];
+
+        xPositions.sort(function (a, b) { return a - b; });
+
+        // Кластеризация: группируем близкие X-координаты
+        var threshold = avgHeight * 1.5; // допуск — полторы высоты символа
+        var clusters = [];
+        var currentCluster = { sum: xPositions[0], count: 1 };
+
+        for (var i = 1; i < xPositions.length; i++) {
+          var x = xPositions[i];
+          var clusterCenter = currentCluster.sum / currentCluster.count;
+
+          if (Math.abs(x - clusterCenter) <= threshold) {
+            currentCluster.sum += x;
+            currentCluster.count++;
+          } else {
+            clusters.push(currentCluster.sum / currentCluster.count);
+            currentCluster = { sum: x, count: 1 };
+          }
+        }
+        clusters.push(currentCluster.sum / currentCluster.count);
+
+        // Фильтруем кластеры: оставляем только те, в которых достаточно слов
+        // (чтобы отбросить случайные выбросы)
+        var minWordsInColumn = Math.max(2, Math.floor(lines.length * 0.3));
+        var filteredClusters = [];
+
+        for (var ci = 0; ci < clusters.length; ci++) {
+          var colX = clusters[ci];
+          var count = 0;
+          lines.forEach(function (line) {
+            line.words.forEach(function (w) {
+              if (Math.abs(w.x - colX) <= threshold) count++;
+            });
+          });
+          if (count >= minWordsInColumn) {
+            filteredClusters.push(colX);
+          }
+        }
+
+        if (filteredClusters.length === 0) return [0];
+        return filteredClusters;
+      }
+
+      // ===== Вычисление ширины колонок =====
+      function computeColumnWidths(columnPositions) {
+        var widths = [];
+        for (var i = 0; i < columnPositions.length; i++) {
+          if (i < columnPositions.length - 1) {
+            widths.push(Math.max(10, Math.round((columnPositions[i + 1] - columnPositions[i]) / 8)));
+          } else {
+            widths.push(20);
+          }
+        }
+        return widths;
+      }
+
+      // ===== Поиск ближайшей колонки для слова =====
+      function findColumn(x, columnPositions) {
+        var minDist = Infinity;
+        var idx = 0;
+        for (var i = 0; i < columnPositions.length; i++) {
+          var dist = Math.abs(x - columnPositions[i]);
+          if (dist < minDist) {
+            minDist = dist;
+            idx = i;
+          }
+        }
+        return idx;
+      }
+
+      // ===== Выравнивание ячейки по ширине =====
+      function padCell(text, width) {
+        if (text.length >= width) return text;
+        return text + new Array(width - text.length + 1).join(' ');
+      }
+
+      // ===== Извлечение структуры из результата Tesseract (без таблицы) =====
       function extractTesseractStructure(data) {
         if (!data || !data.lines || data.lines.length === 0) {
           return data.text || '';
         }
 
-        // Tesseract возвращает данные по блокам → параграфам → строкам
-        // Используем lines напрямую, но разделяем абзацы по блокам/параграфам
         var result = [];
         var lastBlockId = null;
         var lastParId = null;
@@ -441,12 +738,9 @@
           var blockId = line.paragraph && line.paragraph.block ? line.paragraph.block.id : null;
           var parId = line.paragraph ? line.paragraph.id : null;
 
-          // Если сменился блок — добавляем двойной перенос
           if (lastBlockId !== null && blockId !== lastBlockId) {
             result.push('');
-          }
-          // Если сменился параграф внутри блока — добавляем одинарный перенос
-          else if (lastParId !== null && parId !== lastParId) {
+          } else if (lastParId !== null && parId !== lastParId) {
             result.push('');
           }
 
@@ -463,7 +757,9 @@
         var url = URL.createObjectURL(file);
         try {
           var result = await worker.recognize(url);
-          if (preserveStructure.checked) {
+          if (preserveTable.checked) {
+            return extractTableFromTesseract(result.data);
+          } else if (preserveStructure.checked) {
             return extractTesseractStructure(result.data);
           }
           return result.data.text;
