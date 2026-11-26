@@ -190,6 +190,15 @@
         return { label: 'Клинически выраженная', cls: 'danger' };
       }
 
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['hads-a'];
+          delete data['hads-d'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      }
+
       function calcHADS() {
         var scoreA = 0, scoreD = 0;
         var answeredA = 0, answeredD = 0;
@@ -212,11 +221,7 @@
           dResult.className = 'result-block';
           dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div><div class="result-value">—</div><div class="result-interp">Ответьте на все вопросы (' + answeredD + '/7)</div>';
           
-          try {
-            var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
-            delete data['hads-a']; delete data['hads-d'];
-            localStorage.setItem('medcalc-summary', JSON.stringify(data));
-          } catch (e) {}
+          clearSummary();
           return;
         }
 
@@ -229,9 +234,14 @@
         dResult.className = 'result-block ' + interpD.cls;
         dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div><div class="result-value">' + scoreD + ' баллов</div><div class="result-interp">' + interpD.label + '</div>';
 
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
         if (window.MedCore && window.MedCore.saveToSummary) {
-          MedCore.saveToSummary('hads-a', 'HADS - Тревога', scoreA + ' баллов', '', interpA.cls);
-          MedCore.saveToSummary('hads-d', 'HADS - Депрессия', scoreD + ' баллов', '', interpD.cls);
+          // Формируем строки: "7 баллов — Норма"
+          var summaryTextA = scoreA + ' баллов — ' + interpA.label;
+          var summaryTextD = scoreD + ' баллов — ' + interpD.label;
+          
+          MedCore.saveToSummary('hads-a', 'HADS - Тревога', summaryTextA, '', interpA.cls);
+          MedCore.saveToSummary('hads-d', 'HADS - Депрессия', summaryTextD, '', interpD.cls);
         }
       }
 
@@ -247,11 +257,8 @@
         aResult.innerHTML = '<div class="result-label">Тревога (HADS-A)</div><div class="result-value">—</div><div class="result-interp">Ответьте на все вопросы</div>';
         dResult.className = 'result-block';
         dResult.innerHTML = '<div class="result-label">Депрессия (HADS-D)</div><div class="result-value">—</div><div class="result-interp">Ответьте на все вопросы</div>';
-        try {
-          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
-          delete data['hads-a']; delete data['hads-d'];
-          localStorage.setItem('medcalc-summary', JSON.stringify(data));
-        } catch (e) {}
+        
+        clearSummary();
       });
 
       MedCore.init();
