@@ -50,6 +50,37 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
+
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -79,6 +110,7 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="grid">
 
             <div class="field">
@@ -104,6 +136,7 @@
             </div>
 
           </div>
+
         </div>
 
         <div class="panel-result-col">
@@ -127,6 +160,15 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
+        var inp = document.getElementById(id);
+        if (!inp) return NaN;
+        var val = inp.value.replace(',', '.');
+        var num = parseFloat(val);
+        return isNaN(num) ? NaN : num;
+      }
 
       // ====== Работа с переключателем единиц для HbA1c ======
       var a1cInput = document.getElementById('a1c-val');
@@ -201,6 +243,8 @@
           MedCore.showEmpty(el, 'Введите HbA1c');
           var s = document.getElementById('a1c-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку
+          clearSummary();
           return;
         }
 
@@ -208,16 +252,18 @@
           MedCore.showEmpty(el, 'Введите значение HbA1c в диапазоне 4–15%');
           var s = document.getElementById('a1c-scale');
           if (s) s.style.display = 'none';
+          clearSummary();
           return;
         }
 
         var mgdl = 28.7 * v - 46.7;
         var mmol = 1.59 * v - 2.59;
-
         var cls = v < 5.7 ? 'ok' : (v < 6.5 ? 'warn' : 'danger');
 
         el.className = 'result ' + cls;
-        el.innerHTML = '<div class="value">' + v.toFixed(1) + '<span class="unit">%</span></div>' +
+        el.innerHTML =
+          '<button class="copy-result-btn" id="a1c-copy-btn" title="Копировать результат">📋</button>' +
+          '<div class="value">' + v.toFixed(1) + '<span class="unit">%</span></div>' +
           '<div class="ref">Средняя глюкоза за 2–3 месяца:</div>' +
           '<div class="sub-block">' +
           '<div class="sub-label">eAG</div>' +
@@ -225,11 +271,70 @@
           '<div class="sub-ref">' + mgdl.toFixed(0) + ' мг/дл</div>' +
           '</div>';
 
+        // Кнопка копирования
+        var copyBtn = document.getElementById('a1c-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'HbA1c: ' + v.toFixed(1) + ' %\n' +
+              'Средняя глюкоза (eAG): ' + mmol.toFixed(1) + ' ммоль/л (' + mgdl.toFixed(0) + ' мг/дл)';
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(text, copyBtn);
+              });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+
         renderA1cScale(v);
+
+        // ====== Сохранение в сводку ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('a1c', 'HbA1c', v.toFixed(1) + ' %', '', cls);
+          MedCore.saveToSummary('a1c-eag', 'eAG (средняя глюкоза)', mmol.toFixed(1) + ' ммоль/л', '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['a1c'];
+          delete data['a1c-eag'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       a1cInput.addEventListener('input', calcA1c);
-
       calcA1c();
       MedCore.init();
 
