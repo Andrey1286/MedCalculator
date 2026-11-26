@@ -1,394 +1,318 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCORE2 — медицинские калькуляторы</title>
+(function () {
+  var SUMMARY_KEY = 'medcalc-summary';
+  var THEME_KEY = 'medcalc-theme';
 
-  <link rel="stylesheet" href="../../assets/css/base.css">
-  <script src="../../assets/js/core.js"></script>
-  <script src="../../assets/js/bridge.js"></script>
+  function saveToSummary(id, title, value, unit, cls) {
+    if (!value || value === '') return;
 
-  <style>
-    a.file-btn {
-      text-decoration: none;
-    }
+    var data = {};
+    try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) { data = {}; }
 
-    .fixed-region {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: var(--accent-soft);
-      color: var(--accent);
-      border-radius: 8px;
-      font-size: .85rem;
-      font-weight: 600;
-      margin-bottom: 14px;
-    }
+    data[id] = {
+      title: title,
+      value: value + (unit ? ' ' + unit : ''),
+      unit: '',
+      cls: cls || '',
+      timestamp: Date.now()
+    };
 
-    .fixed-region .flag {
-      font-size: 1.1rem;
-    }
+    try { localStorage.setItem(SUMMARY_KEY, JSON.stringify(data)); } catch (e) {}
 
-    .input-with-unit {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      width: 100%;
-    }
+    try {
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: SUMMARY_KEY,
+        newValue: JSON.stringify(data)
+      }));
+    } catch (e) {}
+  }
 
-    .input-with-unit input[type="number"] {
-      width: 100%;
-      border-radius: 8px;
-      border: 1.5px solid var(--border);
-    }
-
-    .unit-select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--info);
-      color: var(--text);
-      font-size: 0.78rem;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 6px 10px;
-      cursor: pointer;
-      transition: border-color .18s, background .18s;
-    }
-
-    .unit-select:hover {
-      background: var(--accent-soft);
-    }
-
-    .unit-select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
-    .hint {
-      font-size: .72rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="top-stripe"></div>
-
-  <div class="wrap">
-
-    <header>
-      <div>
-        <h1>SCORE2 / SCORE2-OP</h1>
-        <p class="subtitle">Кардиология</p>
-      </div>
-
-      <div class="header-controls">
-        <a class="file-btn" href="../../index.html">
-          <span>←</span> На главную
-        </a>
-      </div>
-    </header>
-
-    <!-- ================= SCORE2 ================= -->
-    <div class="panel active panel-wide-result" id="panel-score2">
-      <h2>SCORE2 / SCORE2-OP</h2>
-      <p class="desc">10-летний риск сердечно-сосудистой смерти и нефатальных событий</p>
-
-      <div class="panel-body">
-
-        <div class="panel-fields-col">
-
-          <div class="fixed-region"><span class="flag">🇷🇺</span> Регион риска: Российская Федерация — очень высокий</div>
-
-          <div class="grid">
-
-            <div class="field">
-              <label>Возраст (лет, 40–89)</label>
-              <input
-                type="number"
-                id="s2-age"
-                step="1"
-                placeholder="Например, 55"
-                data-min="40"
-                data-max="89"
-              >
-              <div class="field-error" id="s2-age-error"></div>
-              <div class="hint">40–69 — SCORE2 · 70–89 — SCORE2-OP</div>
-            </div>
-
-            <div class="field">
-              <label>Пол</label>
-              <select id="s2-sex">
-                <option value="m">Мужской</option>
-                <option value="f">Женский</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label>Курение</label>
-              <select id="s2-smoke">
-                <option value="0">Нет</option>
-                <option value="1">Да</option>
-              </select>
-            </div>
-
-          </div>
-
-          <div class="grid" style="margin-top:14px">
-
-            <div class="field">
-              <label>САД (мм рт.ст.)</label>
-              <input
-                type="number"
-                id="s2-sbp"
-                step="1"
-                placeholder="Например, 130"
-                data-min="70"
-                data-max="260"
-              >
-              <div class="field-error" id="s2-sbp-error"></div>
-            </div>
-
-            <div class="field">
-              <label>Общий холестерин</label>
-              <div class="input-with-unit">
-                <input
-                  type="number"
-                  id="s2-tc"
-                  step="0.1"
-                  placeholder="Например, 5.2"
-                  data-min="1"
-                  data-max="20"
-                  data-canonical-unit="mmol_L"
-                  data-canonical="NaN"
-                  data-current-unit="mmol_L"
-                >
-                <select class="unit-select" id="s2-tc-unit">
-                  <option value="mmol_L" selected>ммоль/л</option>
-                  <option value="mg_dL">мг/дл</option>
-                </select>
-              </div>
-              <div class="field-error" id="s2-tc-error"></div>
-            </div>
-
-            <div class="field">
-              <label>ХС-ЛПВП</label>
-              <div class="input-with-unit">
-                <input
-                  type="number"
-                  id="s2-hdl"
-                  step="0.1"
-                  placeholder="Например, 1.3"
-                  data-min="0.3"
-                  data-max="5"
-                  data-canonical-unit="mmol_L"
-                  data-canonical="NaN"
-                  data-current-unit="mmol_L"
-                >
-                <select class="unit-select" id="s2-hdl-unit">
-                  <option value="mmol_L" selected>ммоль/л</option>
-                  <option value="mg_dL">мг/дл</option>
-                </select>
-              </div>
-              <div class="field-error" id="s2-hdl-error"></div>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="panel-result-col">
-          <div class="result" id="s2-result">
-            <span class="empty-msg">Введите возраст, САД, общий холестерин и ЛПВП</span>
-          </div>
-          <div class="mini-scale" id="s2-scale" style="display:none"></div>
-        </div>
-
-      </div>
-
-      <details class="note">
-        <summary>О коэффициентах и порогах</summary>
-        <div class="note-content">
-          <p><strong>Пороги для РФ (очень высокий риск):</strong> до 50 лет — низкий &lt;2.5%, умеренный 2.5–7.5%, высокий ≥7.5%; 50–69 лет — низкий &lt;5%, умеренный 5–10%, высокий ≥10%; ≥70 лет (SCORE2-OP) — низкий &lt;7.5%, умеренный 7.5–15%, высокий ≥15%.</p>
-        </div>
-      </details>
-    </div>
-
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-
-      // ====== Вспомогательная функция для обработки запятой как точки ======
-      function getNum(id) {
-        var inp = document.getElementById(id);
-        if (!inp) return NaN;
-        var val = inp.value.replace(',', '.');
-        var num = parseFloat(val);
-        return isNaN(num) ? NaN : num;
+  function clearFromSummary(id) {
+    try {
+      var data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {};
+      if (data[id]) {
+        delete data[id];
+        localStorage.setItem(SUMMARY_KEY, JSON.stringify(data));
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: SUMMARY_KEY,
+          newValue: JSON.stringify(data)
+        }));
       }
+    } catch (e) {}
+  }
 
-      // ====== Работа с переключателями единиц ======
-      var CHOL_FACTOR = 38.67;
+  // ====== НАДЁЖНЫЙ ПЕРЕХВАТ MedCore.render ======
+  function hookMedCore() {
+    if (!window.MedCore) return false;
+    if (window.MedCore.__hooked) return true;
+    if (typeof MedCore.render !== 'function') return false;
 
-      function setupUnitSwitch(inputId, unitId, toCanonical, fromCanonical, placeholders) {
-        var inp = document.getElementById(inputId);
-        var sel = document.getElementById(unitId);
+    var _origRender = MedCore.render;
+    var _origShowEmpty = MedCore.showEmpty;
 
-        if (!inp || !sel) return { get: function () { return NaN; } };
+    // Перехватываем render и забираем значение ПРЯМО из аргументов функции
+    MedCore.render = function (el, value, unit, tagText, tagCls, refText, extraHtml) {
+      // 1. Вызываем оригинальную функцию, чтобы всё отрисовалось на экране
+      _origRender.call(this, el, value, unit, tagText, tagCls, refText, extraHtml);
 
-        function updateCanonical() {
-          var raw = parseFloat(inp.value.replace(',', '.'));
-          if (isNaN(raw)) { inp.dataset.canonical = 'NaN'; return; }
-          var unit = inp.dataset.currentUnit || inp.dataset.canonicalUnit;
-          var c = toCanonical(raw, unit);
-          inp.dataset.canonical = String(c);
-        }
+      // 2. Находим родительскую панель
+      var panel = el.closest('.panel');
+      if (!panel) return;
 
-        function getCanonical() {
-          var v = parseFloat(inp.dataset.canonical);
-          return isNaN(v) ? NaN : v;
-        }
+      var panelId = panel.id.replace('panel-', '');
+      var h2 = panel.querySelector('h2');
+      var title = h2 ? h2.textContent.trim() : panelId;
 
-        inp.addEventListener('input', updateCanonical);
-
-        sel.addEventListener('change', function () {
-          var newUnit = sel.value;
-          var oldUnit = inp.dataset.currentUnit || inp.dataset.canonicalUnit;
-          if (oldUnit === newUnit) return;
-
-          var c = getCanonical();
-          if (!isNaN(c)) {
-            var displayed = fromCanonical(c, newUnit);
-            inp.value = (Math.round(displayed * 100) / 100).toString();
-          }
-
-          inp.dataset.currentUnit = newUnit;
-          if (placeholders && placeholders[newUnit]) {
-            inp.placeholder = placeholders[newUnit];
-          }
-
-          updateCanonical();
-          MedCore.validateInput(inp);
-          calcSCORE2();
-        });
-
-        return { get: getCanonical, update: updateCanonical };
+      // 3. Если значение есть, сохраняем его в сводку
+      if (value !== undefined && value !== null && value !== '' && value !== '—') {
+        var fullValue = String(value) + (unit ? ' ' + unit : '');
+        saveToSummary(panelId, title, fullValue, '', tagCls);
       }
+    };
 
-      var tcCtrl = setupUnitSwitch('s2-tc', 's2-tc-unit',
-        function (v, u) { return u === 'mg_dL' ? v / CHOL_FACTOR : v; },
-        function (v, u) { return u === 'mg_dL' ? v * CHOL_FACTOR : v; },
-        { mmol_L: 'Например, 5.2', mg_dL: 'Например, 200' }
-      );
+    // Перехватываем очистку
+    MedCore.showEmpty = function (el, msg) {
+      _origShowEmpty.call(this, el, msg);
+      var panel = el.closest('.panel');
+      if (!panel) return;
+      clearFromSummary(panel.id.replace('panel-', ''));
+    };
 
-      var hdlCtrl = setupUnitSwitch('s2-hdl', 's2-hdl-unit',
-        function (v, u) { return u === 'mg_dL' ? v / CHOL_FACTOR : v; },
-        function (v, u) { return u === 'mg_dL' ? v * CHOL_FACTOR : v; },
-        { mmol_L: 'Например, 1.3', mg_dL: 'Например, 50' }
-      );
+    window.MedCore.__hooked = true;
+    return true;
+  }
 
-      // ====== Шкала риска ======
-      function renderScale(value) {
-        var el = document.getElementById('s2-scale');
-        if (!el) return;
+  // Пытаемся перехватить сразу. Если MedCore ещё не загрузился, ждём.
+  if (!hookMedCore()) {
+    var attempts = 0;
+    var interval = setInterval(function () {
+      attempts++;
+      if (hookMedCore() || attempts > 50) clearInterval(interval);
+    }, 100);
+  }
 
-        MedCore.renderMiniScale(el, value, 0, 30, [
-          { until: 2.5, class: 'ok' },
-          { until: 7.5, class: 'warn' },
-          { until: 15, class: 'danger' },
-          { until: 30, class: 'danger' }
-        ], 'Ваш риск: <strong>' + value.toFixed(1) + ' %</strong> · шкала 0–30');
-      }
+  // ====== Слушаем очистку от главной страницы («Новый пациент») ======
+  window.addEventListener('storage', function (e) {
+    if (e.key === SUMMARY_KEY && e.newValue === null) {
+      document.querySelectorAll('input[type="number"], input[type="text"]').forEach(function (inp) {
+        inp.value = '';
+        inp.classList.remove('invalid');
+      });
+      document.querySelectorAll('select:not(.unit-select)').forEach(function (sel) { sel.selectedIndex = 0; });
+      document.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(function (cb) { cb.checked = false; });
+      document.querySelectorAll('.result').forEach(function (el) {
+        el.className = 'result';
+        el.innerHTML = '<span class="empty-msg">Заполните поля для расчёта</span>';
+      });
+      document.querySelectorAll('.mini-scale').forEach(function (el) { el.style.display = 'none'; });
+    }
+  });
 
-      // ====== Расчёт SCORE2 ======
-      function calcSCORE2() {
-        var age = getNum('s2-age'), sbp = getNum('s2-sbp');
-        var tc = tcCtrl.get(), hdl = hdlCtrl.get();
-        var male = document.getElementById('s2-sex').value === 'm';
-        var smoke = document.getElementById('s2-smoke').value === '1';
-        var el = document.getElementById('s2-result');
+  // ====== ТЁМНАЯ ТЕМА ======
+  function initTheme() {
+    var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    applyTheme(savedTheme);
 
-        if (!age || !sbp || isNaN(tc) || isNaN(hdl)) {
-          MedCore.showEmpty(el, 'Введите возраст, САД, общий холестерин и ЛПВП');
-          var s = document.getElementById('s2-scale');
-          if (s) s.style.display = 'none';
-          return;
-        }
+    var headerControls = document.querySelector('.header-controls');
+    if (!headerControls) return;
 
-        if (age < 40 || age > 89) {
-          MedCore.showEmpty(el, 'SCORE2 применим для 40–89 лет');
-          return;
-        }
+    var switcher = document.createElement('div');
+    switcher.className = 'theme-switch';
+    switcher.innerHTML =
+      '<button type="button" class="theme-btn" data-theme="light" title="Светлая тема">☀️</button>' +
+      '<button type="button" class="theme-btn" data-theme="dark" title="Тёмная тема">🌙</button>';
 
-        if (hdl >= tc) {
-          MedCore.showEmpty(el, 'ЛПВП должен быть меньше общего холестерина');
-          return;
-        }
-
-        var isOP = age >= 70;
-        var model = isOP ? 'SCORE2-OP' : 'SCORE2';
-
-        var c = male ? {
-          age: 0.3742, smoke: 0.6012, sbp: 0.2777, tc: 0.1458, hdl: -0.2698,
-          smokeAge: -0.0755, sbpAge: -0.0255, tcAge: -0.0281, hdlAge: 0.0426,
-          baseline: 0.9605, scale1: 0.5836, scale2: 0.8294
-        } : {
-          age: 0.4648, smoke: 0.7744, sbp: 0.3131, tc: 0.1002, hdl: -0.2606,
-          smokeAge: -0.1088, sbpAge: -0.0277, tcAge: -0.0226, hdlAge: 0.0613,
-          baseline: 0.9776, scale1: 0.9412, scale2: 0.8329
-        };
-
-        var cage = (age - 60) / 5;
-        var csbp = (sbp - 120) / 20;
-        var ctchol = (tc - 6) / 1;
-        var chdl = (hdl - 1.3) / 0.5;
-
-        var lp = cage * c.age + smoke * c.smoke + csbp * c.sbp
-          + ctchol * c.tc + chdl * c.hdl
-          + cage * smoke * c.smokeAge + cage * csbp * c.sbpAge
-          + cage * ctchol * c.tcAge + cage * chdl * c.hdlAge;
-
-        var uncalibrated = 1 - Math.pow(c.baseline, Math.exp(lp));
-        var calibrated = 1 - Math.exp(-Math.exp(c.scale1 + c.scale2 * Math.log(-Math.log(1 - uncalibrated))));
-        var risk = calibrated * 100;
-
-        var thresholds;
-        if (age < 50) thresholds = { low: 2.5, high: 7.5 };
-        else if (age < 70) thresholds = { low: 5, high: 10 };
-        else thresholds = { low: 7.5, high: 15 };
-
-        var label, cls;
-        if (risk < thresholds.low) { label = 'Низкий риск'; cls = 'ok'; }
-        else if (risk < thresholds.high) { label = 'Умеренный риск'; cls = 'warn'; }
-        else { label = 'Высокий риск'; cls = 'danger'; }
-
-        var nonHdl = (tc - hdl).toFixed(2);
-        var extra = '<div class="sub-block">' +
-          '<div class="sub-label">Холестерин не-ЛПВП (справочно)</div>' +
-          '<div class="sub-value">' + nonHdl + ' ммоль/л</div>' +
-          '</div>';
-
-        MedCore.render(el, risk.toFixed(1), ' %', label, cls,
-          model + ' · точный расчёт · РФ (очень высокий риск)', extra);
-
-        renderScale(risk);
-      }
-
-      MedCore.bindCalc(['s2-age', 's2-sbp', 's2-tc', 's2-hdl'], calcSCORE2);
-      document.getElementById('s2-sex').addEventListener('change', calcSCORE2);
-      document.getElementById('s2-smoke').addEventListener('change', calcSCORE2);
-
-      calcSCORE2();
-      MedCore.init();
-
+    switcher.querySelectorAll('.theme-btn').forEach(function (btn) {
+      if (btn.dataset.theme === savedTheme) btn.classList.add('active');
+      btn.addEventListener('click', function () {
+        var newTheme = btn.dataset.theme;
+        applyTheme(newTheme);
+        localStorage.setItem(THEME_KEY, newTheme);
+        switcher.querySelectorAll('.theme-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
     });
-  </script>
 
-</body>
-</html>
+    var homeLink = headerControls.querySelector('.file-btn');
+    if (homeLink) headerControls.insertBefore(switcher, homeLink);
+    else headerControls.appendChild(switcher);
+  }
+
+  function applyTheme(theme) {
+    document.body.classList.remove('theme-dark', 'theme-gray');
+    if (theme === 'dark') document.body.classList.add('theme-dark');
+    else if (theme === 'gray') document.body.classList.add('theme-gray');
+  }
+
+  // ====== ПЛАВАЮЩАЯ ПАНЕЛЬ СВОДКИ ======
+  function initFloatingSummary() {
+    var path = window.location.pathname;
+    if (path.endsWith('/index.html') || path === '/' || path.endsWith('/tools/ocr.html')) return;
+
+    if (!document.getElementById('floating-summary-styles')) {
+      var style = document.createElement('style');
+      style.id = 'floating-summary-styles';
+      style.textContent = `
+        .floating-summary-fab {
+          position: fixed; right: 20px; bottom: 20px;
+          width: 56px; height: 56px; border-radius: 50%;
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
+          color: #fff; border: none; cursor: pointer;
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.5rem; z-index: 999;
+          transition: transform .18s, box-shadow .18s;
+        }
+        .floating-summary-fab:hover {
+          transform: scale(1.08);
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+        .floating-summary-fab .badge {
+          position: absolute; top: -4px; right: -4px;
+          background: var(--danger); color: #fff;
+          border-radius: 10px; padding: 2px 7px;
+          font-size: .75rem; font-weight: 700;
+          min-width: 20px; text-align: center;
+        }
+        .floating-summary-panel {
+          position: fixed; right: 20px; bottom: 90px;
+          width: 340px; max-height: 70vh;
+          background: var(--card); border: 1.5px solid var(--border);
+          border-radius: 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+          z-index: 999; display: none; flex-direction: column; overflow: hidden;
+        }
+        .floating-summary-panel.open { display: flex; }
+        .floating-summary-header {
+          padding: 14px 16px; border-bottom: 1.5px solid var(--border);
+          display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        }
+        .floating-summary-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
+        .floating-summary-close {
+          background: none; border: none; color: var(--muted);
+          cursor: pointer; font-size: 1.3rem; padding: 0 4px; line-height: 1;
+        }
+        .floating-summary-close:hover { color: var(--danger); }
+        .floating-summary-body { padding: 12px 16px; overflow-y: auto; flex: 1; }
+        .floating-summary-empty {
+          text-align: center; color: var(--muted); font-style: italic;
+          padding: 20px 8px; font-size: .9rem;
+        }
+        .floating-summary-list { display: flex; flex-direction: column; gap: 6px; }
+        .floating-summary-item {
+          display: flex; justify-content: space-between; align-items: baseline;
+          padding: 6px 0; border-bottom: 1px solid var(--border); font-size: .88rem;
+        }
+        .floating-summary-item:last-child { border-bottom: none; }
+        .floating-summary-label {
+          color: var(--muted); flex: 1; overflow: hidden;
+          text-overflow: ellipsis; white-space: nowrap; padding-right: 8px;
+        }
+        .floating-summary-value {
+          font-weight: 700; color: var(--text); text-align: right; white-space: nowrap;
+        }
+        .floating-summary-footer {
+          padding: 10px 16px; border-top: 1.5px solid var(--border); display: flex; gap: 8px;
+        }
+        .floating-summary-footer a {
+          flex: 1; text-align: center; padding: 8px 10px;
+          background: var(--accent); color: #fff; text-decoration: none;
+          border-radius: 8px; font-size: .85rem; font-weight: 600;
+          transition: background .18s;
+        }
+        .floating-summary-footer a:hover { background: #1d4ed8; }
+        @media (max-width: 480px) {
+          .floating-summary-panel { width: calc(100vw - 40px); right: 20px; left: 20px; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    var fab = document.createElement('button');
+    fab.className = 'floating-summary-fab';
+    fab.title = 'Сводка по пациенту';
+    fab.innerHTML = '📋<span class="badge" id="floatingSummaryBadge" style="display:none">0</span>';
+    document.body.appendChild(fab);
+
+    var panel = document.createElement('div');
+    panel.className = 'floating-summary-panel';
+    panel.id = 'floatingSummaryPanel';
+    panel.innerHTML = `
+      <div class="floating-summary-header">
+        <h3 class="floating-summary-title">Сводка</h3>
+        <button class="floating-summary-close" id="floatingSummaryClose" title="Закрыть">×</button>
+      </div>
+      <div class="floating-summary-body" id="floatingSummaryBody">
+        <div class="floating-summary-empty">Пока ничего не заполнено</div>
+      </div>
+      <div class="floating-summary-footer">
+        <a href="/index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
+      </div>
+    `;
+    document.body.appendChild(panel);
+
+    var body = document.getElementById('floatingSummaryBody');
+    var badge = document.getElementById('floatingSummaryBadge');
+    var closeBtn = document.getElementById('floatingSummaryClose');
+
+    function render() {
+      var data = {};
+      try { data = JSON.parse(localStorage.getItem(SUMMARY_KEY)) || {}; } catch (e) {}
+
+      var keys = Object.keys(data);
+      if (keys.length === 0) {
+        body.innerHTML = '<div class="floating-summary-empty">Пока ничего не заполнено</div>';
+        badge.style.display = 'none';
+        return;
+      }
+
+      keys.sort(function (a, b) { return (data[a].timestamp || 0) - (data[b].timestamp || 0); });
+
+      var html = '<div class="floating-summary-list">';
+      keys.forEach(function (key) {
+        var item = data[key];
+        html += '<div class="floating-summary-item">' +
+          '<span class="floating-summary-label">' + item.title + '</span>' +
+          '<span class="floating-summary-value">' + item.value + '</span>' +
+          '</div>';
+      });
+      html += '</div>';
+      body.innerHTML = html;
+
+      badge.textContent = keys.length;
+      badge.style.display = 'inline-block';
+    }
+
+    fab.addEventListener('click', function () {
+      panel.classList.toggle('open');
+      if (panel.classList.contains('open')) render();
+    });
+
+    closeBtn.addEventListener('click', function () { panel.classList.remove('open'); });
+
+    document.addEventListener('click', function (e) {
+      if (!panel.contains(e.target) && !fab.contains(e.target) && panel.classList.contains('open')) {
+        panel.classList.remove('open');
+      }
+    });
+
+    window.addEventListener('storage', function (e) {
+      if (e.key === SUMMARY_KEY && panel.classList.contains('open')) render();
+    });
+
+    var _origSave = saveToSummary;
+    saveToSummary = function () {
+      _origSave.apply(this, arguments);
+      if (panel.classList.contains('open')) render();
+    };
+
+    render();
+  }
+
+  function initAll() {
+    initTheme();
+    initFloatingSummary();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAll);
+  else initAll();
+
+})();
