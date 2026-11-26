@@ -153,15 +153,35 @@
         });
       });
 
+      // Функция склонения слова "балл"
+      function getDeclension(number, one, two, five) {
+        var n = Math.abs(number);
+        n %= 100;
+        if (n >= 5 && n <= 20) return five;
+        n %= 10;
+        if (n === 1) return one;
+        if (n >= 2 && n <= 4) return two;
+        return five;
+      }
+
       function renderGad7Scale(value) {
         var el = document.getElementById('gad7-scale');
         if (!el) return;
+        var unitText = getDeclension(value, 'балл', 'балла', 'баллов');
         MedCore.renderMiniScale(el, value, 0, 21, [
           { until: 5, class: 'ok' },
           { until: 10, class: 'warn' },
           { until: 15, class: 'warn' },
           { until: 21, class: 'danger' }
-        ], 'Ваш GAD-7: <strong>' + value + ' балл(ов)</strong> · шкала 0–21');
+        ], 'Ваш GAD-7: <strong>' + value + ' ' + unitText + '</strong> · шкала 0–21');
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['gad7'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       function calcGAD7() {
@@ -179,6 +199,7 @@
           MedCore.showEmpty(el, 'Ответьте на все 7 вопросов (' + answered + '/7)');
           var s = document.getElementById('gad7-scale');
           if (s) s.style.display = 'none';
+          clearSummary();
           return;
         }
 
@@ -188,8 +209,18 @@
         else if (total <= 14) { label = 'Умеренная тревога'; cls = 'warn'; advice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).'; } 
         else { label = 'Тяжёлая тревога'; cls = 'danger'; advice = 'Показана терапия. Обратитесь к специалисту.'; }
 
-        MedCore.render(el, total, ' баллов', label, cls, advice);
+        // Правильное склонение для экрана и сводки
+        var unitText = getDeclension(total, 'балл', 'балла', 'баллов');
+
+        MedCore.render(el, total, ' ' + unitText, label, cls, advice);
         renderGad7Scale(total);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "12 баллов — Умеренная тревога"
+          var summaryText = total + ' ' + unitText + ' — ' + label;
+          MedCore.saveToSummary('gad7', 'GAD-7', summaryText, '', cls);
+        }
       }
 
       document.getElementById('gad7-calc-btn').addEventListener('click', calcGAD7);
@@ -201,6 +232,7 @@
         MedCore.showEmpty(document.getElementById('gad7-result'), 'Ответьте на все вопросы и нажмите «Рассчитать»');
         var s = document.getElementById('gad7-scale');
         if (s) s.style.display = 'none';
+        clearSummary();
       });
 
       MedCore.init();
