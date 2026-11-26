@@ -92,6 +92,39 @@
     }
 
     .duration-text { color: var(--text); line-height: 1.5; }
+
+    /* Стили для кнопки копирования */
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+      z-index: 10;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -209,6 +242,9 @@
 
         if (!age || !weight || !gfr) {
           MedCore.showEmpty(el, 'Выберите препарат и введите параметры');
+          // Удаляем старую кнопку копирования, если была
+          var oldBtn = el.querySelector('.copy-result-btn');
+          if (oldBtn) oldBtn.remove();
           return;
         }
 
@@ -295,6 +331,8 @@
         }
 
         // Формирование HTML
+        el.style.position = 'relative'; // Для позиционирования кнопки
+        html += '<button class="copy-result-btn" id="vte-copy-btn" title="Копировать результат">📋</button>';
         html += '<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">' + drugName + '</div>';
 
         if (warnings.length > 0) {
@@ -325,11 +363,59 @@
         el.innerHTML = html;
         el.className = 'result';
 
+        // ====== Кнопка копирования ======
+        var copyBtn = document.getElementById('vte-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'НОАК при ВТЭ: ' + drugName + '\n' +
+              'Первичная фаза: ' + initialDose + '\n' +
+              'Поддерживающая фаза: ' + maintenanceDose + '\n' +
+              'Длительность: ' + duration + '\n' +
+              (warnings.length > 0 ? '\nПредупреждения:\n' + warnings.join('\n') : '');
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(text, copyBtn);
+              });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+
         // Сохранение в сводку — полная информация о схеме
         if (window.MedCore && window.MedCore.saveToSummary) {
           var summaryText = drugName + ': ' + initialDose + ' → ' + maintenanceDose + ' · Длительность: ' + duration;
           MedCore.saveToSummary('noac-vte', 'НОАК при ВТЭ', summaryText, '', '');
         }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       MedCore.bindCalc(['vte-age', 'vte-weight', 'vte-gfr'], calcVTE);
