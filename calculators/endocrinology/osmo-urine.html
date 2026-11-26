@@ -50,6 +50,37 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 3px var(--accent-soft);
     }
+
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -79,6 +110,7 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="grid">
 
             <div class="field">
@@ -144,6 +176,7 @@
             </div>
 
           </div>
+
         </div>
 
         <div class="panel-result-col">
@@ -170,9 +203,17 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
+        var inp = document.getElementById(id);
+        if (!inp) return NaN;
+        var val = inp.value.replace(',', '.');
+        var num = parseFloat(val);
+        return isNaN(num) ? NaN : num;
+      }
+
       // ====== Работа с переключателем единиц для глюкозы ======
       var GLUCOSE_FACTOR = 18.016; // 1 ммоль/л = 18.016 мг/дл
-
       var gluInput = document.getElementById('ou-glu');
       var gluUnitSelect = document.getElementById('ou-glu-unit');
 
@@ -239,22 +280,24 @@
       }
 
       function calcOsmoUrine() {
-        var na = MedCore.num('ou-na');
-        var k = MedCore.num('ou-k');
+        var na = getNum('ou-na');
+        var k = getNum('ou-k');
         var glu = getGluCanonical();
-        var urea = MedCore.num('ou-urea');
+        var urea = getNum('ou-urea');
         var el = document.getElementById('ou-result');
 
         if (!na || !k || !urea) {
           MedCore.showEmpty(el, 'Введите Na, K и мочевину мочи');
           var s = document.getElementById('ou-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку
+          clearSummary();
           return;
         }
 
         var osmo = 2 * na + k + glu + urea;
-
         var label, cls;
+
         if (osmo < 200) {
           label = 'Гипотоническая полиурия';
           cls = 'danger';
@@ -278,7 +321,72 @@
           '2 × Na + K + глюкоза + мочевина мочи'
         );
 
+        // Добавляем кнопку копирования
+        var copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-result-btn';
+        copyBtn.title = 'Копировать результат';
+        copyBtn.textContent = '📋';
+        el.style.position = 'relative';
+        el.appendChild(copyBtn);
+
+        copyBtn.addEventListener('click', function () {
+          var text = 'Осмоляльность мочи: ' + osmo.toFixed(0) + ' мОсм/л (' + label + ')\n' +
+            'Na: ' + na + ' ммоль/л\n' +
+            'K: ' + k + ' ммоль/л\n' +
+            'Глюкоза: ' + glu.toFixed(1) + ' ммоль/л\n' +
+            'Мочевина: ' + urea + ' ммоль/л';
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              copyBtn.classList.add('copied');
+              copyBtn.textContent = '✓';
+              setTimeout(function () {
+                copyBtn.classList.remove('copied');
+                copyBtn.textContent = '📋';
+              }, 2000);
+            }).catch(function () {
+              fallbackCopy(text, copyBtn);
+            });
+          } else {
+            fallbackCopy(text, copyBtn);
+          }
+        });
+
         renderOsmoUrineScale(osmo);
+
+        // ====== Сохранение в сводку ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('osmo-urine', 'Осмоляльность мочи', osmo.toFixed(0) + ' мОсм/л', '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['osmo-urine'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       MedCore.bindCalc(['ou-na', 'ou-k', 'ou-urea'], calcOsmoUrine);
