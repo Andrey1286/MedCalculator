@@ -28,213 +28,102 @@
       border-color: var(--accent);
       background: var(--accent-soft);
     }
-    .drop-zone-icon {
-      font-size: 2.5rem;
-      margin-bottom: 8px;
-      color: var(--accent);
-    }
-    .drop-zone-text {
-      font-size: 1rem;
-      color: var(--text);
-      margin-bottom: 4px;
-    }
-    .drop-zone-hint {
-      font-size: .85rem;
-      color: var(--muted);
-    }
+    .drop-zone-icon { font-size: 2.5rem; margin-bottom: 8px; color: var(--accent); }
+    .drop-zone-text { font-size: 1rem; color: var(--text); margin-bottom: 4px; }
+    .drop-zone-hint { font-size: .85rem; color: var(--muted); }
     .drop-zone input[type="file"] { display: none; }
 
     .controls-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      align-items: center;
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
     }
-    .controls-row label {
-      font-size: .9rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
+    .controls-row label { font-size: .9rem; color: var(--muted); font-weight: 600; }
     .controls-row select {
-      padding: 8px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--card);
-      color: var(--text);
-      font-family: inherit;
-      font-size: .9rem;
+      padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text); font-family: inherit; font-size: .9rem;
     }
+    .controls-row .checkbox-wrap {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 8px; cursor: pointer; transition: border-color .18s, background .18s;
+    }
+    .controls-row .checkbox-wrap:hover { border-color: var(--accent); background: var(--info); }
+    .controls-row .checkbox-wrap input { accent-color: var(--accent); cursor: pointer; }
+    .controls-row .checkbox-wrap span { font-size: .88rem; color: var(--text); }
 
-    .file-list {
-      margin-bottom: 16px;
-    }
+    .file-list { margin-bottom: 16px; }
     .file-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 6px;
-      font-size: .88rem;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 8px; margin-bottom: 6px; font-size: .88rem;
     }
-    .file-item .file-name {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .file-item .file-status {
-      font-size: .8rem;
-      color: var(--muted);
-    }
+    .file-item .file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item .file-status { font-size: .8rem; color: var(--muted); }
     .file-item .file-status.done { color: var(--ok); }
     .file-item .file-status.error { color: var(--danger); }
     .file-item .remove-btn {
-      background: none;
-      border: none;
-      color: var(--danger);
-      cursor: pointer;
-      font-size: 1.1rem;
-      padding: 0 4px;
+      background: none; border: none; color: var(--danger);
+      cursor: pointer; font-size: 1.1rem; padding: 0 4px;
     }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-    }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
     .btn {
-      padding: 12px 20px;
-      font-size: .95rem;
-      font-weight: 600;
-      border-radius: 10px;
-      border: 1.5px solid transparent;
-      cursor: pointer;
+      padding: 12px 20px; font-size: .95rem; font-weight: 600;
+      border-radius: 10px; border: 1.5px solid transparent; cursor: pointer;
       transition: background .18s, transform .1s, box-shadow .18s;
     }
     .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-primary {
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(37,99,235,.25);
+      color: #fff; box-shadow: 0 2px 10px rgba(37,99,235,.25);
     }
     .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
-    .btn-secondary {
-      background: var(--card);
-      color: var(--text);
-      border-color: var(--border);
-    }
+    .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
     .btn-secondary:hover:not(:disabled) { background: var(--info); }
-    .btn-success {
-      background: #059669;
-      color: #fff;
-    }
+    .btn-success { background: #059669; color: #fff; }
     .btn-success:hover:not(:disabled) { background: #047857; }
 
-    .progress-wrap {
-      margin-bottom: 16px;
-      display: none;
-    }
+    .progress-wrap { margin-bottom: 16px; display: none; }
     .progress-wrap.active { display: block; }
     .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: var(--info);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 6px;
+      width: 100%; height: 8px; background: var(--info);
+      border-radius: 4px; overflow: hidden; margin-bottom: 6px;
     }
     .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      width: 0%;
-      transition: width .3s ease;
+      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      width: 0%; transition: width .3s ease;
     }
-    .progress-text {
-      font-size: .85rem;
-      color: var(--muted);
-    }
+    .progress-text { font-size: .85rem; color: var(--muted); }
 
     .result-area {
-      background: var(--card);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      min-height: 200px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 16px; min-height: 200px;
     }
     .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; flex-wrap: wrap; gap: 10px;
     }
-    .result-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 0;
-    }
-    .result-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .result-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
+    .result-actions { display: flex; gap: 8px; }
     .result-text {
-      width: 100%;
-      min-height: 300px;
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--info);
-      color: var(--text);
-      font-family: 'Courier New', monospace;
-      font-size: .9rem;
-      line-height: 1.5;
-      resize: vertical;
-      box-sizing: border-box;
+      width: 100%; min-height: 300px; padding: 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--info); color: var(--text);
+      font-family: 'Courier New', monospace; font-size: .9rem; line-height: 1.5;
+      resize: vertical; box-sizing: border-box; white-space: pre-wrap;
     }
-    .result-text:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+    .result-text:focus { outline: none; border-color: var(--accent); }
 
-    .banner {
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-bottom: 16px;
-      font-size: .9rem;
-    }
-    .banner.info {
-      background: var(--info);
-      color: var(--muted);
-      border-left: 4px solid var(--border);
-    }
-    .banner.warn {
-      background: var(--warn-bg);
-      color: var(--warn);
-      border-left: 4px solid var(--warn);
-    }
+    .banner { padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: .9rem; }
+    .banner.info { background: var(--info); color: var(--muted); border-left: 4px solid var(--border); }
 
     .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
+      position: fixed; bottom: 24px; left: 50%;
       transform: translateX(-50%) translateY(100px);
-      background: var(--text);
-      color: var(--card);
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: .9rem;
-      box-shadow: var(--shadow-lg);
-      transition: transform .3s ease;
-      z-index: 1000;
+      background: var(--text); color: var(--card);
+      padding: 12px 20px; border-radius: 10px;
+      font-weight: 600; font-size: .9rem;
+      box-shadow: var(--shadow-lg); transition: transform .3s ease; z-index: 1000;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
   </style>
@@ -264,7 +153,6 @@
           <strong>Поддерживаемые форматы:</strong> PDF (текстовые и сканы), JPG, PNG. Русский и английский языки. Обработка происходит локально в браузере — файлы никуда не отправляются.
         </div>
 
-        <!-- Зона загрузки -->
         <div class="drop-zone" id="dropZone">
           <div class="drop-zone-icon">📄</div>
           <div class="drop-zone-text">Перетащите файлы сюда или нажмите для выбора</div>
@@ -272,10 +160,8 @@
           <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf">
         </div>
 
-        <!-- Список файлов -->
         <div class="file-list" id="fileList"></div>
 
-        <!-- Настройки -->
         <div class="controls-row">
           <label for="langSelect">Язык распознавания:</label>
           <select id="langSelect">
@@ -283,21 +169,23 @@
             <option value="rus">Только русский</option>
             <option value="eng">Только English</option>
           </select>
+
+          <label class="checkbox-wrap" for="preserveStructure">
+            <input type="checkbox" id="preserveStructure" checked>
+            <span>Сохранять структуру (строки, абзацы)</span>
+          </label>
         </div>
 
-        <!-- Кнопки -->
         <div class="btn-row">
           <button type="button" class="btn btn-primary" id="recognizeBtn" disabled>🔍 Распознать текст</button>
           <button type="button" class="btn btn-secondary" id="clearBtn">Очистить всё</button>
         </div>
 
-        <!-- Прогресс -->
         <div class="progress-wrap" id="progressWrap">
           <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
           <div class="progress-text" id="progressText">Подготовка...</div>
         </div>
 
-        <!-- Результат -->
         <div class="result-area" id="resultArea" style="display:none">
           <div class="result-header">
             <h3 class="result-title">Распознанный текст</h3>
@@ -314,10 +202,9 @@
       <details class="note">
         <summary>О работе инструмента</summary>
         <div class="note-content">
-          <p><strong>Как это работает:</strong> PDF-файлы сначала проверяются на наличие текстового слоя (быстрое извлечение). Если текста нет (скан) — страницы конвертируются в изображения и распознаются через Tesseract.js. Картинки сразу идут на распознавание.</p>
-          <p><strong>Приватность:</strong> вся обработка происходит в вашем браузере. Файлы не загружаются на сервер. Модели языков (~10 МБ для русского) кэшируются после первой загрузки.</p>
-          <p><strong>Качество:</strong> чем чётче исходное изображение и чем меньше искажений, тем лучше результат. Для бумажных анализов делайте фото при хорошем освещении, без бликов.</p>
-          <p><strong>Совет:</strong> после распознавания вы можете отредактировать текст прямо в поле и скопировать нужные значения в калькуляторы.</p>
+          <p><strong>Сохранение структуры:</strong> при включённой опции текст извлекается с учётом расположения строк и абзацев. Для PDF с текстовым слоем используются координаты элементов; для сканов — данные Tesseract о блоках и строках.</p>
+          <p><strong>Приватность:</strong> вся обработка происходит в вашем браузере. Файлы не загружаются на сервер.</p>
+          <p><strong>Качество:</strong> чем чётче исходное изображение, тем лучше результат. Для бумажных анализов делайте фото при хорошем освещении, без бликов.</p>
         </div>
       </details>
     </div>
@@ -329,7 +216,6 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      // Настройка PDF.js worker (локальный файл)
       if (window.pdfjsLib) {
         pdfjsLib.GlobalWorkerOptions.workerSrc = '../assets/lib/pdf.worker.min.js';
       }
@@ -347,29 +233,21 @@
       var copyBtn = document.getElementById('copyBtn');
       var downloadBtn = document.getElementById('downloadBtn');
       var langSelect = document.getElementById('langSelect');
+      var preserveStructure = document.getElementById('preserveStructure');
       var toast = document.getElementById('toast');
 
       var files = [];
 
       // ===== Drag & Drop =====
       dropZone.addEventListener('click', function () { fileInput.click(); });
-
-      dropZone.addEventListener('dragover', function (e) {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-      });
-      dropZone.addEventListener('dragleave', function () {
-        dropZone.classList.remove('dragover');
-      });
+      dropZone.addEventListener('dragover', function (e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+      dropZone.addEventListener('dragleave', function () { dropZone.classList.remove('dragover'); });
       dropZone.addEventListener('drop', function (e) {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
+        e.preventDefault(); dropZone.classList.remove('dragover');
         handleFiles(e.dataTransfer.files);
       });
-
       fileInput.addEventListener('change', function (e) {
-        handleFiles(e.target.files);
-        fileInput.value = '';
+        handleFiles(e.target.files); fileInput.value = '';
       });
 
       function handleFiles(newFiles) {
@@ -387,10 +265,7 @@
       }
 
       function renderFileList() {
-        if (files.length === 0) {
-          fileList.innerHTML = '';
-          return;
-        }
+        if (files.length === 0) { fileList.innerHTML = ''; return; }
         fileList.innerHTML = files.map(function (item, idx) {
           var statusText = item.status === 'ready' ? 'Готов' :
                            item.status === 'done' ? '✓ Готово' :
@@ -413,11 +288,194 @@
         });
       }
 
+      // ===== Извлечение текста с сохранением структуры из PDF =====
+      async function processPdf(file, worker) {
+        var arrayBuffer = await file.arrayBuffer();
+        var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        var allText = [];
+
+        // Сначала пробуем извлечь текстовый слой
+        var hasTextLayer = false;
+        for (var p = 1; p <= pdf.numPages; p++) {
+          var page = await pdf.getPage(p);
+          var content = await page.getTextContent();
+          if (content.items.length > 0 && content.items.some(function (it) { return it.str.trim().length > 0; })) {
+            hasTextLayer = true;
+            var pageText = preserveStructure.checked
+              ? extractTextWithStructure(content.items)
+              : content.items.map(function (it) { return it.str; }).join(' ').trim();
+            allText.push('[Страница ' + p + ' — текстовый слой]\n' + pageText);
+          }
+        }
+
+        // Если текстового слоя нет — распознаём как скан
+        if (!hasTextLayer) {
+          for (var p = 1; p <= pdf.numPages; p++) {
+            var page = await pdf.getPage(p);
+            var viewport = page.getViewport({ scale: 2.0 });
+            var canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            var ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+            var result = await worker.recognize(canvas);
+            var pageText = preserveStructure.checked
+              ? extractTesseractStructure(result.data)
+              : result.data.text.trim();
+            if (pageText) {
+              allText.push('[Страница ' + p + ' — OCR]\n' + pageText);
+            }
+          }
+        }
+
+        return allText.join('\n\n');
+      }
+
+      // ===== Группировка элементов PDF по строкам через Y-координаты =====
+      function extractTextWithStructure(items) {
+        if (!items || items.length === 0) return '';
+
+        // Фильтруем пустые элементы
+        var validItems = items.filter(function (it) {
+          return it.str && it.str.trim().length > 0 && it.transform;
+        });
+        if (validItems.length === 0) return '';
+
+        // transform[5] — это Y-координата (сверху страницы)
+        // Группируем элементы по строкам: если Y отличается менее чем на 30%, считаем одной строкой
+        var lines = [];
+        var currentLine = { y: validItems[0].transform[5], height: validItems[0].height || 10, items: [validItems[0]] };
+
+        for (var i = 1; i < validItems.length; i++) {
+          var it = validItems[i];
+          var y = it.transform[5];
+          var h = it.height || 10;
+          var threshold = Math.max(currentLine.height, h) * 0.5;
+
+          if (Math.abs(y - currentLine.y) <= threshold) {
+            currentLine.items.push(it);
+            if (h > currentLine.height) currentLine.height = h;
+          } else {
+            lines.push(currentLine);
+            currentLine = { y: y, height: h, items: [it] };
+          }
+        }
+        lines.push(currentLine);
+
+        // Сортируем строки сверху вниз (Y уменьшается)
+        lines.sort(function (a, b) { return b.y - a.y; });
+
+        // Внутри каждой строки сортируем элементы слева направо (по X)
+        var result = [];
+        var prevLineBottom = null;
+
+        for (var li = 0; li < lines.length; li++) {
+          var line = lines[li];
+          line.items.sort(function (a, b) { return a.transform[4] - b.transform[4]; });
+
+          // Определяем разрыв между абзацами: если расстояние между строками больше 1.5× высоты строки
+          var lineTop = line.y;
+          var lineBottom = line.y - line.height;
+          var isNewParagraph = false;
+          if (prevLineBottom !== null) {
+            var gap = prevLineBottom - lineTop;
+            if (gap > line.height * 1.2) {
+              isNewParagraph = true;
+            }
+          }
+
+          // Собираем текст строки с учётом пробелов между элементами
+          var lineText = '';
+          var lastRight = null;
+          for (var j = 0; j < line.items.length; j++) {
+            var it = line.items[j];
+            var left = it.transform[4];
+            var width = it.width || 0;
+
+            // Если расстояние между элементами большое — добавляем пробел
+            if (lastRight !== null && left - lastRight > line.height * 0.3) {
+              lineText += ' ';
+            }
+            lineText += it.str;
+            lastRight = left + width;
+          }
+
+          if (isNewParagraph) {
+            result.push('');  // пустая строка = разделитель абзацев
+          }
+          result.push(lineText.trim());
+          prevLineBottom = lineBottom;
+        }
+
+        // Убираем лишние пустые строки (более 2 подряд → 2)
+        var cleaned = [];
+        var emptyCount = 0;
+        for (var k = 0; k < result.length; k++) {
+          if (result[k] === '') {
+            emptyCount++;
+            if (emptyCount <= 1) cleaned.push('');
+          } else {
+            emptyCount = 0;
+            cleaned.push(result[k]);
+          }
+        }
+
+        return cleaned.join('\n').trim();
+      }
+
+      // ===== Извлечение структуры из результата Tesseract =====
+      function extractTesseractStructure(data) {
+        if (!data || !data.lines || data.lines.length === 0) {
+          return data.text || '';
+        }
+
+        // Tesseract возвращает данные по блокам → параграфам → строкам
+        // Используем lines напрямую, но разделяем абзацы по блокам/параграфам
+        var result = [];
+        var lastBlockId = null;
+        var lastParId = null;
+
+        for (var i = 0; i < data.lines.length; i++) {
+          var line = data.lines[i];
+          var blockId = line.paragraph && line.paragraph.block ? line.paragraph.block.id : null;
+          var parId = line.paragraph ? line.paragraph.id : null;
+
+          // Если сменился блок — добавляем двойной перенос
+          if (lastBlockId !== null && blockId !== lastBlockId) {
+            result.push('');
+          }
+          // Если сменился параграф внутри блока — добавляем одинарный перенос
+          else if (lastParId !== null && parId !== lastParId) {
+            result.push('');
+          }
+
+          result.push(line.text);
+          lastBlockId = blockId;
+          lastParId = parId;
+        }
+
+        return result.join('\n').trim();
+      }
+
+      // ===== Распознавание изображения =====
+      async function processImage(file, worker) {
+        var url = URL.createObjectURL(file);
+        try {
+          var result = await worker.recognize(url);
+          if (preserveStructure.checked) {
+            return extractTesseractStructure(result.data);
+          }
+          return result.data.text;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      }
+
       // ===== Распознавание =====
       recognizeBtn.addEventListener('click', async function () {
         if (files.length === 0) return;
 
-        // Проверка загрузки библиотек
         if (!window.Tesseract) {
           showToast('Ошибка: Tesseract.js не загружен. Проверьте наличие файла assets/lib/tesseract.min.js');
           return;
@@ -439,7 +497,6 @@
         var currentFileIdx = 0;
 
         try {
-          // Инициализация воркера Tesseract
           updateProgress(0, 'Загрузка языковой модели (при первом использовании)...');
           var worker = await Tesseract.createWorker(lang, 1, {
             logger: function (m) {
@@ -495,55 +552,6 @@
         }
       });
 
-      async function processImage(file, worker) {
-        var url = URL.createObjectURL(file);
-        try {
-          var result = await worker.recognize(url);
-          return result.data.text;
-        } finally {
-          URL.revokeObjectURL(url);
-        }
-      }
-
-      async function processPdf(file, worker) {
-        var arrayBuffer = await file.arrayBuffer();
-        var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        var allText = [];
-
-        // Сначала пробуем извлечь текстовый слой
-        var hasTextLayer = false;
-        for (var p = 1; p <= pdf.numPages; p++) {
-          var page = await pdf.getPage(p);
-          var content = await page.getTextContent();
-          var pageText = content.items.map(function (it) { return it.str; }).join(' ').trim();
-          if (pageText.length > 20) {
-            hasTextLayer = true;
-            allText.push('[Страница ' + p + ' — текстовый слой]\n' + pageText);
-          }
-        }
-
-        // Если текстового слоя нет или он почти пустой — распознаём как скан
-        if (!hasTextLayer) {
-          for (var p = 1; p <= pdf.numPages; p++) {
-            var page = await pdf.getPage(p);
-            var viewport = page.getViewport({ scale: 2.0 });
-            var canvas = document.createElement('canvas');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            var ctx = canvas.getContext('2d');
-
-            await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-            var result = await worker.recognize(canvas);
-            if (result.data.text.trim()) {
-              allText.push('[Страница ' + p + ' — OCR]\n' + result.data.text.trim());
-            }
-          }
-        }
-
-        return allText.join('\n\n');
-      }
-
       function updateProgress(percent, text) {
         progressFill.style.width = percent + '%';
         progressText.textContent = text;
@@ -553,7 +561,6 @@
       copyBtn.addEventListener('click', function () {
         var text = resultText.value;
         if (!text) { showToast('Нечего копировать'); return; }
-
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(function () {
             showToast('Текст скопирован в буфер обмена');
@@ -576,7 +583,6 @@
       downloadBtn.addEventListener('click', function () {
         var text = resultText.value;
         if (!text) { showToast('Нечего сохранять'); return; }
-
         var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -599,7 +605,6 @@
         progressWrap.classList.remove('active');
       });
 
-      // ===== Уведомления =====
       function showToast(msg) {
         toast.textContent = msg;
         toast.classList.add('show');
