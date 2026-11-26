@@ -208,6 +208,8 @@
 
         if (!w || isNaN(hb_gdL) || w <= 0 || hb_gdL <= 0) {
           MedCore.showEmpty(el, 'Введите вес и Hb');
+          // Очищаем сводку при неполных данных
+          clearSummary();
           return;
         }
 
@@ -217,10 +219,12 @@
 
         if (hb_gdL >= targetHb) {
           MedCore.showEmpty(el, 'Фактический Hb не ниже целевого. Расчёт по формуле Ганзони не применяется.');
+          clearSummary();
           return;
         }
 
         var deficit = w * (targetHb - hb_gdL) * 2.4 + depot;
+        var deficitRounded = Math.round(deficit);
 
         var extra = '<div class="sub-block">' +
           '<div class="sub-label">Компоненты расчёта</div>' +
@@ -229,8 +233,24 @@
           '<div class="sub-ref">Депо железа = ' + Math.round(depot) + ' мг</div>' +
           '</div>';
 
-        MedCore.render(el, Math.round(deficit), ' мг', 'Общий дефицит железа', 'warn',
+        // Рендерим результат на экране
+        MedCore.render(el, deficitRounded, ' мг', 'Общий дефицит железа', 'warn',
           'Целевой Hb: ' + targetHb + ' г/дл (' + (targetHb * 10) + ' г/л) · Фактический Hb: ' + hb_gdL.toFixed(1) + ' г/дл (' + Math.round(hb_gdL * 10) + ' г/л)', extra);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "1040 мг — Общий дефицит железа"
+          var summaryText = deficitRounded + ' мг — Общий дефицит железа';
+          MedCore.saveToSummary('iron', 'Железо в/в (Ганзони)', summaryText, '', 'warn');
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['iron'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       MedCore.bindCalc(['iron-weight'], function () { updateIronTargets(); calcIron(); });
