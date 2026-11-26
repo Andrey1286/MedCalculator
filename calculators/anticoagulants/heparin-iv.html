@@ -38,6 +38,39 @@
     .btn-primary:hover { box-shadow: 0 4px 14px rgba(37,99,235,.35); }
     .btn-secondary { background: var(--card); color: var(--text); border-color: var(--border); }
     .btn-secondary:hover { background: var(--info); }
+
+    /* Стили для кнопки копирования */
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+      z-index: 10;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -130,6 +163,14 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['heparin'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      }
+
       function calcHeparin() {
         var weight = MedCore.num('hep-weight');
         var conc = parseFloat(document.getElementById('hep-conc').value);
@@ -139,6 +180,10 @@
 
         if (!weight || !conc) {
           MedCore.showEmpty(el, 'Введите вес и выберите концентрацию');
+          // Удаляем старую кнопку, если была
+          var oldBtn = el.querySelector('.copy-result-btn');
+          if (oldBtn) oldBtn.remove();
+          clearSummary();
           return;
         }
 
@@ -148,48 +193,110 @@
         var bolusMl = (bolusUnits / conc).toFixed(1);
         var infusionMlH = (infusionRate / conc).toFixed(1);
 
-        var tableHtml = '<table class="result-table">' +
+        var tableHtml = '<button class="copy-result-btn" id="hep-copy-btn" title="Копировать результат">📋</button>' +
+          '<table class="result-table">' +
           '<tr><th>Параметр</th><th>Значение</th></tr>' +
           '<tr><td>Болюс</td><td>' + Math.round(bolusUnits) + ' ЕД (' + bolusMl + ' мл)</td></tr>' +
           '<tr><td>Инфузия</td><td>' + Math.round(infusionRate) + ' ЕД/ч (' + infusionMlH + ' мл/ч)</td></tr>' +
           '</table>';
 
         var correctionBanner = '';
+        var correctionText = '';
+        var adjCls = '';
 
         if (aptt && apttCtrl) {
           var ratio = aptt / apttCtrl;
-          var adjLabel, adjCls;
+          var adjLabel;
 
           if (aptt < 35) {
             adjLabel = 'АЧТВ <35 сек: повторный болюс 80 ЕД/кг, увеличить инфузию на 4 ЕД/кг/ч';
             adjCls = 'danger';
+            correctionText = 'Коррекция: ' + adjLabel;
           } else if (aptt < 46) {
             adjLabel = 'АЧТВ 35–45 сек: увеличить инфузию на 2 ЕД/кг/ч';
             adjCls = 'warn';
+            correctionText = 'Коррекция: ' + adjLabel;
           } else if (aptt <= 70) {
             adjLabel = 'АЧТВ 46–70 сек: без изменений (терапевтический диапазон)';
             adjCls = 'ok';
+            correctionText = 'Коррекция: без изменений';
           } else if (aptt <= 90) {
             adjLabel = 'АЧТВ 71–90 сек: уменьшить инфузию на 2 ЕД/кг/ч';
             adjCls = 'warn';
+            correctionText = 'Коррекция: ' + adjLabel;
           } else {
             adjLabel = 'АЧТВ >90 сек: остановить инфузию на 1 ч, затем уменьшить на 3 ЕД/кг/ч';
             adjCls = 'danger';
+            correctionText = 'Коррекция: ' + adjLabel;
           }
 
           correctionBanner = '<div class="banner ' + adjCls + '">' +
             '<strong>Коррекция:</strong> ' + adjLabel +
             '<br>АЧТВ/контроль = ' + ratio.toFixed(2) +
             '</div>';
+        } else {
+          correctionText = 'Без коррекции (АЧТВ не указано)';
         }
 
+        el.style.position = 'relative';
         el.className = 'result ok';
         el.innerHTML = '<div class="value">Протокол рассчитан</div>' +
           '<div class="ref">Вес ' + weight + ' кг · Концентрация ' + conc + ' ЕД/мл</div>' +
           tableHtml + correctionBanner;
 
-        MedCore.attachCopyButtons();
-        MedCore.updateCopyButtons();
+        // ====== Кнопка копирования ======
+        var copyBtn = document.getElementById('hep-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'Гепарин в/в:\n' +
+              'Болюс: ' + Math.round(bolusUnits) + ' ЕД (' + bolusMl + ' мл)\n' +
+              'Инфузия: ' + Math.round(infusionRate) + ' ЕД/ч (' + infusionMlH + ' мл/ч)\n' +
+              (correctionText ? '\n' + correctionText : '');
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '';
+                }, 2000);
+              }).catch(function () { fallbackCopy(text, copyBtn); });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+
+        // ====== Сохранение в сводку ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          var summaryText = 'Болюс ' + Math.round(bolusUnits) + ' ЕД, Инфузия ' + Math.round(infusionRate) + ' ЕД/ч';
+          if (correctionText) {
+            summaryText += ' · ' + correctionText;
+          }
+          MedCore.saveToSummary('heparin', 'Гепарин в/в', summaryText, '', adjCls || 'ok');
+        }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       document.getElementById('hep-calc-btn').addEventListener('click', calcHeparin);
@@ -200,6 +307,12 @@
         document.getElementById('hep-aptt-ctrl').value = '30';
         document.getElementById('hep-conc').value = '5000';
         MedCore.showEmpty(document.getElementById('hep-result'), 'Введите вес и нажмите «Рассчитать»');
+        
+        // Удаляем кнопку копирования если есть
+        var oldBtn = document.getElementById('hep-result').querySelector('.copy-result-btn');
+        if (oldBtn) oldBtn.remove();
+
+        clearSummary();
       });
 
       MedCore.init();
