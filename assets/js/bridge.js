@@ -2,6 +2,7 @@
   var SUMMARY_KEY = 'medcalc-summary';
   var THEME_KEY = 'medcalc-theme';
 
+  // ====== Работа со сводкой ======
   function saveToSummary(id, title, value, unit, cls) {
     if (!value || value === '') return;
 
@@ -49,12 +50,9 @@
     var _origRender = MedCore.render;
     var _origShowEmpty = MedCore.showEmpty;
 
-    // Перехватываем render и забираем значение ПРЯМО из аргументов функции
     MedCore.render = function (el, value, unit, tagText, tagCls, refText, extraHtml) {
-      // 1. Вызываем оригинальную функцию, чтобы всё отрисовалось на экране
       _origRender.call(this, el, value, unit, tagText, tagCls, refText, extraHtml);
 
-      // 2. Находим родительскую панель
       var panel = el.closest('.panel');
       if (!panel) return;
 
@@ -62,14 +60,12 @@
       var h2 = panel.querySelector('h2');
       var title = h2 ? h2.textContent.trim() : panelId;
 
-      // 3. Если значение есть, сохраняем его в сводку
       if (value !== undefined && value !== null && value !== '' && value !== '—') {
         var fullValue = String(value) + (unit ? ' ' + unit : '');
         saveToSummary(panelId, title, fullValue, '', tagCls);
       }
     };
 
-    // Перехватываем очистку
     MedCore.showEmpty = function (el, msg) {
       _origShowEmpty.call(this, el, msg);
       var panel = el.closest('.panel');
@@ -81,7 +77,6 @@
     return true;
   }
 
-  // Пытаемся перехватить сразу. Если MedCore ещё не загрузился, ждём.
   if (!hookMedCore()) {
     var attempts = 0;
     var interval = setInterval(function () {
@@ -244,7 +239,7 @@
         <div class="floating-summary-empty">Пока ничего не заполнено</div>
       </div>
       <div class="floating-summary-footer">
-        <a href="/index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
+        <a href="../../index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
       </div>
     `;
     document.body.appendChild(panel);
