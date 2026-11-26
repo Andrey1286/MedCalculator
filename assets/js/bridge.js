@@ -51,17 +51,12 @@
 
       // УЛУЧШЕННОЕ извлечение значения
       var textValue = '';
-      
-      // Сначала пробуем получить из .value
       var valueEl = el.querySelector('.value');
       if (valueEl) {
         textValue = valueEl.textContent.trim();
       }
-      
-      // Если не получилось - берём весь текст из .result
       if (!textValue) {
         textValue = el.textContent.trim();
-        // Убираем служебные тексты
         textValue = textValue.replace(/Целевая.*?см/g, '').trim();
         textValue = textValue.replace(/\s+/g, ' ').trim();
       }
@@ -233,7 +228,7 @@
         <div class="floating-summary-empty">Пока ничего не заполнено</div>
       </div>
       <div class="floating-summary-footer">
-        <a href="../index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
+        <a href="/index.html" target="_blank" rel="noopener">Открыть полную сводку →</a>
       </div>
     `;
     document.body.appendChild(panel);
