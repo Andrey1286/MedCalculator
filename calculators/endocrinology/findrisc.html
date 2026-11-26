@@ -137,6 +137,37 @@
       color: var(--danger);
       border-left: 4px solid var(--danger);
     }
+
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -269,16 +300,25 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      function num(id) {
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
         var el = document.getElementById(id);
         if (!el) return NaN;
-        var v = parseFloat(el.value);
+        var v = parseFloat(el.value.replace(',', '.'));
         return isNaN(v) ? NaN : v;
       }
 
       function radioVal(name) {
         var el = document.querySelector('input[name="' + name + '"]:checked');
         return el ? el.value : null;
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['findrisc'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       function renderFrScale(value) {
@@ -303,14 +343,15 @@
         var fam = radioVal('fr-fam');
         var el = document.getElementById('fr-result');
 
-        if (!g) { MedCore.showEmpty(el, 'Выберите пол'); return; }
-        if (age === null) { MedCore.showEmpty(el, 'Выберите возраст'); return; }
+        if (!g) { MedCore.showEmpty(el, 'Выберите пол'); clearSummary(); return; }
+        if (age === null) { MedCore.showEmpty(el, 'Выберите возраст'); clearSummary(); return; }
 
-        var w = num('fr-weight'), h = num('fr-height'), waist = num('fr-waist');
-        if (!w || !h) { MedCore.showEmpty(el, 'Введите вес и рост'); return; }
-        if (!waist) { MedCore.showEmpty(el, 'Введите окружность талии'); return; }
+        var w = getNum('fr-weight'), h = getNum('fr-height'), waist = getNum('fr-waist');
+        if (!w || !h) { MedCore.showEmpty(el, 'Введите вес и рост'); clearSummary(); return; }
+        if (!waist) { MedCore.showEmpty(el, 'Введите окружность талии'); clearSummary(); return; }
         if (act === null || veg === null || bp === null || glu === null || fam === null) {
           MedCore.showEmpty(el, 'Ответьте на все вопросы');
+          clearSummary();
           return;
         }
 
@@ -357,13 +398,68 @@
         }
 
         el.className = 'result ' + cls;
+        el.style.position = 'relative';
         el.innerHTML =
+          '<button class="copy-result-btn" id="fr-copy-btn" title="Копировать результат">📋</button>' +
           '<div class="big-score">' + total + '</div>' +
           '<div class="ref" style="text-align:center;">из 26 баллов</div>' +
           '<div class="banner ' + cls + '"><b>' + title + '</b> — вероятность за 10 лет: ' + prob + '.<br>' + advice + '</div>' +
           '<div class="ref">ИМТ: ' + bmi.toFixed(1) + ' кг/м²</div>';
 
         renderFrScale(total);
+
+        // ====== Сохранение в сводку ======
+        var summaryText = total + ' из 26 баллов: ' + title + ' (вероятность за 10 лет: ' + prob + ')';
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('findrisc', 'FINDRISC', summaryText, '', cls);
+        }
+
+        // ====== Кнопка копирования ======
+        var copyBtn = document.getElementById('fr-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'FINDRISC: ' + total + ' из 26 баллов — ' + title + '\n' +
+              'Вероятность развития диабета 2 типа за 10 лет: ' + prob + '\n' +
+              advice + '\n' +
+              'ИМТ: ' + bmi.toFixed(1) + ' кг/м²';
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(text, copyBtn);
+              });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       document.getElementById('fr-calc-btn').addEventListener('click', calcFindrisc);
@@ -375,9 +471,13 @@
         ['fr-weight', 'fr-height', 'fr-waist'].forEach(function (id) {
           document.getElementById(id).value = '';
         });
+        document.querySelectorAll('.radio-item').forEach(function (item) {
+          item.classList.remove('checked');
+        });
         MedCore.showEmpty(document.getElementById('fr-result'), 'Ответьте на вопросы и нажмите «Рассчитать риск»');
         var s = document.getElementById('fr-scale');
         if (s) s.style.display = 'none';
+        clearSummary();
       });
 
       document.querySelectorAll('.radio-item input').forEach(function (inp) {
