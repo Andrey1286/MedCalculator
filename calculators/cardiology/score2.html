@@ -318,16 +318,20 @@
           MedCore.showEmpty(el, 'Введите возраст, САД, общий холестерин и ЛПВП');
           var s = document.getElementById('s2-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку при неполных данных
+          clearSummary();
           return;
         }
 
         if (age < 40 || age > 89) {
           MedCore.showEmpty(el, 'SCORE2 применим для 40–89 лет');
+          clearSummary();
           return;
         }
 
         if (hdl >= tc) {
           MedCore.showEmpty(el, 'ЛПВП должен быть меньше общего холестерина');
+          clearSummary();
           return;
         }
 
@@ -374,10 +378,26 @@
           '<div class="sub-value">' + nonHdl + ' ммоль/л</div>' +
           '</div>';
 
+        // Рендерим результат на экране
         MedCore.render(el, risk.toFixed(1), ' %', label, cls,
           model + ' · точный расчёт · РФ (очень высокий риск)', extra);
 
         renderScale(risk);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "8.5 % — Умеренный риск"
+          var summaryText = risk.toFixed(1) + ' % — ' + label;
+          MedCore.saveToSummary('score2', 'SCORE2', summaryText, '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['score2'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       MedCore.bindCalc(['s2-age', 's2-sbp', 's2-tc', 's2-hdl'], calcSCORE2);
