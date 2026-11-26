@@ -130,6 +130,8 @@
           MedCore.showEmpty(el, 'Отметьте имеющиеся критерии');
           var s = document.getElementById('wells-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку при отсутствии данных
+          clearSummary();
           return;
         }
 
@@ -148,8 +150,41 @@
           advice = 'Показан D-димер. При отрицательном → ТЭЛА исключена.';
         }
 
-        MedCore.render(el, score.toFixed(1).replace('.0',''), ' баллов', label, cls, advice);
+        // Форматируем число: убираем ".0", если оно есть (например, 4.0 -> 4)
+        var scoreDisplay = score.toFixed(1).replace('.0','');
+        
+        MedCore.render(el, scoreDisplay, ' баллов', label, cls, advice);
         renderWellsScale(score);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "4.5 балла — Умеренная вероятность"
+          var summaryText = scoreDisplay + ' балл' + (scoreDisplay == 1 ? '' : (scoreDisplay % 1 === 0 && scoreDisplay > 1 && scoreDisplay < 5 ? 'а' : 'ов')) + ' — ' + label;
+          // Для упрощения склонения используем универсальное "баллов" или простую логику, 
+          // но так как тут могут быть дроби (1.5, 4.5), лучше использовать общую форму или просто число.
+          // Исправим склонение для дробей: всегда "баллов" или "балла" не совсем корректно для 1.5.
+          // Простое решение: "4.5 баллов".
+          var simpleUnit = 'баллов'; 
+          if (scoreDisplay.indexOf('.') === -1) {
+             var n = parseInt(scoreDisplay);
+             if (n === 1) simpleUnit = 'балл';
+             else if (n >= 2 && n <= 4) simpleUnit = 'балла';
+             else simpleUnit = 'баллов';
+          } else {
+             simpleUnit = 'баллов'; // для дробей обычно множественное число
+          }
+          
+          var finalSummaryText = scoreDisplay + ' ' + simpleUnit + ' — ' + label;
+          MedCore.saveToSummary('wells', 'Wells (ТЭЛА)', finalSummaryText, '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['wells'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       document.querySelectorAll('.wells-check').forEach(function (c) {
