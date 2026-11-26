@@ -21,7 +21,6 @@
     .qtitle:first-child { margin-top: 0; }
 
     .checks { display: grid; gap: 8px; }
-
     .check {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 14px;
@@ -61,11 +60,41 @@
     .result-table th, .result-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
     .result-table th { background: var(--info); font-weight: 700; }
     .result-table td:last-child { text-align: right; font-weight: 600; }
+
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+    }
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
 
   <div class="top-stripe"></div>
+
   <div class="wrap">
 
     <header>
@@ -73,8 +102,11 @@
         <h1>Подбор дозы НОАК</h1>
         <p class="subtitle">Антикоагулянты</p>
       </div>
+
       <div class="header-controls">
-        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+        <a class="file-btn" href="../../index.html">
+          <span>←</span> На главную
+        </a>
       </div>
     </header>
 
@@ -85,34 +117,49 @@
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="grid">
+
             <div class="field">
               <label>Возраст (лет)</label>
               <input type="number" id="noac-age" step="1" placeholder="Например, 72" data-min="18" data-max="120">
               <div class="field-error" id="noac-age-error"></div>
             </div>
+
             <div class="field">
               <label>Вес (кг)</label>
               <input type="number" id="noac-weight" step="0.1" placeholder="Например, 58" data-min="20" data-max="300">
               <div class="field-error" id="noac-weight-error"></div>
             </div>
+
             <div class="field">
               <label>СКФ (мл/мин/1.73м²)</label>
               <input type="number" id="noac-gfr" step="1" placeholder="Например, 45" data-min="5" data-max="200">
               <div class="field-error" id="noac-gfr-error"></div>
               <div class="hint">CKD-EPI или Кокрофт-Голт. При СКФ &lt;15 НОАК обычно противопоказаны.</div>
             </div>
+
           </div>
 
           <div class="qtitle">Дополнительные факторы</div>
+
           <div class="checks">
-            <label class="check"><input type="checkbox" id="noac-crp"><span class="box"></span><span class="lbl">Креатинин ≥133 мкмоль/л (≥1.5 мг/дл)</span></label>
-            <label class="check"><input type="checkbox" id="noac-pgp"><span class="box"></span><span class="lbl">Приём сильных ингибиторов P-gp (амиодарон, верапамил, дронедарон, кетоконазол и др.)</span></label>
+            <label class="check">
+              <input type="checkbox" id="noac-crp">
+              <span class="box"></span>
+              <span class="lbl">Креатинин ≥133 мкмоль/л (≥1.5 мг/дл)</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="noac-pgp">
+              <span class="box"></span>
+              <span class="lbl">Приём сильных ингибиторов P-gp (амиодарон, верапамил, дронедарон, кетоконазол и др.)</span>
+            </label>
           </div>
 
           <div class="banner info" style="margin-top:14px">
             <strong>Важно:</strong> калькулятор предназначен для профилактики инсульта при неклапанной фибрилляции предсердий. Для ТЭЛА/ТГВ, механических клапанов или стеноза митрального клапана дозировки другие. Окончательное решение принимает врач.
           </div>
+
         </div>
 
         <div class="panel-result-col">
@@ -139,6 +186,15 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+      // ====== Вспомогательная функция для обработки запятой как точки ======
+      function getNum(id) {
+        var inp = document.getElementById(id);
+        if (!inp) return NaN;
+        var val = inp.value.replace(',', '.');
+        var num = parseFloat(val);
+        return isNaN(num) ? NaN : num;
+      }
+
       // Стилизация чекбоксов
       document.querySelectorAll('.check input').forEach(function (inp) {
         inp.addEventListener('change', function () {
@@ -147,15 +203,23 @@
       });
 
       function calcNOAC() {
-        var age = MedCore.num('noac-age');
-        var weight = MedCore.num('noac-weight');
-        var gfr = MedCore.num('noac-gfr');
+        var age = getNum('noac-age');
+        var weight = getNum('noac-weight');
+        var gfr = getNum('noac-gfr');
         var crpHigh = document.getElementById('noac-crp').checked;
         var pgpInhibitor = document.getElementById('noac-pgp').checked;
         var el = document.getElementById('noac-result');
 
         if (!age || !weight || !gfr) {
           MedCore.showEmpty(el, 'Введите возраст, вес и СКФ');
+          // Очищаем сводку, если данные неполные
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            try {
+              var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+              delete data['noac'];
+              localStorage.setItem('medcalc-summary', JSON.stringify(data));
+            } catch (e) {}
+          }
           return;
         }
 
@@ -170,6 +234,7 @@
         if (age >= 80) apxCriteria++;
         if (weight <= 60) apxCriteria++;
         if (crpHigh) apxCriteria++;
+
         var apxDose = apxCriteria >= 2 ? '2.5 мг × 2' : '5 мг × 2';
         var apxNote = apxCriteria >= 2
           ? 'Снижение дозы: ≥2 критерия (возраст ≥80, вес ≤60, Cr ≥133)'
@@ -214,7 +279,10 @@
           edxNote = 'Стандартная доза';
         }
 
-        var tableHtml = '<table class="result-table">' +
+        var tableHtml = '<button class="copy-result-btn" id="noac-copy-btn" title="Копировать результат">📋</button>' +
+          '<div class="value">Подобрано</div>' +
+          '<div class="ref">Возраст ' + age + ' · Вес ' + weight + ' кг · СКФ ' + gfr + '</div>' +
+          '<table class="result-table">' +
           '<tr><th>Препарат</th><th>Доза</th><th>Основание</th></tr>' +
           '<tr><td>Апиксабан</td><td>' + apxDose + '</td><td>' + apxNote + '</td></tr>' +
           '<tr><td>Ривароксабан</td><td>' + rvxDose + '</td><td>' + rvxNote + '</td></tr>' +
@@ -223,12 +291,61 @@
           '</table>';
 
         el.className = 'result ok';
-        el.innerHTML = '<div class="value">Подобрано</div>' +
-          '<div class="ref">Возраст ' + age + ' · Вес ' + weight + ' кг · СКФ ' + gfr + '</div>' +
-          tableHtml;
+        el.innerHTML = tableHtml;
 
-        MedCore.attachCopyButtons();
-        MedCore.updateCopyButtons();
+        // ====== Кнопка копирования ======
+        var copyBtn = document.getElementById('noac-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'НОАК при ФП (возраст ' + age + ', вес ' + weight + ' кг, СКФ ' + gfr + '):\n' +
+              '• Апиксабан: ' + apxDose + ' — ' + apxNote + '\n' +
+              '• Ривароксабан: ' + rvxDose + ' — ' + rvxNote + '\n' +
+              '• Дабигатран: ' + dbgDose + ' — ' + dbgNote + '\n' +
+              '• Эдоксабан: ' + edxDose + ' — ' + edxNote;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(text, copyBtn);
+              });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+
+        // ====== Сохранение в сводку — полная информация ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          var summaryText = 'Апиксабан ' + apxDose + ' · Ривароксабан ' + rvxDose + ' · Дабигатран ' + dbgDose + ' · Эдоксабан ' + edxDose;
+          MedCore.saveToSummary('noac', 'НОАК при ФП', summaryText, '', 'ok');
+        }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       MedCore.bindCalc(['noac-age', 'noac-weight', 'noac-gfr'], calcNOAC);
