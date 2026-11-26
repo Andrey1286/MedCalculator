@@ -129,6 +129,37 @@
       text-align: right;
       font-weight: 600;
     }
+
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -215,11 +246,15 @@
             <span>Приём препаратов, нарушающих метаболизм витамина D (противосудорожные, глюкокортикоиды, противотуберкулёзные, антиретровирусные и др.)</span>
           </label>
 
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary" id="vd-calc-btn">Рассчитать</button>
+          </div>
+
         </div>
 
         <div class="panel-result-col">
           <div class="result" id="vd-result">
-            <span class="empty-msg">Введите уровень 25(OH)D и возраст</span>
+            <span class="empty-msg">Введите данные и нажмите «Рассчитать»</span>
           </div>
         </div>
 
@@ -256,7 +291,7 @@
           return;
         }
 
-        if (age < 18) {
+        if (!age || age < 18) {
           MedCore.showEmpty(el, 'Калькулятор предназначен для лиц 18 лет и старше');
           return;
         }
@@ -313,37 +348,82 @@
         }
 
         el.className = 'result ' + cls;
-        el.innerHTML = '<div class="big-score">' + ng.toFixed(1) + '</div>' +
+        el.style.position = 'relative';
+        el.innerHTML = '<button class="copy-result-btn" id="vd-copy-btn" title="Копировать результат">📋</button>' +
+                       '<div class="big-score">' + ng.toFixed(1) + '</div>' +
                        '<div class="ref" style="text-align:center;">нг/мл</div>' +
                        '<div class="banner ' + cls + '"><b>' + status + '</b></div>' +
                        riskNote + schemeBlock;
 
-        // ====== Сохранение в сводку ======
+        // ====== Текст для копирования и сводки ======
         var summaryText = ng.toFixed(1) + ' нг/мл: ' + status;
-        
+
         if (schemes) {
-          // Преобразуем HTML-таблицу в компактный читаемый текст для сводки
-          var plainSchemes = schemes.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+          var plainSchemes = schemes
+            .replace(/<\/td>\s*<td>/g, ' — ')
+            .replace(/<\/tr>/g, '; ')
+            .replace(/<[^>]+>/g, '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/;\s*$/, '');
           summaryText += '. Насыщение: ' + plainSchemes;
         }
-        
+
         if (factors) {
           summaryText += ' (Потребность повышена: дозы могут быть в 2–3 раза выше)';
         }
 
+        // ====== Кнопка копирования ======
+        var copyBtn = document.getElementById('vd-copy-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var text = 'Витамин D: ' + summaryText;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(function () {
+                copyBtn.classList.add('copied');
+                copyBtn.textContent = '✓';
+                setTimeout(function () {
+                  copyBtn.classList.remove('copied');
+                  copyBtn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(text, copyBtn);
+              });
+            } else {
+              fallbackCopy(text, copyBtn);
+            }
+          });
+        }
+
+        // ====== Сохранение в сводку ======
         if (window.MedCore && window.MedCore.saveToSummary) {
           MedCore.saveToSummary('vitd', 'Витамин D', summaryText, '', cls);
         }
       }
 
-      document.getElementById('vd-level').addEventListener('input', calcVitD);
-      document.getElementById('vd-units').addEventListener('change', calcVitD);
-      document.getElementById('vd-age').addEventListener('input', calcVitD);
-      document.getElementById('vd-obesity').addEventListener('change', calcVitD);
-      document.getElementById('vd-malabs').addEventListener('change', calcVitD);
-      document.getElementById('vd-meds').addEventListener('change', calcVitD);
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
+      }
 
-      calcVitD();
+      document.getElementById('vd-calc-btn').addEventListener('click', calcVitD);
       MedCore.init();
 
     });
