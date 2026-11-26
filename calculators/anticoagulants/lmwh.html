@@ -23,6 +23,39 @@
     .banner.danger { background: var(--danger-bg); color: var(--danger); border-left: 4px solid var(--danger); }
 
     .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    /* Стили для кнопки копирования */
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+      z-index: 10;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -109,17 +142,32 @@
 
         if (!weight || !gfr) {
           MedCore.showEmpty(el, 'Введите вес и СКФ');
+          // Удаляем старую кнопку, если была
+          var oldBtn = el.querySelector('.copy-result-btn');
+          if (oldBtn) oldBtn.remove();
+          // Очищаем сводку
+          clearSummary();
           return;
         }
 
         if (gfr < 5) {
-          MedCore.render(el, '—', '', 'Противопоказано', 'danger',
-            'При СКФ <5 мл/мин НМГ противопоказаны. Рассмотрите нефракционированный гепарин.');
+          el.style.position = 'relative';
+          el.className = 'result danger';
+          el.innerHTML = '<button class="copy-result-btn" id="lmwh-copy-btn" title="Копировать результат">📋</button>' +
+            '<div class="value">—</div>' +
+            '<div class="ref">Противопоказано</div>' +
+            '<div class="ref">При СКФ <5 мл/мин НМГ противопоказаны. Рассмотрите нефракционированный гепарин.</div>';
+          
+          setupCopyButton('Противопоказано (СКФ <5)', el);
+          
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('lmwh', 'НМГ (эноксапарин)', 'Противопоказано (СКФ <5)', '', 'danger');
+          }
           return;
         }
 
         var severeRenal = gfr < 30;
-        var dose, freq, note, cls;
+        var dose, freq, note, cls, summaryText;
 
         if (indication === 'treatment') {
           if (severeRenal) {
@@ -127,11 +175,13 @@
             freq = '× 1 раз/сут';
             note = 'СКФ <30: снижение дозы до 1 мг/кг × 1 раз/сут';
             cls = 'warn';
+            summaryText = dose + ' мг ' + freq + ' (Лечение, СКФ<30)';
           } else {
             dose = (1 * weight).toFixed(0);
             freq = '× 2 раза/сут';
             note = 'Стандартная лечебная доза';
             cls = 'ok';
+            summaryText = dose + ' мг ' + freq + ' (Лечение)';
           }
         } else if (indication === 'acs') {
           if (severeRenal) {
@@ -139,11 +189,13 @@
             freq = '× 1 раз/сут';
             note = 'СКФ <30: снижение дозы до 1 мг/кг × 1 раз/сут';
             cls = 'warn';
+            summaryText = dose + ' мг ' + freq + ' (ОКС, СКФ<30)';
           } else {
             dose = (1 * weight).toFixed(0);
             freq = '× 2 раза/сут';
             note = 'Стандартная доза при ОКС';
             cls = 'ok';
+            summaryText = dose + ' мг ' + freq + ' (ОКС)';
           }
         } else {
           // prophylaxis
@@ -152,11 +204,13 @@
             freq = '× 1 раз/сут';
             note = 'СКФ <30: профилактическая доза снижена';
             cls = 'warn';
+            summaryText = dose + ' мг ' + freq + ' (Профилактика, СКФ<30)';
           } else {
             dose = '40';
             freq = '× 1 раз/сут';
             note = 'Стандартная профилактическая доза';
             cls = 'ok';
+            summaryText = dose + ' мг ' + freq + ' (Профилактика)';
           }
         }
 
@@ -174,14 +228,72 @@
           '<tr><td>Доза эноксапарина</td><td>' + dose + ' мг ' + freq + '</td></tr>' +
           '</table>';
 
+        el.style.position = 'relative';
         el.className = 'result ' + cls;
-        el.innerHTML = '<div class="value">' + dose + ' мг</div>' +
+        el.innerHTML = '<button class="copy-result-btn" id="lmwh-copy-btn" title="Копировать результат">📋</button>' +
+          '<div class="value">' + dose + ' мг</div>' +
           '<div class="ref">' + freq + '</div>' +
           '<div class="ref">' + note + '</div>' +
           renalBanner + tableHtml;
 
-        MedCore.attachCopyButtons();
-        MedCore.updateCopyButtons();
+        setupCopyButton(summaryText, el);
+
+        // Сохранение в сводку
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          MedCore.saveToSummary('lmwh', 'НМГ (эноксапарин)', summaryText, '', cls);
+        }
+      }
+
+      function setupCopyButton(text, container) {
+        var btn = document.getElementById('lmwh-copy-btn');
+        if (btn) {
+          btn.addEventListener('click', function () {
+            var fullText = 'НМГ (эноксапарин): ' + text;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(fullText).then(function () {
+                btn.classList.add('copied');
+                btn.textContent = '✓';
+                setTimeout(function () {
+                  btn.classList.remove('copied');
+                  btn.textContent = '📋';
+                }, 2000);
+              }).catch(function () {
+                fallbackCopy(fullText, btn);
+              });
+            } else {
+              fallbackCopy(fullText, btn);
+            }
+          });
+        }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['lmwh'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       MedCore.bindCalc(['lmwh-weight', 'lmwh-gfr'], calcLMWH);
