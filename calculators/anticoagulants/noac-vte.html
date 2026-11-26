@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>НОАК при ВТЭ — медицинские калькуляторы</title>
+
+  <link rel="stylesheet" href="../../assets/css/base.css">
+  <script src="../../assets/js/core.js"></script>
+  <script src="../../assets/js/bridge.js"></script>
+
+  <style>
+    a.file-btn { text-decoration: none; }
+
+    .input-with-unit {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .input-with-unit input[type="number"] {
+      width: 100%;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+
+    .unit-select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--info);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: inherit;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: border-color .18s, background .18s;
+    }
+
+    .unit-select:hover { background: var(--accent-soft); }
+    .unit-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    .phase-block {
+      background: var(--info);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .phase-title {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .dose-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .88rem;
+    }
+
+    .dose-row:last-child { border-bottom: none; }
+
+    .dose-label { color: var(--muted); flex: 1; }
+
+    .dose-value { font-weight: 700; color: var(--text); text-align: right; }
+
+    .duration-block {
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: .9rem;
+    }
+
+    .duration-title {
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .duration-text { color: var(--text); line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div class="top-stripe"></div>
+  <div class="wrap">
+
+    <header>
+      <div>
+        <h1>НОАК при ВТЭ (ТГВ/ТЭЛА)</h1>
+        <p class="subtitle">Антикоагулянты</p>
+      </div>
+      <div class="header-controls">
+        <a class="file-btn" href="../../index.html"><span>←</span> На главную</a>
+      </div>
+    </header>
+
+    <div class="panel active panel-wide-result" id="panel-noac-vte">
+      <h2>НОАК при венозных тромбоэмболиях</h2>
+      <p class="desc">Дозировка и длительность терапии при ТГВ и ТЭЛА</p>
+
+      <div class="panel-body">
+
+        <div class="panel-fields-col">
+          <div class="grid">
+            <div class="field">
+              <label>Препарат</label>
+              <select id="vte-drug">
+                <option value="rivaroxaban">Ривароксабан (Ксарелто)</option>
+                <option value="apixaban">Апиксабан (Эликвис)</option>
+                <option value="dabigatran">Дабигатран (Прадакса)</option>
+                <option value="edoxaban">Эдоксабан (Ликсиана)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Тип ВТЭ</label>
+              <select id="vte-type">
+                <option value="provoked">Провоцированный (хирургия, травма, иммобилизация)</option>
+                <option value="unprovoked">Непровоцированный</option>
+                <option value="cancer">Рак-ассоциированный</option>
+                <option value="recurrent">Рецидив ВТЭ</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Локализация</label>
+              <select id="vte-location">
+                <option value="dvt">ТГВ (тромбоз глубоких вен)</option>
+                <option value="pe">ТЭЛА (тромбоэмболия лёгочной артерии)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:14px">
+            <div class="field">
+              <label>Возраст (лет)</label>
+              <input type="number" id="vte-age" step="1" placeholder="Например, 65" data-min="18" data-max="120">
+              <div class="field-error" id="vte-age-error"></div>
+            </div>
+
+            <div class="field">
+              <label>Вес (кг)</label>
+              <input type="number" id="vte-weight" step="0.1" placeholder="Например, 75" data-min="30" data-max="300">
+              <div class="field-error" id="vte-weight-error"></div>
+            </div>
+
+            <div class="field">
+              <label>СКФ (мл/мин/1.73м²)</label>
+              <input type="number" id="vte-gfr" step="1" placeholder="Например, 70" data-min="15" data-max="200">
+              <div class="field-error" id="vte-gfr-error"></div>
+              <div class="hint">Используйте калькулятор СКФ для расчёта</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-result-col">
+          <div class="result" id="vte-result">
+            <span class="empty-msg">Выберите препарат и введите параметры</span>
+          </div>
+        </div>
+
+      </div>
+
+      <details class="note">
+        <summary>О дозировках и длительности</summary>
+        <div class="note-content">
+          <p><strong>Первичная фаза (первые 7–21 день):</strong> повышенная доза для быстрого достижения терапевтического эффекта.</p>
+          <p><strong>Поддерживающая фаза:</strong> стандартная доза для длительной терапии.</p>
+          <p><strong>Длительность:</strong></p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>Провоцированный ВТЭ — 3 месяца</li>
+            <li>Непровоцированный ВТЭ — минимум 3–6 месяцев, часто пожизненно</li>
+            <li>Рак-ассоциированный ВТЭ — пока активен рак (обычно 6+ месяцев)</li>
+            <li>Рецидив ВТЭ — пожизненно</li>
+          </ul>
+          <p><strong>Важно:</strong> при СКФ <30 мл/мин НОАК противопоказаны или требуют коррекции дозы. При весе ≤60 кг или возрасте ≥80 лет рассмотрите снижение дозы.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      function calcVTE() {
+        var drug = document.getElementById('vte-drug').value;
+        var type = document.getElementById('vte-type').value;
+        var location = document.getElementById('vte-location').value;
+        var age = MedCore.num('vte-age');
+        var weight = MedCore.num('vte-weight');
+        var gfr = MedCore.num('vte-gfr');
+        var el = document.getElementById('vte-result');
+
+        if (!age || !weight || !gfr) {
+          MedCore.showEmpty(el, 'Выберите препарат и введите параметры');
+          return;
+        }
+
+        var html = '';
+        var drugName = '';
+        var initialDose = '';
+        var maintenanceDose = '';
+        var duration = '';
+        var warnings = [];
+
+        // Проверка СКФ
+        if (gfr < 15) {
+          warnings.push('СКФ <15 мл/мин — НОАК противопоказаны. Рассмотрите варфарин.');
+        } else if (gfr < 30) {
+          warnings.push('СКФ 15–29 мл/мин — требуется коррекция дозы или противопоказание.');
+        }
+
+        // Ривароксабан
+        if (drug === 'rivaroxaban') {
+          drugName = 'Ривароксабан (Ксарелто)';
+          if (gfr >= 30) {
+            initialDose = '15 мг 2 раза/день — 21 день';
+            maintenanceDose = '20 мг 1 раз/день с пищей';
+          } else {
+            initialDose = '15 мг 2 раза/день — 21 день';
+            maintenanceDose = '15 мг 1 раз/день с пищей';
+            warnings.push('СКФ 15–29 мл/мин — снижена поддерживающая доза.');
+          }
+        }
+
+        // Апиксабан
+        else if (drug === 'apixaban') {
+          drugName = 'Апиксабан (Эликвис)';
+          if (gfr >= 15) {
+            initialDose = '10 мг 2 раза/день — 7 дней';
+            maintenanceDose = '5 мг 2 раза/день';
+          } else {
+            warnings.push('СКФ <15 мл/мин — апиксабан не рекомендуется.');
+          }
+        }
+
+        // Дабигатран
+        else if (drug === 'dabigatran') {
+          drugName = 'Дабигатран (Прадакса)';
+          if (gfr >= 30) {
+            initialDose = 'После 5–10 дней парентеральной антикоагуляции (НМГ)';
+            maintenanceDose = '150 мг 2 раза/день';
+            if (age >= 80) {
+              maintenanceDose = '110 мг 2 раза/день';
+              warnings.push('Возраст ≥80 лет — снижена доза до 110 мг 2 раза/день.');
+            }
+          } else {
+            warnings.push('СКФ <30 мл/мин — дабигатран противопоказан.');
+          }
+        }
+
+        // Эдоксабан
+        else if (drug === 'edoxaban') {
+          drugName = 'Эдоксабан (Ликсиана)';
+          if (gfr >= 15 && gfr <= 95) {
+            initialDose = 'После 5–10 дней парентеральной антикоагуляции (НМГ)';
+            if (weight <= 60 || (gfr >= 15 && gfr <= 50)) {
+              maintenanceDose = '30 мг 1 раз/день';
+              warnings.push('Вес ≤60 кг или СКФ 15–50 мл/мин — снижена доза до 30 мг.');
+            } else {
+              maintenanceDose = '60 мг 1 раз/день';
+            }
+          } else if (gfr > 95) {
+            warnings.push('СКФ >95 мл/мин — эдоксабан не рекомендуется (повышен риск рецидива).');
+          } else {
+            warnings.push('СКФ <15 мл/мин — эдоксабан противопоказан.');
+          }
+        }
+
+        // Длительность терапии
+        if (type === 'provoked') {
+          duration = '3 месяца';
+        } else if (type === 'unprovoked') {
+          duration = 'Минимум 3–6 месяцев, рассмотрите пожизненную терапию при низком риске кровотечений';
+        } else if (type === 'cancer') {
+          duration = 'Пока активен рак (обычно 6+ месяцев). Рассмотрите апиксабан или ривароксабан как препараты выбора';
+        } else if (type === 'recurrent') {
+          duration = 'Пожизненная терапия';
+        }
+
+        // Формирование HTML
+        html += '<div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;">' + drugName + '</div>';
+
+        if (warnings.length > 0) {
+          html += '<div class="banner danger" style="margin-bottom: 12px;">';
+          warnings.forEach(function (w) {
+            html += '<div style="margin-bottom: 4px;">⚠ ' + w + '</div>';
+          });
+          html += '</div>';
+        }
+
+        if (initialDose && maintenanceDose) {
+          html += '<div class="phase-block">';
+          html += '<div class="phase-title">Первичная фаза (первые 7–21 день)</div>';
+          html += '<div class="dose-row"><span class="dose-label">Доза:</span><span class="dose-value">' + initialDose + '</span></div>';
+          html += '</div>';
+
+          html += '<div class="phase-block">';
+          html += '<div class="phase-title">Поддерживающая фаза</div>';
+          html += '<div class="dose-row"><span class="dose-label">Доза:</span><span class="dose-value">' + maintenanceDose + '</span></div>';
+          html += '</div>';
+        }
+
+        html += '<div class="duration-block">';
+        html += '<div class="duration-title">Рекомендуемая длительность терапии</div>';
+        html += '<div class="duration-text">' + duration + '</div>';
+        html += '</div>';
+
+        el.innerHTML = html;
+        el.className = 'result';
+
+        // Сохранение в сводку
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          var summaryValue = drugName + ': ' + maintenanceDose;
+          MedCore.saveToSummary('noac-vte', 'НОАК при ВТЭ', summaryValue, '', '');
+        }
+      }
+
+      MedCore.bindCalc(['vte-age', 'vte-weight', 'vte-gfr'], calcVTE);
+      document.getElementById('vte-drug').addEventListener('change', calcVTE);
+      document.getElementById('vte-type').addEventListener('change', calcVTE);
+      document.getElementById('vte-location').addEventListener('change', calcVTE);
+
+      calcVTE();
+      MedCore.init();
+
+    });
+  </script>
+
+</body>
+</html>
