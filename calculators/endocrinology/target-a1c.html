@@ -14,139 +14,35 @@
       text-decoration: none;
     }
 
-    .input-with-unit {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      width: 100%;
-    }
-
-    .input-with-unit input[type="number"] {
-      width: 100%;
-      border-radius: 8px;
-      border: 1.5px solid var(--border);
-    }
-
-    .unit-select {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--info);
-      color: var(--text);
-      font-size: 0.78rem;
-      font-weight: 600;
-      font-family: inherit;
-      padding: 6px 10px;
-      cursor: pointer;
-      transition: border-color .18s, background .18s;
-    }
-
-    .unit-select:hover {
-      background: var(--accent-soft);
-    }
-
-    .unit-select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-soft);
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 9px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color .18s, background .18s;
-      font-size: .88rem;
-      margin-top: 6px;
-    }
-
-    .checkbox-item:hover {
-      border-color: var(--accent);
-      background: var(--info);
-    }
-
-    .checkbox-item input {
-      margin-top: 3px;
-      accent-color: var(--accent);
-    }
-
-    .checkbox-item.checked {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-    }
-
-    .hint {
-      font-size: .72rem;
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
       color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .btn {
-      flex: 1 1 200px;
-      padding: 12px 16px;
-      font-size: .95rem;
-      font-weight: 600;
-      border-radius: 10px;
-      border: 1.5px solid transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
       cursor: pointer;
-      transition: background .18s, transform .1s, box-shadow .18s;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
     }
 
-    .btn:active {
-      transform: scale(.98);
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(37,99,235,.25);
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 4px 14px rgba(37,99,235,.35);
-    }
-
-    .big-score {
-      font-size: 2.2rem;
-      font-weight: 800;
-      text-align: center;
-      margin: 6px 0;
-    }
-
-    .banner {
-      padding: 12px 14px;
-      border-radius: 10px;
-      margin-top: 12px;
-      font-size: .9rem;
-    }
-
-    .banner.ok {
+    .copy-result-btn.copied {
       background: var(--ok-bg);
       color: var(--ok);
-      border-left: 4px solid var(--ok);
-    }
-
-    .banner.warn {
-      background: var(--warn-bg);
-      color: var(--warn);
-      border-left: 4px solid var(--warn);
-    }
-
-    .banner.danger {
-      background: var(--danger-bg);
-      color: var(--danger);
-      border-left: 4px solid var(--danger);
+      border-color: var(--ok);
     }
   </style>
 </head>
@@ -171,83 +67,75 @@
 
     <!-- ================= Целевой HbA1c ================= -->
     <div class="panel active" id="panel-target-a1c">
-      <h2>Целевой уровень HbA1c</h2>
-      <p class="desc">Индивидуальная цель по гликированному гемоглобину — для обсуждения с врачом</p>
+      <h2>Индивидуальная цель по HbA1c</h2>
+      <p class="desc">Определение целевого уровня гликированного гемоглобина с учётом возраста, стажа и коморбидности</p>
 
       <div class="panel-body">
 
         <div class="panel-fields-col">
+
           <div class="grid">
-
             <div class="field">
-              <label>Возрастная группа</label>
-              <select id="ta-age">
-                <option value="u45">До 45 лет</option>
-                <option value="45-59">45–59 лет</option>
-                <option value="60+">60 лет и старше</option>
-              </select>
+              <label>Возраст (лет)</label>
+              <input
+                type="number"
+                id="ta1c-age"
+                step="1"
+                placeholder="Например, 55"
+                data-min="18"
+                data-max="100"
+              >
+              <div class="field-error" id="ta1c-age-error"></div>
             </div>
 
             <div class="field">
-              <label>Текущий HbA1c (необязательно)</label>
-              <div class="input-with-unit">
-                <input
-                  type="number"
-                  id="ta-cur"
-                  step="0.1"
-                  placeholder="Например, 8.0"
-                  data-min="4"
-                  data-max="20"
-                  data-canonical-unit="percent"
-                  data-canonical="NaN"
-                  data-current-unit="percent"
-                >
-                <select class="unit-select" id="ta-cur-unit">
-                  <option value="percent" selected>%</option>
-                  <option value="mmol_mol">ммоль/моль</option>
-                </select>
-              </div>
-              <div class="field-error" id="ta-cur-error"></div>
+              <label>Стаж СД (лет)</label>
+              <input
+                type="number"
+                id="ta1c-duration"
+                step="1"
+                placeholder="Например, 5"
+                data-min="0"
+                data-max="80"
+              >
+              <div class="field-error" id="ta1c-duration-error"></div>
             </div>
-
           </div>
 
-          <div class="checkbox-item">
-            <input type="checkbox" id="ta-comp">
-            <span>
-              Есть тяжёлые осложнения диабета и/или риск тяжёлой гипогликемии
-              <div class="hint">
-                Риск тяжёлой гипогликемии: тяжёлая гипогликемия в анамнезе,
-                бессимптомная гипогликемия, длительность диабета более 10 лет,
-                ХБП С3–С5, деменция.
-              </div>
-            </span>
+          <div class="checks" style="margin-top: 14px;">
+            <label class="check">
+              <input type="checkbox" id="ta1c-hypo">
+              <span class="box"></span>
+              <span class="lbl">Тяжёлые гипогликемии в анамнезе</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="ta1c-cvd">
+              <span class="box"></span>
+              <span class="lbl">Выраженные макро-/микрососудистые осложнения</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="ta1c-comorbidity">
+              <span class="box"></span>
+              <span class="lbl">Тяжёлые сопутствующие заболевания / ограниченная ожидаемая продолжительность жизни</span>
+            </label>
           </div>
 
-          <div class="checkbox-item">
-            <input type="checkbox" id="ta-ast">
-            <span>
-              Старческая астения, деменция или ожидаемая продолжительность жизни менее 5 лет
-            </span>
-          </div>
-
-          <div class="btn-row">
-            <button type="button" class="btn btn-primary" id="ta-calc-btn">Определить цель</button>
-          </div>
         </div>
 
         <div class="panel-result-col">
-          <div class="result" id="ta-result">
-            <span class="empty-msg">Выберите параметры и нажмите «Определить цель»</span>
+          <div class="result" id="ta1c-result">
+            <span class="empty-msg">Заполните данные для расчёта цели</span>
           </div>
         </div>
 
       </div>
 
       <details class="note">
-        <summary>Что с этим делать</summary>
+        <summary>Обоснование (ADA / Российские клинические рекомендации)</summary>
         <div class="note-content">
-          <p>Результат калькулятора — не назначение и не диагноз. Цель подбирает врач индивидуально. Калькулятор не относится к детям, подросткам и беременным женщинам.</p>
+          <p><strong>&lt; 6.5%:</strong> молодые пациенты, короткий стаж СД, отсутствие ССЗ и тяжёлых гипогликемий, длительная ожидаемая продолжительность жизни.</p>
+          <p><strong>&lt; 7.0%:</strong> стандартная цель для большинства взрослых пациентов с СД.</p>
+          <p><strong>&lt; 7.5% – 8.0%:</strong> пациенты пожилого возраста, длительный стаж СД, наличие тяжёлых осложнений, сопутствующих заболеваний или эпизодов тяжёлой гипогликемии.</p>
         </div>
       </details>
     </div>
@@ -257,113 +145,115 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
-      // ====== Работа с переключателем единиц для текущего HbA1c ======
-      var curInput = document.getElementById('ta-cur');
-      var curUnitSelect = document.getElementById('ta-cur-unit');
+      function calcTargetA1c() {
+        var age = MedCore.num('ta1c-age');
+        var duration = MedCore.num('ta1c-duration');
+        var hypo = document.getElementById('ta1c-hypo').checked;
+        var cvd = document.getElementById('ta1c-cvd').checked;
+        var comorbidity = document.getElementById('ta1c-comorbidity').checked;
+        var el = document.getElementById('ta1c-result');
 
-      function a1cToCanonical(rawValue, unit) {
-        if (isNaN(rawValue)) return NaN;
-        if (unit === 'mmol_mol') return rawValue / 10.929 + 2.15;
-        return rawValue;
-      }
-
-      function a1cFromCanonical(canonicalValue, unit) {
-        if (isNaN(canonicalValue)) return NaN;
-        if (unit === 'mmol_mol') return (canonicalValue - 2.15) * 10.929;
-        return canonicalValue;
-      }
-
-      function updateCurCanonical() {
-        var raw = parseFloat(curInput.value.replace(',', '.'));
-        if (isNaN(raw)) {
-          curInput.dataset.canonical = 'NaN';
+        if (!age || duration === null || duration < 0) {
+          MedCore.showEmpty(el, 'Введите возраст и стаж СД');
           return;
         }
-        var unit = curInput.dataset.currentUnit || 'percent';
-        var canonical = a1cToCanonical(raw, unit);
-        curInput.dataset.canonical = String(canonical);
-      }
 
-      function getCurCanonical() {
-        var v = parseFloat(curInput.dataset.canonical);
-        return isNaN(v) ? NaN : v;
-      }
+        var target, label, cls, explanation;
 
-      curInput.addEventListener('input', function () {
-        updateCurCanonical();
-      });
-
-      curUnitSelect.addEventListener('change', function () {
-        var newUnit = curUnitSelect.value;
-        var oldUnit = curInput.dataset.currentUnit || 'percent';
-        if (oldUnit === newUnit) return;
-
-        var canonical = getCurCanonical();
-        if (!isNaN(canonical)) {
-          var displayed = a1cFromCanonical(canonical, newUnit);
-          curInput.value = (Math.round(displayed * 100) / 100).toString();
-        }
-
-        curInput.dataset.currentUnit = newUnit;
-        curInput.placeholder = (newUnit === 'mmol_mol') ? 'Например, 64' : 'Например, 8.0';
-        updateCurCanonical();
-      });
-
-      // ====== Стилизация чекбоксов ======
-      document.querySelectorAll('.checkbox-item input').forEach(function (inp) {
-        inp.addEventListener('change', function () {
-          inp.closest('.checkbox-item').classList.toggle('checked', inp.checked);
-        });
-      });
-
-      // ====== Расчёт целевого HbA1c ======
-      function calcTarget() {
-        var age = document.getElementById('ta-age').value;
-        var comp = document.getElementById('ta-comp').checked;
-        var ast = document.getElementById('ta-ast').checked;
-        var cur = getCurCanonical();
-        var el = document.getElementById('ta-result');
-
-        var target, cls;
-
-        if (ast) {
-          target = 8.5;
-          cls = 'danger';
-        } else if (age === 'u45') {
-          target = comp ? 7.0 : 6.5;
-          cls = comp ? 'warn' : 'ok';
-        } else if (age === '45-59') {
-          target = comp ? 7.5 : 7.0;
+        if (comorbidity || hypo) {
+          target = '< 8.0%';
+          label = 'Менее строгий контроль';
           cls = 'warn';
+          explanation = 'Из-за риска гипогликемий или ограниченной продолжительности жизни';
+        } else if (age >= 65 || duration >= 15 || cvd) {
+          target = '< 7.5%';
+          label = 'Индивидуализированная цель';
+          cls = 'ok';
+          explanation = 'С учётом возраста, стажа или наличия осложнений';
+        } else if (age < 65 && duration < 10 && !cvd && !hypo) {
+          target = '< 6.5%';
+          label = 'Строгий контроль';
+          cls = 'ok';
+          explanation = 'При коротком стаже и отсутствии осложнений, если достигается без значимых гипогликемий';
         } else {
-          target = comp ? 8.0 : 7.5;
-          cls = 'warn';
+          target = '< 7.0%';
+          label = 'Стандартная цель';
+          cls = 'ok';
+          explanation = 'Рекомендовано для большинства взрослых пациентов';
         }
 
-        var eagMmol = (1.59 * target - 2.59).toFixed(1);
-        var eagMgdl = (28.7 * target - 46.7).toFixed(0);
+        // Используем MedCore.render, чтобы bridge.js перехватил это и отправил в сводку
+        MedCore.render(
+          el,
+          target,
+          '',
+          label,
+          cls,
+          explanation
+        );
 
-        var cmp = '';
-        if (cur && !isNaN(cur)) {
-          if (cur <= target) {
-            cmp = '<div class="banner ok">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — в пределах цели.</div>';
-          } else if (cur <= target + 1) {
-            cmp = '<div class="banner warn">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — чуть выше цели.</div>';
-          } else {
-            cmp = '<div class="banner danger">Ваш текущий HbA1c ' + cur.toFixed(1) + '% — заметно выше цели.</div>';
-          }
-        }
-
-        el.className = 'result ' + cls;
-        el.innerHTML =
-          '<div class="big-score">&lt; ' + target.toFixed(1) + ' %</div>' +
-          '<div class="ref" style="text-align:center;">целевой уровень HbA1c</div>' +
-          '<div class="banner ' + cls + '">Это соответствует средней глюкозе примерно <b>' + eagMmol + ' ммоль/л</b> (' + eagMgdl + ' мг/дл).</div>' +
-          cmp;
+        // Добавляем кнопку копирования
+        addCopyButton(el, target, label, explanation);
       }
 
-      document.getElementById('ta-calc-btn').addEventListener('click', calcTarget);
+      function addCopyButton(el, target, label, explanation) {
+        var oldBtn = el.querySelector('.copy-result-btn');
+        if (oldBtn) oldBtn.remove();
 
+        var btn = document.createElement('button');
+        btn.className = 'copy-result-btn';
+        btn.title = 'Копировать результат';
+        btn.innerHTML = '📋';
+        el.style.position = 'relative';
+        el.appendChild(btn);
+
+        btn.addEventListener('click', function () {
+          var text = 'Целевой HbA1c: ' + target + ' (' + label + ')\n' + explanation;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              btn.classList.add('copied');
+              btn.textContent = '✓';
+              setTimeout(function () {
+                btn.classList.remove('copied');
+                btn.textContent = '📋';
+              }, 2000);
+            }).catch(function () {
+              fallbackCopy(text, btn);
+            });
+          } else {
+            fallbackCopy(text, btn);
+          }
+        });
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '📋';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
+      }
+
+      // Привязываем ко всем полям
+      MedCore.bindCalc(['ta1c-age', 'ta1c-duration'], calcTargetA1c);
+      document.getElementById('ta1c-hypo').addEventListener('change', calcTargetA1c);
+      document.getElementById('ta1c-cvd').addEventListener('change', calcTargetA1c);
+      document.getElementById('ta1c-comorbidity').addEventListener('change', calcTargetA1c);
+
+      calcTargetA1c();
       MedCore.init();
 
     });
