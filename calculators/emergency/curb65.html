@@ -106,14 +106,26 @@
         });
       });
 
+      // Функция склонения слова "балл"
+      function getDeclension(number, one, two, five) {
+        var n = Math.abs(number);
+        n %= 100;
+        if (n >= 5 && n <= 20) return five;
+        n %= 10;
+        if (n === 1) return one;
+        if (n >= 2 && n <= 4) return two;
+        return five;
+      }
+
       function renderCurbScale(value) {
         var el = document.getElementById('curb-scale');
         if (!el) return;
+        var unitText = getDeclension(value, 'балл', 'балла', 'баллов');
         MedCore.renderMiniScale(el, value, 0, 5, [
           { until: 1.5, class: 'ok' },
           { until: 2.5, class: 'warn' },
           { until: 5, class: 'danger' }
-        ], 'Ваш CURB-65: <strong>' + value + ' балл(ов)</strong> · шкала 0–5');
+        ], 'Ваш CURB-65: <strong>' + value + ' ' + unitText + '</strong> · шкала 0–5');
       }
 
       function calcCURB() {
@@ -128,6 +140,8 @@
           MedCore.showEmpty(el, 'Отметьте имеющиеся критерии');
           var s = document.getElementById('curb-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку при отсутствии данных
+          clearSummary();
           return;
         }
 
@@ -146,9 +160,28 @@
           mort = '15–40%';
         }
 
-        MedCore.render(el, score, ' баллов', label, cls,
+        // Правильное склонение для экрана и сводки
+        var unitText = getDeclension(score, 'балл', 'балла', 'баллов');
+
+        MedCore.render(el, score, ' ' + unitText, label, cls,
           '30-дневная летальность: ' + mort);
+        
         renderCurbScale(score);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "2 балла — Госпитализация"
+          var summaryText = score + ' ' + unitText + ' — ' + label;
+          MedCore.saveToSummary('curb', 'CURB-65', summaryText, '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['curb'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       document.querySelectorAll('.curb-check').forEach(function (c) {
