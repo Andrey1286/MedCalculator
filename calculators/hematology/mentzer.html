@@ -67,7 +67,7 @@
       <details class="note">
         <summary>Формула, интерпретация и ограничения</summary>
         <div class="note-content">
-          <p><strong>Формула:</strong> Индекс Ментцера = MCV (фл) ÷ RBC (×10¹²/л).</p>
+          <p><strong>Формула:</strong> Индекс Ментцера = MCV (фл)  RBC (×10¹²/л).</p>
           <p><strong>&lt; 13</strong> — больше в пользу талассемии.</p>
           <p><strong>&gt; 13</strong> — больше в пользу железодефицитной анемии.</p>
           <p><strong>Ограничения:</strong> индекс не заменяет исследование ферритина, гемоглобина A2 и генетическое тестирование. При смешанных состояниях (ЖДА + талассемия) результат может быть недостоверным.</p>
@@ -98,6 +98,8 @@
           MedCore.showEmpty(el, 'Введите MCV и количество эритроцитов');
           var s = document.getElementById('mtz-scale');
           if (s) s.style.display = 'none';
+          // Очищаем сводку при неполных данных
+          clearSummary();
           return;
         }
 
@@ -112,9 +114,26 @@
           cls = 'ok';
         }
 
+        // Рендерим результат на экране
         MedCore.render(el, index.toFixed(2), '', label, cls,
           'MCV ' + mcv + ' ÷ RBC ' + rbc + ' = ' + index.toFixed(2));
+        
         renderMtzScale(index);
+
+        // ====== ЯВНОЕ СОХРАНЕНИЕ В СВОДКУ С ИНТЕРПРЕТАЦИЕЙ ======
+        if (window.MedCore && window.MedCore.saveToSummary) {
+          // Формируем строку: "10.83 — Талассемия вероятнее"
+          var summaryText = index.toFixed(2) + ' — ' + label;
+          MedCore.saveToSummary('mentzer', 'Индекс Ментцера', summaryText, '', cls);
+        }
+      }
+
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['mentzer'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
       }
 
       MedCore.bindCalc(['mtz-mcv', 'mtz-rbc'], calcMentzer);
