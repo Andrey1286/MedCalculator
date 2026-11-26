@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Опросник Бека — медицинские калькуляторы</title>
+<link rel="stylesheet" href="../../assets/css/base.css">
+<script src="../../assets/js/core.js"></script>
+<script src="../../assets/js/bridge.js"></script>
+<style>
+a.file-btn {
+text-decoration: none;
+}
+.qtitle {
+font-weight: 700;
+margin: 16px 0 8px;
+font-size: .92rem;
+color: var(--text);
+}
+.qtitle:first-child {
+margin-top: 0;
+}
+.section-title {
+font-weight: 700;
+margin: 20px 0 10px;
+font-size: 1rem;
+color: var(--accent);
+padding: 8px 12px;
+background: var(--accent-soft);
+border-radius: 8px;
+}
+.section-title:first-child {
+margin-top: 0;
+}
+.radio-group {
+display: grid;
+gap: 6px;
+margin-bottom: 10px;
+}
+.radio-item {
+display: flex;
+align-items: flex-start;
+gap: 10px;
+padding: 9px 12px;
+border: 1.5px solid var(--border);
+border-radius: 8px;
+cursor: pointer;
+transition: border-color .18s, background .18s;
+font-size: .88rem;
+}
+.radio-item:hover {
+border-color: var(--accent);
+background: var(--info);
+}
+.radio-item input {
+margin-top: 3px;
+accent-color: var(--accent);
+}
+.radio-item.checked {
+border-color: var(--accent);
+background: var(--accent-soft);
+}
+.hint {
+font-size: .72rem;
+color: var(--muted);
+margin-top: 4px;
+}
+.btn-row {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+margin-top: 16px;
+}
+.btn {
+flex: 1 1 200px;
+padding: 12px 16px;
+font-size: .95rem;
+font-weight: 600;
+border-radius: 10px;
+border: 1.5px solid transparent;
+cursor: pointer;
+transition: background .18s, transform .1s, box-shadow .18s;
+}
+.btn:active {
+transform: scale(.98);
+}
+.btn-primary {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+box-shadow: 0 2px 10px rgba(37,99,235,.25);
+}
+.btn-primary:hover {
+box-shadow: 0 4px 14px rgba(37,99,235,.35);
+}
+.btn-secondary {
+background: var(--card);
+color: var(--text);
+border-color: var(--border);
+}
+.btn-secondary:hover {
+background: var(--info);
+}
+.panel-result-col > .result + .result {
+margin-top: 12px;
+}
+.copy-result-btn {
+position: absolute;
+top: 10px;
+right: 10px;
+width: 32px;
+height: 32px;
+background: var(--card);
+color: var(--muted);
+border: 1px solid var(--border);
+border-radius: 6px;
+cursor: pointer;
+font-size: 1rem;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+transition: background .18s, color .18s, border-color .18s;
+padding: 0;
+}
+.copy-result-btn:hover {
+background: var(--accent-soft);
+color: var(--accent);
+border-color: var(--accent);
+}
+.copy-result-btn.copied {
+background: var(--ok-bg);
+color: var(--ok);
+border-color: var(--ok);
+}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<div class="wrap">
+<header>
+<div>
+<h1>Опросник Бека</h1>
+<p class="subtitle">Психиатрия</p>
+</div>
+<div class="header-controls">
+<a class="file-btn" href="../../index.html">
+<span>←</span> На главную
+</a>
+</div>
+</header>
+<!-- ================= Опросник Бека ================= -->
+<div class="panel active panel-wide-result" id="panel-beck">
+<h2>Шкалы тревоги и депрессии Бека</h2>
+<p class="desc">BAI (тревога) и BDI (депрессия) · по 21 вопросу в каждой шкале</p>
+<div class="panel-body">
+<div class="panel-fields-col">
+<div class="section-title">Шаг 1. Тревога (BAI)</div>
+<div class="hint">За последнюю неделю, включая сегодняшний день, насколько вас беспокоили следующие симптомы?</div>
+<div id="bai-questions"></div>
+<div class="section-title">Шаг 2. Депрессия (BDI)</div>
+<div class="hint">Выберите утверждение, которое лучше всего описывает ваше состояние за последние две недели.</div>
+<div id="bdi-questions"></div>
+<div class="btn-row">
+<button type="button" class="btn btn-primary" id="beck-calc-btn">Рассчитать</button>
+<button type="button" class="btn btn-secondary" id="beck-reset-btn">Сбросить</button>
+</div>
+</div>
+<div class="panel-result-col">
+<div class="result" id="beck-a-result">
+<span class="empty-msg">Ответьте на вопросы шкалы тревоги</span>
+</div>
+<div class="result" id="beck-d-result">
+<span class="empty-msg">Ответьте на вопросы шкалы депрессии</span>
+</div>
+</div>
+</div>
+<details class="note">
+<summary>Интерпретация шкал</summary>
+<div class="note-content">
+<p><strong>BAI (тревога):</strong> 0–7 — минимальная; 8–15 — лёгкая; 16–25 — умеренная; 26–63 — тяжёлая.</p>
+<p><strong>BDI (депрессия):</strong> 0–9 — нет депрессии; 10–15 — лёгкая; 16–29 — умеренная; 30–63 — тяжёлая.</p>
+<p><strong>Важно:</strong> шкалы Бека — скрининговые инструменты, а не диагностические. Диагноз ставится врачом по критериям МКБ/DSM. При суицидальных мыслях в BDI (вопрос 9) — срочная консультация психиатра.</p>
+</div>
+</details>
+</div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+var BAI_QUESTIONS = [
+'Онемение или покалывание в различных частях тела',
+'Ощущение жара',
+'Дрожь в ногах',
+'Невозможность расслабиться',
+'Страх, что случится самое худшее',
+'Головокружение или ощущение «предобморочности»',
+'Учащённое или сильное сердцебиение',
+'Ощущение неустойчивости',
+'Ужас или паника',
+'Нервозность',
+'Ощущение удушья',
+'Дрожь в руках',
+'Шаткость или неустойчивость',
+'Страх потерять контроль',
+'Затруднение дыхания',
+'Страх умереть',
+'Испуг',
+'Расстройство пищеварения / дискомфорт в животе',
+'Обморочность',
+'Приливы жара к лицу',
+'Потливость (не связанная с жарой)'
+];
+
+var BAI_OPTIONS = [
+{ value: 0, label: 'Совсем нет' },
+{ value: 1, label: 'Слабо выражено, не очень беспокоило' },
+{ value: 2, label: 'Умеренно выражено, было неприятно' },
+{ value: 3, label: 'Сильно выражено, было очень неприятно' }
+];
+
+var BDI_QUESTIONS = [
+{ text: 'Печаль', options: ['Я не чувствую себя расстроенным', 'Я чувствую себя расстроенным', 'Я всё время расстроен', 'Я настолько расстроен, что не могу выдержать это'] },
+{ text: 'Пессимизм', options: ['Я не испытываю особого разочарования в будущем', 'Я испытываю разочарование в будущем', 'Мне нечего ждать от будущего', 'Моё будущее безнадёжно'] },
+{ text: 'Чувство несостоятельности', options: ['Я не чувствую себя неудачником', 'У меня больше неудач, чем обычно', 'Когда я оглядываюсь назад, я вижу много неудач', 'Я полный неудачник'] },
+{ text: 'Неудовлетворённость', options: ['Я получаю от жизни то же удовлетворение, что и раньше', 'Я не получаю от жизни того же удовлетворения, что и раньше', 'Ничто не удовлетворяет меня так, как раньше', 'Меня ничто не удовлетворяет'] },
+{ text: 'Чувство вины', options: ['Я не чувствую себя виноватым', 'Я чувствую себя виноватым', 'Я чувствую себя виноватым большую часть времени', 'Я постоянно чувствую себя виноватым'] },
+{ text: 'Чувство наказания', options: ['Я не чувствую, что наказан', 'Я чувствую, что могу быть наказан', 'Я ожидаю наказания', 'Я чувствую, что наказан'] },
+{ text: 'Нелюбовь к себе', options: ['Я отношусь к себе так же, как и раньше', 'Я стал меньше доверять себе', 'Я разочарован в себе', 'Я ненавижу себя'] },
+{ text: 'Самокритика', options: ['Я не критикую себя больше обычного', 'Я критикую себя больше обычного', 'Я критикую себя за большинство своих поступков', 'Я критикую себя за всё'] },
+{ text: 'Суицидальные мысли', options: ['У меня нет мыслей о самоубийстве', 'У меня бывают мысли о самоубийстве, но я не стал бы их осуществлять', 'У меня бывают мысли о самоубийстве', 'Я бы покончил с собой, будь возможность'] },
+{ text: 'Плаксивость', options: ['Я плачу не больше обычного', 'Я плачу больше обычного', 'Я плачу по любому поводу', 'Я хочу плакать, но не могу'] },
+{ text: 'Возбуждение', options: ['Я не более беспокоен, чем обычно', 'Я более беспокоен, чем обычно', 'Я настолько беспокоен, что не могу сидеть на месте', 'Я настолько беспокоен, что должен постоянно двигаться'] },
+{ text: 'Потеря интереса', options: ['Я не потерял интерес к другим видам деятельности', 'Я меньше интересуюсь другими видами деятельности', 'Я потерял почти весь интерес к другим видам деятельности', 'Я полностью потерял интерес ко всему'] },
+{ text: 'Нерешительность', options: ['Я принимаю решения так же легко, как и раньше', 'Мне труднее принимать решения, чем раньше', 'Мне гораздо труднее принимать решения, чем раньше', 'Мне трудно принять любое решение'] },
+{ text: 'Чувство никчёмности', options: ['Я не чувствую себя никчёмным', 'Я не чувствую себя столь ценным и полезным, как раньше', 'Я чувствую себя менее ценным, чем другие', 'Я чувствую себя никчёмным'] },
+{ text: 'Потеря энергии', options: ['У меня столько же энергии, сколько раньше', 'У меня меньше энергии, чем раньше', 'У меня значительно меньше энергии, чем раньше', 'У меня нет энергии ни на что'] },
+{ text: 'Изменения в режиме сна', options: ['Я сплю так же хорошо, как и раньше', 'Я сплю не так хорошо, как раньше', 'Я просыпаюсь на 1–2 часа раньше обычного', 'Я просыпаюсь на несколько часов раньше обычного и не могу снова заснуть'] },
+{ text: 'Раздражительность', options: ['Я не более раздражителен, чем обычно', 'Я более раздражителен, чем обычно', 'Я значительно более раздражителен, чем обычно', 'Я всё время раздражён'] },
+{ text: 'Изменения аппетита', options: ['Мой аппетит не хуже обычного', 'Мой аппетит не такой хороший, как раньше', 'Мой аппетит значительно хуже', 'У меня совсем нет аппетита'] },
+{ text: 'Трудности концентрации', options: ['Я могу сосредоточиться так же хорошо, как и раньше', 'Я не могу сосредоточиться так же хорошо, как раньше', 'Мне трудно сосредоточиться надолго', 'Я вообще не могу сосредоточиться'] },
+{ text: 'Усталость', options: ['Я устаю не больше обычного', 'Я устаю быстрее, чем раньше', 'Я устаю почти от всего', 'Я слишком устал, чтобы что-либо делать'] },
+{ text: 'Потеря интереса к сексу', options: ['Я не замечаю изменений в своём интересе к сексу', 'Я меньше интересуюсь сексом, чем раньше', 'Я значительно меньше интересуюсь сексом', 'Я полностью потерял интерес к сексу'] }
+];
+
+// Генерация вопросов
+var baiContainer = document.getElementById('bai-questions');
+BAI_QUESTIONS.forEach(function (q, i) {
+var qDiv = document.createElement('div');
+qDiv.innerHTML = '<div class="qtitle">' + (i + 1) + '. ' + q + '</div>' +
+'<div class="radio-group">' +
+BAI_OPTIONS.map(function (opt) {
+return '<label class="radio-item"><input type="radio" name="bai-q' + i + '" value="' + opt.value + '"><span>' + opt.label + '</span></label>';
+}).join('') + '</div>';
+baiContainer.appendChild(qDiv);
+});
+
+var bdiContainer = document.getElementById('bdi-questions');
+BDI_QUESTIONS.forEach(function (q, i) {
+var qDiv = document.createElement('div');
+qDiv.innerHTML = '<div class="qtitle">' + (i + 1) + '. ' + q.text + '</div>' +
+'<div class="radio-group">' +
+q.options.map(function (opt, idx) {
+return '<label class="radio-item"><input type="radio" name="bdi-q' + i + '" value="' + idx + '"><span>' + opt + '</span></label>';
+}).join('') + '</div>';
+bdiContainer.appendChild(qDiv);
+});
+
+document.querySelectorAll('.radio-item input').forEach(function (inp) {
+inp.addEventListener('change', function () {
+var name = inp.name;
+document.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+r.closest('.radio-item').classList.toggle('checked', r.checked);
+});
+});
+});
+
+// Склонение слова "балл"
+function getDeclension(number, one, two, five) {
+var n = Math.abs(number);
+n %= 100;
+if (n >= 5 && n <= 20) return five;
+n %= 10;
+if (n === 1) return one;
+if (n >= 2 && n <= 4) return two;
+return five;
+}
+
+// Копирование
+function fallbackCopy(text, btn) {
+var textarea = document.createElement('textarea');
+textarea.value = text;
+textarea.style.position = 'fixed';
+textarea.style.opacity = '0';
+document.body.appendChild(textarea);
+textarea.select();
+try {
+document.execCommand('copy');
+btn.classList.add('copied');
+btn.textContent = '✓';
+setTimeout(function () {
+btn.classList.remove('copied');
+btn.textContent = '📋';
+}, 2000);
+} catch (e) {
+alert('Не удалось скопировать');
+}
+document.body.removeChild(textarea);
+}
+
+function setupCopyButton(btn, text) {
+if (!btn) return;
+btn.addEventListener('click', function () {
+if (navigator.clipboard && navigator.clipboard.writeText) {
+navigator.clipboard.writeText(text).then(function () {
+btn.classList.add('copied');
+btn.textContent = '✓';
+setTimeout(function () {
+btn.classList.remove('copied');
+btn.textContent = '📋';
+}, 2000);
+}).catch(function () {
+fallbackCopy(text, btn);
+});
+} else {
+fallbackCopy(text, btn);
+}
+});
+}
+
+// Подсчёт ответов по шкале
+function countScale(prefix, totalQuestions) {
+var sum = 0, answered = 0;
+for (var i = 0; i < totalQuestions; i++) {
+var checked = document.querySelector('input[name="' + prefix + '-q' + i + '"]:checked');
+if (checked) { sum += parseInt(checked.value); answered++; }
+}
+return { sum: sum, answered: answered };
+}
+
+// Очистка сводки
+function clearSummary(key) {
+try {
+var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+delete data[key];
+localStorage.setItem('medcalc-summary', JSON.stringify(data));
+} catch (e) {}
+}
+
+// ====== Расчёт ======
+function calcBeck() {
+var aRes = countScale('bai', 21);
+var dRes = countScale('bdi', 21);
+var aEl = document.getElementById('beck-a-result');
+var dEl = document.getElementById('beck-d-result');
+
+// ====== Тревога (BAI) ======
+if (aRes.answered < 21) {
+MedCore.showEmpty(aEl, 'Ответьте на все вопросы шкалы тревоги (' + aRes.answered + '/21)');
+clearSummary('beck-anxiety');
+} else {
+var aLabel, aCls, aAdvice;
+if (aRes.sum <= 7) { aLabel = 'Минимальная тревога'; aCls = 'ok'; aAdvice = 'Наблюдение. Повторный скрининг при изменении состояния.'; }
+else if (aRes.sum <= 15) { aLabel = 'Лёгкая тревога'; aCls = 'ok'; aAdvice = 'Мониторинг, психообразование, техники релаксации.'; }
+else if (aRes.sum <= 25) { aLabel = 'Умеренная тревога'; aCls = 'warn'; aAdvice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).'; }
+else { aLabel = 'Тяжёлая тревога'; aCls = 'danger'; aAdvice = 'Показана терапия. Обратитесь к специалисту.'; }
+
+var aUnit = getDeclension(aRes.sum, 'балл', 'балла', 'баллов');
+aEl.className = 'result ' + aCls;
+aEl.style.position = 'relative';
+aEl.innerHTML =
+'<button class="copy-result-btn" id="beck-a-copy-btn" title="Копировать результат">📋</button>' +
+'<div class="value">' + aRes.sum + '<span class="unit"> ' + aUnit + '</span></div>' +
+'<div class="ref">Тревога (BAI): ' + aLabel + '</div>' +
+'<div class="ref" style="margin-top: 6px; font-size: .85rem; color: var(--muted);">' + aAdvice + '</div>';
+
+setupCopyButton(document.getElementById('beck-a-copy-btn'),
+'BAI (тревога Бека): ' + aRes.sum + ' ' + aUnit + ' — ' + aLabel + '\n' + aAdvice);
+
+if (window.MedCore && window.MedCore.saveToSummary) {
+MedCore.saveToSummary('beck-anxiety', 'BAI (тревога)', aRes.sum + ' ' + aUnit + ' — ' + aLabel, '', aCls);
+}
+}
+
+// ====== Депрессия (BDI) ======
+if (dRes.answered < 21) {
+MedCore.showEmpty(dEl, 'Ответьте на все вопросы шкалы депрессии (' + dRes.answered + '/21)');
+clearSummary('beck-depression');
+} else {
+var dLabel, dCls, dAdvice;
+if (dRes.sum <= 9) { dLabel = 'Нет депрессии'; dCls = 'ok'; dAdvice = 'Наблюдение. Повторный скрининг при изменении состояния.'; }
+else if (dRes.sum <= 15) { dLabel = 'Лёгкая депрессия'; dCls = 'ok'; dAdvice = 'Мониторинг, психообразование, поддержка.'; }
+else if (dRes.sum <= 29) { dLabel = 'Умеренная депрессия'; dCls = 'warn'; dAdvice = 'Рекомендуется консультация специалиста (психотерапевт, психиатр).'; }
+else { dLabel = 'Тяжёлая депрессия'; dCls = 'danger'; dAdvice = 'Показана терапия. Обратитесь к специалисту.'; }
+
+// Проверка суицидальных мыслей (вопрос 9, ответы 2–3)
+var suicidal = false;
+var q9 = document.querySelector('input[name="bdi-q8"]:checked');
+if (q9 && parseInt(q9.value) >= 2) suicidal = true;
+
+var suicidalBlock = '';
+if (suicidal) {
+suicidalBlock = '<div style="background: var(--danger-bg); color: var(--danger); padding: 10px 12px; border-radius: 8px; margin-top: 10px; border-left: 4px solid var(--danger); font-size: .88rem;">' +
+'<strong>⚠ Внимание:</strong> отмечены суицидальные мысли. Требуется срочная консультация психиатра.' +
+'</div>';
+}
+
+var dUnit = getDeclension(dRes.sum, 'балл', 'балла', 'баллов');
+dEl.className = 'result ' + dCls;
+dEl.style.position = 'relative';
+dEl.innerHTML =
+'<button class="copy-result-btn" id="beck-d-copy-btn" title="Копировать результат">📋</button>' +
+'<div class="value">' + dRes.sum + '<span class="unit"> ' + dUnit + '</span></div>' +
+'<div class="ref">Депрессия (BDI): ' + dLabel + '</div>' +
+'<div class="ref" style="margin-top: 6px; font-size: .85rem; color: var(--muted);">' + dAdvice + '</div>' +
+suicidalBlock;
+
+var dCopyText = 'BDI (депрессия Бека): ' + dRes.sum + ' ' + dUnit + ' — ' + dLabel + '\n' + dAdvice;
+if (suicidal) dCopyText += '\n⚠ Отмечены суицидальные мысли — требуется срочная консультация психиатра.';
+setupCopyButton(document.getElementById('beck-d-copy-btn'), dCopyText);
+
+if (window.MedCore && window.MedCore.saveToSummary) {
+var dSummaryText = dRes.sum + ' ' + dUnit + ' — ' + dLabel;
+if (suicidal) dSummaryText += ' ⚠ суицидальные мысли';
+MedCore.saveToSummary('beck-depression', 'BDI (депрессия)', dSummaryText, '', dCls);
+}
+}
+}
+
+document.getElementById('beck-calc-btn').addEventListener('click', calcBeck);
+
+document.getElementById('beck-reset-btn').addEventListener('click', function () {
+document.querySelectorAll('#panel-beck input[type=radio]').forEach(function (r) {
+r.checked = false;
+r.closest('.radio-item').classList.remove('checked');
+});
+MedCore.showEmpty(document.getElementById('beck-a-result'), 'Ответьте на вопросы шкалы тревоги');
+MedCore.showEmpty(document.getElementById('beck-d-result'), 'Ответьте на вопросы шкалы депрессии');
+clearSummary('beck-anxiety');
+clearSummary('beck-depression');
+});
+
+calcBeck();
+MedCore.init();
+});
+</script>
+</body>
+</html>
