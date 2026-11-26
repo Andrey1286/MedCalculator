@@ -47,6 +47,39 @@
     .result-table td:last-child { text-align: right; font-weight: 600; }
 
     .hint { font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+    /* Стили для кнопки копирования */
+    .copy-result-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 32px;
+      height: 32px;
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .18s, color .18s, border-color .18s;
+      padding: 0;
+      z-index: 10;
+    }
+
+    .copy-result-btn:hover {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .copy-result-btn.copied {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: var(--ok);
+    }
   </style>
 </head>
 <body>
@@ -133,6 +166,15 @@
   <script>
     document.addEventListener('DOMContentLoaded', function () {
 
+      function clearSummary() {
+        try {
+          var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+          delete data['warfarin-start'];
+          delete data['warfarin-corr'];
+          localStorage.setItem('medcalc-summary', JSON.stringify(data));
+        } catch (e) {}
+      }
+
       function calcWarfarin() {
         var age = MedCore.num('wf-age');
         var weight = MedCore.num('wf-weight');
@@ -141,35 +183,48 @@
         var startEl = document.getElementById('wf-start-result');
         var corrEl = document.getElementById('wf-corr-result');
 
-        // Стартовая доза
+        // ====== Стартовая доза ======
         if (age && weight) {
           var startDose;
+          var note, cls;
+          
           if (age >= 70 || weight < 50) {
             startDose = 2.5;
+            note = 'Возраст ≥70 или вес <50 кг — сниженная стартовая доза';
+            cls = 'warn';
           } else if (age >= 60 || weight < 60) {
             startDose = 3;
+            note = 'Возраст ≥60 или вес <60 кг — умеренная стартовая доза';
+            cls = 'ok';
           } else {
             startDose = 5;
-          }
-
-          var note = '';
-          if (age >= 70 || weight < 50) {
-            note = 'Возраст ≥70 или вес <50 кг — сниженная стартовая доза';
-          } else if (age >= 60 || weight < 60) {
-            note = 'Возраст ≥60 или вес <60 кг — умеренная стартовая доза';
-          } else {
             note = 'Стандартная стартовая доза';
+            cls = 'ok';
           }
 
-          MedCore.render(startEl, startDose.toFixed(1), ' мг/сут', 'Стартовая доза', 'ok', note);
+          MedCore.render(startEl, startDose.toFixed(1), ' мг/сут', 'Стартовая доза', cls, note);
+
+          // Явное сохранение в сводку
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('warfarin-start', 'Варфарин (старт)', startDose.toFixed(1) + ' мг/сут — ' + note, '', cls);
+          }
         } else {
           MedCore.showEmpty(startEl, 'Введите возраст и вес для расчёта стартовой дозы');
+          // Очищаем старую запись при сбросе полей
+          if (window.MedCore && window.MedCore.saveToSummary) {
+             // Используем локальную функцию clearSummary ниже, но здесь просто удалим ключ
+             try {
+               var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+               delete data['warfarin-start'];
+               localStorage.setItem('medcalc-summary', JSON.stringify(data));
+             } catch(e){}
+          }
         }
 
-        // Коррекция по МНО
+        // ====== Коррекция по МНО ======
         if (inr && weekly) {
           var targetLow = 2.0, targetHigh = 3.0;
-          var newWeekly, action, cls;
+          var newWeekly, action, cls, summaryText;
 
           if (inr < targetLow) {
             var deficit = targetLow - inr;
@@ -177,26 +232,34 @@
             newWeekly = weekly * (1 + increasePct / 100);
             action = 'Увеличить недельную дозу на ' + Math.round(increasePct) + '%';
             cls = 'warn';
+            summaryText = action + ' (МНО ' + inr.toFixed(1) + ')';
           } else if (inr > targetHigh) {
             if (inr > 4.5) {
               newWeekly = weekly * 0.7;
               action = 'Пропустить 1–2 дозы, затем снизить на 30%';
               cls = 'danger';
+              summaryText = action + ' (МНО ' + inr.toFixed(1) + ' > 4.5)';
             } else {
               var excess = inr - targetHigh;
               var decreasePct = Math.min(excess * 10, 20);
               newWeekly = weekly * (1 - decreasePct / 100);
               action = 'Снизить недельную дозу на ' + Math.round(decreasePct) + '%';
               cls = 'warn';
+              summaryText = action + ' (МНО ' + inr.toFixed(1) + ')';
             }
           } else {
             newWeekly = weekly;
             action = 'Доза не меняется';
             cls = 'ok';
+            summaryText = action + ' (МНО ' + inr.toFixed(1) + ' в цели)';
           }
 
           var newDaily = (newWeekly / 7).toFixed(1);
-          var tableHtml = '<table class="result-table">' +
+          
+          // Подготовка HTML с кнопкой копирования
+          corrEl.style.position = 'relative';
+          var tableHtml = '<button class="copy-result-btn" id="wf-copy-btn" title="Копировать результат">📋</button>' +
+            '<table class="result-table">' +
             '<tr><th>Параметр</th><th>Значение</th></tr>' +
             '<tr><td>Текущее МНО</td><td>' + inr.toFixed(1) + '</td></tr>' +
             '<tr><td>Текущая недельная доза</td><td>' + weekly + ' мг</td></tr>' +
@@ -209,11 +272,69 @@
             '<div class="ref">Целевое МНО: 2.0–3.0</div>' +
             tableHtml;
 
-          MedCore.attachCopyButtons();
-          MedCore.updateCopyButtons();
+          // Обработчик кнопки копирования
+          var copyBtn = document.getElementById('wf-copy-btn');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', function () {
+              var text = 'Коррекция варфарина:\n' +
+                'Действие: ' + action + '\n' +
+                'Текущее МНО: ' + inr.toFixed(1) + '\n' +
+                'Было: ' + weekly + ' мг/нед\n' +
+                'Стало: ' + Math.round(newWeekly) + ' мг/нед (' + newDaily + ' мг/сут)';
+              
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function () {
+                  copyBtn.classList.add('copied');
+                  copyBtn.textContent = '✓';
+                  setTimeout(function () {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.textContent = '';
+                  }, 2000);
+                }).catch(function () { fallbackCopy(text, copyBtn); });
+              } else {
+                fallbackCopy(text, copyBtn);
+              }
+            });
+          }
+
+          // Явное сохранение в сводку
+          if (window.MedCore && window.MedCore.saveToSummary) {
+            MedCore.saveToSummary('warfarin-corr', 'Варфарин (коррекция)', summaryText, '', cls);
+          }
+
         } else {
           MedCore.showEmpty(corrEl, 'Введите МНО и недельную дозу для коррекции');
+          // Удаляем кнопку, если была
+          var oldBtn = corrEl.querySelector('.copy-result-btn');
+          if (oldBtn) oldBtn.remove();
+          // Очищаем сводку
+          try {
+            var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+            delete data['warfarin-corr'];
+            localStorage.setItem('medcalc-summary', JSON.stringify(data));
+          } catch(e){}
         }
+      }
+
+      function fallbackCopy(text, btn) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          btn.classList.add('copied');
+          btn.textContent = '✓';
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            btn.textContent = '';
+          }, 2000);
+        } catch (e) {
+          alert('Не удалось скопировать');
+        }
+        document.body.removeChild(textarea);
       }
 
       document.getElementById('wf-calc-btn').addEventListener('click', calcWarfarin);
@@ -224,6 +345,12 @@
         });
         MedCore.showEmpty(document.getElementById('wf-start-result'), 'Введите возраст и вес для расчёта стартовой дозы');
         MedCore.showEmpty(document.getElementById('wf-corr-result'), 'Введите МНО и недельную дозу для коррекции');
+        
+        // Удаляем кнопку копирования если есть
+        var oldBtn = document.getElementById('wf-corr-result').querySelector('.copy-result-btn');
+        if (oldBtn) oldBtn.remove();
+
+        clearSummary();
       });
 
       MedCore.init();
