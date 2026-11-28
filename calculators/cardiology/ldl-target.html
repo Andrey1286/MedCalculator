@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Целевой ЛПНП — медицинские калькуляторы</title>
+<link rel="stylesheet" href="../../assets/css/base.css">
+<script src="../../assets/js/core.js"></script>
+<script src="../../assets/js/bridge.js"></script>
+<style>
+a.file-btn {
+text-decoration: none;
+}
+.qtitle {
+font-weight: 700;
+margin: 16px 0 8px;
+font-size: .92rem;
+color: var(--text);
+}
+.qtitle:first-child {
+margin-top: 0;
+}
+.hint {
+font-size: .72rem;
+color: var(--muted);
+margin-top: 4px;
+}
+.checks {
+display: grid;
+gap: 8px;
+}
+.check {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 10px 14px;
+border: 1.5px solid var(--border);
+border-radius: 8px;
+cursor: pointer;
+transition: border-color .18s, background .18s;
+user-select: none;
+font-size: .88rem;
+}
+.check:hover {
+border-color: var(--accent);
+background: var(--info);
+}
+.check input {
+display: none;
+}
+.check .box {
+width: 20px;
+height: 20px;
+border: 2px solid var(--border);
+border-radius: 5px;
+flex-shrink: 0;
+display: grid;
+place-items: center;
+transition: all .18s;
+position: relative;
+}
+.check .box::after {
+content: '';
+width: 10px;
+height: 6px;
+border-left: 2.5px solid #fff;
+border-bottom: 2.5px solid #fff;
+transform: rotate(-45deg) scale(0);
+transition: transform .18s;
+margin-top: -3px;
+}
+.check input:checked + .box {
+background: var(--accent);
+border-color: var(--accent);
+}
+.check input:checked + .box::after {
+transform: rotate(-45deg) scale(1);
+}
+.check input:checked ~ .lbl {
+font-weight: 600;
+color: var(--text);
+}
+.check .lbl {
+color: var(--muted);
+transition: color .18s;
+}
+.btn-row {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+margin-top: 16px;
+}
+.btn {
+flex: 1 1 200px;
+padding: 12px 16px;
+font-size: .95rem;
+font-weight: 600;
+border-radius: 10px;
+border: 1.5px solid transparent;
+cursor: pointer;
+transition: background .18s, transform .1s, box-shadow .18s;
+}
+.btn:active {
+transform: scale(.98);
+}
+.btn-primary {
+background: linear-gradient(135deg, var(--accent), var(--accent-2));
+color: #fff;
+box-shadow: 0 2px 10px rgba(37,99,235,.25);
+}
+.btn-primary:hover {
+box-shadow: 0 4px 14px rgba(37,99,235,.35);
+}
+.btn-secondary {
+background: var(--card);
+color: var(--text);
+border-color: var(--border);
+}
+.btn-secondary:hover {
+background: var(--info);
+}
+.conditional-block {
+margin-top: 12px;
+padding: 12px;
+background: var(--info);
+border-radius: 8px;
+border: 1px solid var(--border);
+}
+.reasons-list {
+margin: 8px 0;
+padding-left: 20px;
+font-size: .88rem;
+}
+.reasons-list li {
+margin-bottom: 4px;
+}
+.copy-result-btn {
+position: absolute;
+top: 10px;
+right: 10px;
+width: 32px;
+height: 32px;
+background: var(--card);
+color: var(--muted);
+border: 1px solid var(--border);
+border-radius: 6px;
+cursor: pointer;
+font-size: 1rem;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+transition: background .18s, color .18s, border-color .18s;
+padding: 0;
+z-index: 10;
+}
+.copy-result-btn:hover {
+background: var(--accent-soft);
+color: var(--accent);
+border-color: var(--accent);
+}
+.copy-result-btn.copied {
+background: var(--ok-bg);
+color: var(--ok);
+border-color: var(--ok);
+}
+</style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<div class="wrap">
+<header>
+<div>
+<h1>Целевой ЛПНП</h1>
+<p class="subtitle">Кардиология</p>
+</div>
+<div class="header-controls">
+<a class="file-btn" href="../../index.html">
+<span>←</span> На главную
+</a>
+</div>
+</header>
+<!-- ================= Целевой ЛПНП ================= -->
+<div class="panel active panel-wide-result" id="panel-ldl-target">
+<h2>Индивидуальный целевой уровень ЛПНП</h2>
+<p class="desc">Определение категории риска и целевого ЛПНП по рекомендациям РКО/ЕОК</p>
+<div class="panel-body">
+<div class="panel-fields-col">
+<div class="qtitle">1. Возраст</div>
+<div class="grid">
+<div class="field">
+<label>Возраст (лет)</label>
+<input
+type="number"
+id="ldl-age"
+step="1"
+placeholder="Например, 62"
+data-min="18"
+data-max="120"
+>
+<div class="field-error" id="ldl-age-error"></div>
+</div>
+</div>
+<div class="qtitle">2. Клинически выраженное АССЗ</div>
+<div class="checks">
+<label class="check"><input type="checkbox" id="ldl-mi"><span class="box"></span><span class="lbl">ИМ в анамнезе</span></label>
+<label class="check"><input type="checkbox" id="ldl-angina"><span class="box"></span><span class="lbl">Стенокардия / ИБС</span></label>
+<label class="check"><input type="checkbox" id="ldl-revasc"><span class="box"></span><span class="lbl">Реваскуляризация (стентирование, АКШ)</span></label>
+<label class="check"><input type="checkbox" id="ldl-stroke"><span class="box"></span><span class="lbl">Инсульт / ТИА</span></label>
+<label class="check"><input type="checkbox" id="ldl-pad"><span class="box"></span><span class="lbl">Заболевание периферических артерий</span></label>
+<label class="check"><input type="checkbox" id="ldl-plaque"><span class="box"></span><span class="lbl">Значимые бляшки по данным визуализации (УЗИ, КТ)</span></label>
+</div>
+<div class="qtitle">3. Сахарный диабет</div>
+<div class="field">
+<label>Тип СД</label>
+<select id="ldl-dm">
+<option value="none">Нет СД</option>
+<option value="dm1">СД 1 типа</option>
+<option value="dm2">СД 2 типа</option>
+</select>
+</div>
+<div class="conditional-block" id="ldl-dm-block" style="display:none">
+<div class="grid">
+<div class="field" id="ldl-dm-onset-field" style="display:none">
+<label>Возраст начала СД 1 типа (лет)</label>
+<input
+type="number"
+id="ldl-dm-onset"
+step="1"
+placeholder="Например, 28"
+data-min="0"
+data-max="120"
+>
+<div class="field-error" id="ldl-dm-onset-error"></div>
+</div>
+<div class="field">
+<label>Длительность СД (лет)</label>
+<input
+type="number"
+id="ldl-dm-duration"
+step="1"
+placeholder="Например, 12"
+data-min="0"
+data-max="100"
+>
+<div class="field-error" id="ldl-dm-duration-error"></div>
+</div>
+<div class="field">
+<label>Крупные факторы риска</label>
+<select id="ldl-dm-rf">
+<option value="0">Нет</option>
+<option value="1">1 (АГ, курение, дислипидемия, ожирение)</option>
+<option value="2">2</option>
+<option value="3">3 и более</option>
+</select>
+</div>
+</div>
+<label class="check" style="margin-top:10px"><input type="checkbox" id="ldl-dm-tod"><span class="box"></span><span class="lbl">Поражение органов-мишеней (ретинопатия, нефропатия, нейропатия, ГЛЖ, микроальбуминурия)</span></label>
+</div>
+<div class="qtitle">4. Заболевание почек</div>
+<div class="field">
+<label>Функция почек</label>
+<select id="ldl-kidney">
+<option value="none">Нет заболевания почек</option>
+<option value="moderate">Умеренное (СКФ 30–59 мл/мин/1.73м²)</option>
+<option value="severe">Тяжёлое (СКФ &lt;30 мл/мин/1.73м²)</option>
+</select>
+</div>
+<div class="qtitle" id="ldl-score2-title" style="display:none">5. SCORE2 (для возраста ≥40 лет)</div>
+<div class="field" id="ldl-score2-field" style="display:none">
+<label>Риск по SCORE2 (%)</label>
+<input
+type="number"
+id="ldl-score2"
+step="0.1"
+placeholder="Например, 7.5"
+data-min="0"
+data-max="100"
+>
+<div class="field-error" id="ldl-score2-error"></div>
+<div class="hint">Рассчитайте в калькуляторе SCORE2 и введите значение в %</div>
+</div>
+<div class="qtitle">6. Дополнительные факторы риска</div>
+<div class="grid">
+<div class="field">
+<label>Общий холестерин (ммоль/л)</label>
+<input
+type="number"
+id="ldl-tc"
+step="0.1"
+placeholder="Например, 8.2"
+data-min="0"
+data-max="30"
+>
+<div class="field-error" id="ldl-tc-error"></div>
+<div class="hint">Если ≥8 ммоль/л — высокий риск</div>
+</div>
+<div class="field">
+<label>ЛПНП (ммоль/л)</label>
+<input
+type="number"
+id="ldl-ldl"
+step="0.1"
+placeholder="Например, 5.2"
+data-min="0"
+data-max="30"
+>
+<div class="field-error" id="ldl-ldl-error"></div>
+<div class="hint">Если ≥4,9 ммоль/л — высокий риск (семейная гиперхолестеринемия)</div>
+</div>
+</div>
+<div class="checks" style="margin-top:10px">
+<label class="check"><input type="checkbox" id="ldl-bp180"><span class="box"></span><span class="lbl">АД ≥ 180/110 мм рт.ст.</span></label>
+<label class="check"><input type="checkbox" id="ldl-fam"><span class="box"></span><span class="lbl">Семейный анамнез раннего АССЗ (мужчины &lt;55 лет, женщины &lt;65 лет)</span></label>
+<label class="check"><input type="checkbox" id="ldl-smoke"><span class="box"></span><span class="lbl">Курение</span></label>
+</div>
+<div class="btn-row">
+<button type="button" class="btn btn-primary" id="ldl-calc-btn">Рассчитать</button>
+<button type="button" class="btn btn-secondary" id="ldl-reset-btn">Сбросить</button>
+</div>
+</div>
+<div class="panel-result-col">
+<div class="result" id="ldl-result">
+<span class="empty-msg">Введите данные и нажмите «Рассчитать»</span>
+</div>
+</div>
+</div>
+<details class="note">
+<summary>О категориях риска и целевых значениях</summary>
+<div class="note-content">
+<p><strong>Очень высокий риск:</strong> целевой ЛПНП &lt; 1,4 ммоль/л и снижение ≥50% от исходного. Клинически выраженное АССЗ, СД с ПОМ или ≥3 крупными ФР, тяжёлое заболевание почек (СКФ &lt;30), SCORE ≥10%.</p>
+<p><strong>Высокий риск:</strong> целевой ЛПНП &lt; 1,8 ммоль/л и снижение ≥50%. СД 2 типа, умеренное заболевание почек (СКФ 30–59), ХС ≥8 ммоль/л, ЛПНП ≥4,9 ммоль/л, АД ≥180/110, SCORE 5–10%.</p>
+<p><strong>Умеренный риск:</strong> целевой ЛПНП &lt; 2,6 ммоль/л. SCORE 1–5%.</p>
+<p><strong>Низкий риск:</strong> целевой ЛПНП &lt; 3,0 ммоль/л. SCORE &lt;1%.</p>
+<p><strong>Важно:</strong> калькулятор опирается на рекомендации РКО/ЕОК по дислипидемии и профилактике ССЗ. Окончательное решение о целевых значениях и терапии принимает лечащий врач.</p>
+</div>
+</details>
+</div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+// Обработка запятой как точки
+function getNum(id) {
+var inp = document.getElementById(id);
+if (!inp) return NaN;
+var val = inp.value.replace(',', '.');
+var num = parseFloat(val);
+return isNaN(num) ? NaN : num;
+}
+
+// Стилизация чекбоксов
+document.querySelectorAll('.check input').forEach(function (inp) {
+inp.addEventListener('change', function () {
+inp.closest('.check').classList.toggle('checked', inp.checked);
+});
+});
+
+// Целевые значения по категориям риска
+var TARGETS = [
+{ level: 0, name: 'Низкий риск', cls: 'ok', target: '< 3,0', advice: 'Оптимизация образа жизни. Контроль липидного профиля.' },
+{ level: 1, name: 'Умеренный риск', cls: 'warn', target: '< 2,6', advice: 'Оптимизация образа жизни. Рассмотреть фармакотерапию при недостижении цели.' },
+{ level: 2, name: 'Высокий риск', cls: 'danger', target: '< 1,8', advice: 'Интенсивная статинотерапия ± эзетимиб. Снижение ЛПНП ≥50% от исходного.' },
+{ level: 3, name: 'Очень высокий риск', cls: 'danger', target: '< 1,4', advice: 'Интенсивная статинотерапия ± эзетимиб. Снижение ЛПНП ≥50% от исходного. При недостижении цели — ингибиторы PCSK9.' }
+];
+
+// Динамическое отображение полей
+function updateVisibility() {
+var age = getNum('ldl-age');
+var dm = document.getElementById('ldl-dm').value;
+
+// Поле SCORE2 показываем при возрасте >= 40
+var score2Field = document.getElementById('ldl-score2-field');
+var score2Title = document.getElementById('ldl-score2-title');
+if (!isNaN(age) && age >= 40) {
+score2Field.style.display = '';
+score2Title.style.display = '';
+} else {
+score2Field.style.display = 'none';
+score2Title.style.display = 'none';
+}
+
+// Блок СД показываем при выборе СД
+var dmBlock = document.getElementById('ldl-dm-block');
+if (dm === 'dm1' || dm === 'dm2') {
+dmBlock.style.display = '';
+} else {
+dmBlock.style.display = 'none';
+}
+
+// Возраст начала показываем только для СД1
+var onsetField = document.getElementById('ldl-dm-onset-field');
+if (dm === 'dm1') {
+onsetField.style.display = '';
+} else {
+onsetField.style.display = 'none';
+}
+}
+
+// Определение категории риска
+function determineCategory(age, score2) {
+var reasons = [];
+var level = -1;
+
+// Клинически выраженное АССЗ или значимые бляшки
+var cvdChecks = ['ldl-mi', 'ldl-angina', 'ldl-revasc', 'ldl-stroke', 'ldl-pad', 'ldl-plaque'];
+var hasCVD = false;
+cvdChecks.forEach(function (id) {
+if (document.getElementById(id).checked) hasCVD = true;
+});
+if (hasCVD) {
+level = Math.max(level, 3);
+reasons.push('Клинически выраженное АССЗ');
+}
+
+// Заболевание почек
+var kidney = document.getElementById('ldl-kidney').value;
+if (kidney === 'severe') {
+level = Math.max(level, 3);
+reasons.push('Тяжёлое заболевание почек (СКФ <30)');
+} else if (kidney === 'moderate') {
+level = Math.max(level, 2);
+reasons.push('Умеренное заболевание почек (СКФ 30–59)');
+}
+
+// СД
+var dm = document.getElementById('ldl-dm').value;
+if (dm === 'dm1' || dm === 'dm2') {
+var dmDuration = getNum('ldl-dm-duration');
+var dmTod = document.getElementById('ldl-dm-tod').checked;
+var dmRf = parseInt(document.getElementById('ldl-dm-rf').value) || 0;
+
+if (dm === 'dm1') {
+var dmOnset = getNum('ldl-dm-onset');
+if (!isNaN(dmOnset) && dmOnset < 35 && !isNaN(dmDuration) && dmDuration >= 20) {
+level = Math.max(level, 3);
+reasons.push('СД 1 типа с ранним началом (<35 лет) и длительностью ≥20 лет');
+} else if (dmTod || dmRf >= 3) {
+level = Math.max(level, 3);
+reasons.push('СД 1 типа с поражением органов-мишеней или ≥3 крупными ФР');
+} else {
+level = Math.max(level, 1);
+reasons.push('СД 1 типа');
+}
+}
+
+if (dm === 'dm2') {
+if (dmTod || dmRf >= 3) {
+level = Math.max(level, 3);
+reasons.push('СД 2 типа с поражением органов-мишеней или ≥3 крупными ФР');
+} else if (!isNaN(dmDuration) && dmDuration >= 10) {
+level = Math.max(level, 2);
+reasons.push('СД 2 типа длительностью ≥10 лет');
+} else {
+level = Math.max(level, 2);
+reasons.push('СД 2 типа');
+}
+}
+}
+
+// Выраженное повышение липидов
+var tc = getNum('ldl-tc');
+var ldl = getNum('ldl-ldl');
+
+if (!isNaN(tc) && tc >= 8) {
+level = Math.max(level, 2);
+reasons.push('Общий холестерин ≥8 ммоль/л');
+}
+if (!isNaN(ldl) && ldl >= 4.9) {
+level = Math.max(level, 2);
+reasons.push('ЛПНП ≥4,9 ммоль/л (семейная гиперхолестеринемия)');
+}
+
+// АД ≥180/110
+if (document.getElementById('ldl-bp180').checked) {
+level = Math.max(level, 2);
+reasons.push('АД ≥ 180/110 мм рт.ст.');
+}
+
+// SCORE2 для >= 40 лет
+if (age >= 40 && !isNaN(score2)) {
+if (score2 >= 10) {
+level = Math.max(level, 3);
+reasons.push('SCORE2 ≥ 10%');
+} else if (score2 >= 5) {
+level = Math.max(level, 2);
+reasons.push('SCORE2 5–10%');
+} else if (score2 >= 1) {
+level = Math.max(level, 1);
+reasons.push('SCORE2 1–5%');
+} else {
+level = Math.max(level, 0);
+reasons.push('SCORE2 < 1%');
+}
+}
+
+// Для < 40 лет: семейный анамнез и курение
+if (age < 40) {
+var hasFam = document.getElementById('ldl-fam').checked;
+var smoking = document.getElementById('ldl-smoke').checked;
+if (hasFam || smoking) {
+level = Math.max(level, 1);
+if (hasFam) reasons.push('Семейный анамнез раннего АССЗ');
+if (smoking) reasons.push('Курение');
+}
+}
+
+// Если категория не определена — низкий риск
+if (level === -1) {
+level = 0;
+reasons.push('Факторы высокого риска не выявлены');
+}
+
+return { level: level, reasons: reasons };
+}
+
+// Очистка сводки
+function clearSummary() {
+try {
+var data = JSON.parse(localStorage.getItem('medcalc-summary')) || {};
+delete data['ldl-target'];
+localStorage.setItem('medcalc-summary', JSON.stringify(data));
+} catch (e) {}
+}
+
+// Копирование
+function fallbackCopy(text, btn) {
+var textarea = document.createElement('textarea');
+textarea.value = text;
+textarea.style.position = 'fixed';
+textarea.style.opacity = '0';
+document.body.appendChild(textarea);
+textarea.select();
+try {
+document.execCommand('copy');
+btn.classList.add('copied');
+btn.textContent = '✓';
+setTimeout(function () {
+btn.classList.remove('copied');
+btn.textContent = '📋';
+}, 2000);
+} catch (e) {
+alert('Не удалось скопировать');
+}
+document.body.removeChild(textarea);
+}
+
+function setupCopyButton(btn, text) {
+if (!btn) return;
+btn.addEventListener('click', function () {
+if (navigator.clipboard && navigator.clipboard.writeText) {
+navigator.clipboard.writeText(text).then(function () {
+btn.classList.add('copied');
+btn.textContent = '✓';
+setTimeout(function () {
+btn.classList.remove('copied');
+btn.textContent = '📋';
+}, 2000);
+}).catch(function () {
+fallbackCopy(text, btn);
+});
+} else {
+fallbackCopy(text, btn);
+}
+});
+}
+
+// Основной расчёт
+function calcLDLTarget() {
+var age = getNum('ldl-age');
+var el = document.getElementById('ldl-result');
+
+if (!age || age < 18 || age > 120) {
+MedCore.showEmpty(el, 'Введите возраст (18–120 лет)');
+clearSummary();
+return;
+}
+
+// Валидация SCORE2 для >= 40
+var score2 = NaN;
+if (age >= 40) {
+score2 = getNum('ldl-score2');
+if (isNaN(score2) || score2 < 0 || score2 > 100) {
+MedCore.showEmpty(el, 'Введите значение SCORE2 (%) — рассчитайте в калькуляторе SCORE2');
+clearSummary();
+return;
+}
+}
+
+// Валидация СД
+var dm = document.getElementById('ldl-dm').value;
+if (dm === 'dm1' || dm === 'dm2') {
+var dmDuration = getNum('ldl-dm-duration');
+if (isNaN(dmDuration) || dmDuration < 0) {
+MedCore.showEmpty(el, 'Укажите длительность СД');
+clearSummary();
+return;
+}
+if (dm === 'dm1') {
+var dmOnset = getNum('ldl-dm-onset');
+if (isNaN(dmOnset) || dmOnset < 0 || dmOnset > age) {
+MedCore.showEmpty(el, 'Укажите возраст начала СД 1 типа');
+clearSummary();
+return;
+}
+}
+}
+
+// Определение категории
+var result = determineCategory(age, score2);
+var target = TARGETS[result.level];
+
+// Формирование обоснования
+var reasonsHtml = '<ul class="reasons-list">';
+result.reasons.forEach(function (r) {
+reasonsHtml += '<li>' + r + '</li>';
+});
+reasonsHtml += '</ul>';
+
+el.className = 'result ' + target.cls;
+el.style.position = 'relative';
+el.innerHTML =
+'<button class="copy-result-btn" id="ldl-copy-btn" title="Копировать результат">📋</button>' +
+'<div class="value">' + target.target + '<span class="unit"> ммоль/л</span></div>' +
+'<div class="ref">Целевой ЛПНП · ' + target.name + '</div>' +
+'<div class="ref" style="margin-top: 6px; font-size: .85rem; color: var(--muted);">Обоснование категории риска:</div>' +
+reasonsHtml +
+'<div class="ref" style="font-size: .85rem; color: var(--muted);">' + target.advice + '</div>';
+
+// Кнопка копирования
+var copyText = 'Целевой ЛПНП: ' + target.target + ' ммоль/л (' + target.name + ')\n' +
+'Обоснование: ' + result.reasons.join('; ') + '\n' +
+'Рекомендации: ' + target.advice;
+setupCopyButton(document.getElementById('ldl-copy-btn'), copyText);
+
+// Сохранение в сводку
+if (window.MedCore && window.MedCore.saveToSummary) {
+var summaryText = target.target + ' ммоль/л · ' + target.name;
+MedCore.saveToSummary('ldl-target', 'Целевой ЛПНП', summaryText, '', target.cls);
+}
+}
+
+// Обработчики
+document.getElementById('ldl-age').addEventListener('input', updateVisibility);
+document.getElementById('ldl-dm').addEventListener('change', updateVisibility);
+document.getElementById('ldl-calc-btn').addEventListener('click', calcLDLTarget);
+
+document.getElementById('ldl-reset-btn').addEventListener('click', function () {
+document.getElementById('ldl-age').value = '';
+document.getElementById('ldl-score2').value = '';
+document.getElementById('ldl-dm').value = 'none';
+document.getElementById('ldl-dm-onset').value = '';
+document.getElementById('ldl-dm-duration').value = '';
+document.getElementById('ldl-dm-rf').value = '0';
+document.getElementById('ldl-dm-tod').checked = false;
+document.getElementById('ldl-kidney').value = 'none';
+document.getElementById('ldl-tc').value = '';
+document.getElementById('ldl-ldl').value = '';
+['ldl-mi', 'ldl-angina', 'ldl-revasc', 'ldl-stroke', 'ldl-pad', 'ldl-plaque',
+'ldl-bp180', 'ldl-fam', 'ldl-smoke'].forEach(function (id) {
+document.getElementById(id).checked = false;
+});
+document.querySelectorAll('#panel-ldl-target .check').forEach(function (c) {
+c.classList.remove('checked');
+});
+updateVisibility();
+MedCore.showEmpty(document.getElementById('ldl-result'), 'Введите данные и нажмите «Рассчитать»');
+clearSummary();
+});
+
+updateVisibility();
+MedCore.init();
+});
+</script>
+</body>
+</html>
